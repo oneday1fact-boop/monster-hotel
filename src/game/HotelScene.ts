@@ -11,6 +11,8 @@ import { savePreferences } from '../platform/preferences';
 import { getHint } from '../domain/hints';
 import { ui, conditions, characters, readLocale, saveLocale, type Locale } from '../i18n/catalog';
 import { showDetails, type Details } from './details';
+import { viewportMetrics } from './viewport';
+import { drawRoomLife } from './roomLife';
 import { queueX, queueY, roomPoint, residentPoint, roomStyle, floorName } from './layout';
 import { roomDesign, dollhouseUI } from '../i18n/dollhouse';
 import { registerArt, portrait, roomPortrait, reducedMotion } from './art';
@@ -20,6 +22,8 @@ import { readSave, complete, writeSave, type Save } from '../platform/save';
 const C = { ink: 0x100e25, panel: 0x24203e, gold: 0xf2cc83, muted: '#b9b0ce', white: '#fff3df' };
 export class HotelScene extends Phaser.Scene {
   private save!: Save;
+  private viewportWidth = 0;
+  private viewportHeight = 0;
   private feedback = new Feedback();
   private get ht() { return hotelUI[this.locale]; }
   private assignment: Assignment = {};
@@ -41,6 +45,24 @@ export class HotelScene extends Phaser.Scene {
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.svg(`room-${style}`, `/art/rooms/${style}.svg`);
   }
   create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedback.dispose(); this.dismissDetails?.(); }); this.title(); }
+  update() {
+    this.resizeViewport();
+    const m = viewportMetrics(this.scale.width, this.scale.height);
+    for (const object of this.children.list) {
+      if (!(object instanceof Phaser.GameObjects.Text) && !(object instanceof Phaser.GameObjects.Arc) && !object.getData('viewportAspect')) continue;
+      const obj = object as Phaser.GameObjects.Text | Phaser.GameObjects.Container | Phaser.GameObjects.Arc;
+      let base = obj.getData('viewportScale') as { x: number; y: number } | undefined;
+      if (!base) { base = { x: obj.scaleX, y: obj.scaleY }; obj.setData('viewportScale', base); }
+      obj.setScale(base.x * m.aspectX, base.y * m.aspectY);
+    }
+  }
+  private resizeViewport() {
+    const width = this.scale.width; const height = this.scale.height;
+    if (width === this.viewportWidth && height === this.viewportHeight) return;
+    this.viewportWidth = width; this.viewportHeight = height;
+    const m = viewportMetrics(width, height);
+    this.cameras.main.setViewport(0, 0, width, height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
+  }
   private text(x: number, y: number, text: string, size = 20, color = C.white) {
     return this.add.text(x, y, text, { fontFamily: 'Georgia, "Noto Sans TC", serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setOrigin(.5);
   }
@@ -48,6 +70,7 @@ export class HotelScene extends Phaser.Scene {
     this.dismissDetails?.(); this.dismissDetails = undefined;
     this.setBusy(false);
     this.tweens.killAll(); this.children.removeAll(true);
+    this.resizeViewport();
     this.cameras.main.setBackgroundColor(C.ink);
     const g = this.add.graphics();
     g.fillStyle(0x191630).fillRoundedRect(12, 12, 820, 456, 28);
@@ -132,7 +155,7 @@ export class HotelScene extends Phaser.Scene {
     this.level = level; this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.queueArrival = true; this.play();
   }
   private monster(x: number, y: number, guest: Guest, activity: 'queue' | 'room' = 'queue') {
-    return drawMonster(this, x, y, guest, activity);
+    return drawMonster(this, x, y, guest, activity).setData('viewportAspect', true);
   }
 
   private setBusy(busy: boolean) {
@@ -156,11 +179,15 @@ export class HotelScene extends Phaser.Scene {
     frame.fillStyle(0x5a425c).fillRoundedRect(30, 348, 66, 67, 10);
     frame.lineStyle(2, C.gold, .5).strokeRoundedRect(43, 355, 40, 45, 16);
     this.text(63, 407, dollhouseUI[this.locale].waiting, 9, '#f2cc83');
-    const selection = this.add.ellipse(0, 0, 76, 72).setStrokeStyle(2, C.gold, .8).setVisible(false).setDepth(5);
+    const selection = this.add.ellipse(0, 0, 76, 72).setStrokeStyle(2, C.gold, .8).setVisible(false).setDepth(5).setData('viewportAspect', true);
     const bindGuest = (avatar: Phaser.GameObjects.Container, guest: Guest) => {
       avatar.setInteractive({ useHandCursor: true }).setData('guest', guest.id); this.input.setDraggable(avatar);
       avatar.on('pointerdown', () => {
         this.selected = guest.id; selection.setPosition(avatar.x, avatar.y).setVisible(true);
+        if (this.assignment[guest.id] && !reducedMotion()) {
+          const heart = this.text(avatar.x, avatar.y - 30, '♥', 17, '#ef9bb4').setDepth(12);
+          this.tweens.add({ targets: heart, y: avatar.y - 48, alpha: 0, duration: 650, onComplete: () => heart.destroy() });
+        }
         status.setText(`${this.t.select} ${characters[this.locale][guest.kind].name} · ${conditions[this.locale][guest.requirement].name}`);
       });
       if (this.selected === guest.id) selection.setPosition(avatar.x, avatar.y).setVisible(true);
@@ -171,6 +198,7 @@ export class HotelScene extends Phaser.Scene {
       const p = roomPoint(room); const style = roomStyle(room);
       this.add.rectangle(p.x, p.y, 362, 108, C.panel);
       if (this.textures.exists(`room-${style}`)) this.add.image(p.x, p.y, `room-${style}`).setDisplaySize(362, 108);
+      drawRoomLife(this, room);
       this.add.rectangle(p.x, p.y - 43, 358, 22, 0x251c32, .75);
       this.add.rectangle(p.x - 73, p.y + 43, 212, 22, 0x251c32, .82);
       const drop = this.add.zone(p.x, p.y, 362, 108).setRectangleDropZone(362, 108).setData('room', room.id);

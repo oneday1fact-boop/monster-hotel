@@ -1,6 +1,6 @@
 # Monster Hotel: Midnight Check-in
 
-Original offline-first landscape puzzle game built from an empty repository with TypeScript, Phaser 3, Vite and Capacitor. Current version: Milestone 5, revised to a cute cartoon hotel cutaway with four distinct rooms and an animated check-in queue. No previous prototype, licensed character design, analytics or live ads are used.
+Original offline-first landscape puzzle game built from an empty repository with TypeScript, Phaser 3, Vite and Capacitor. Current version: fullscreen living-hotel update, revised to a cute cartoon hotel cutaway with four distinct rooms and an animated check-in queue. No previous prototype, licensed character design, analytics or live ads are used.
 
 ## Develop and test
 
@@ -10,8 +10,8 @@ Use Node.js 24 LTS and npm (minimum Node 22.12).
 npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
-npm test                    # 82 unit tests
-npm run test:browser         # 13 Playwright browser tests; starts Vite on 5175
+npm test                    # 86 unit tests
+npm run test:browser         # 15 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
 
@@ -34,9 +34,9 @@ Stage 1 hints explain the method, stage 2 identifies an unresolved guest, and st
 
 ## Presentation, preferences and progression
 
-The 844 × 480 logical canvas scales to fit without cropping. Android is locked landscape. Traditional Chinese is the default; English can be selected and saved. All gameplay art and text are local. Native assets work without Internet; the web dev build needs Vite and is not a PWA.
+The canvas fills the available viewport with no artificial letterboxing. The 844 × 480 design coordinates adapt to wider phones and tablets; text and characters retain their proportions while room layout uses the available space. Resizing preserves the current puzzle. Android is locked landscape and requests immersive system-bar hiding, with transient system navigation available by swiping. Traditional Chinese is the default; English can be selected and saved. All gameplay art and text are local. Native assets work without Internet; the web dev build needs Vite and is not a PWA.
 
-Guests have different procedural room activities: Luno tilts toward a moon bubble, Dou hops, Ember swings and glows, and Rollo sways with a loose bandage ribbon. These are sprite/tween loops, not skeletal or frame-by-frame animation. The operating system's reduced-motion preference skips arrivals, travel and idle loops. The canvas exposes an accessible busy state while characters arrive or walk; input resumes when they finish.
+Guests have different procedural room activities: Luno tilts toward a moon bubble, Dou hops, Ember swings and glows, and Rollo sways with a loose bandage ribbon. The room sets also have flickering fire, moon sparkles, a floating basement glow and a fluttering loft butterfly. Tapping a checked-in guest gives a small heart reaction. These are sprite/tween loops, not skeletal or frame-by-frame animation; a feeding/growth system is not included. The operating system's reduced-motion preference skips arrivals, travel and idle loops. The canvas exposes an accessible busy state while characters arrive or walk; input resumes when they finish.
 
 Each night awards 50 coins once. Three purely cosmetic lobby decorations cost 100/200/300 coins; all can be displayed together. Owned items can be put away and redisplayed for free. Shop, settings, guest/room cards and clues are bilingual. Settings provide independent saved music, SFX and haptic switches. Sound is synthesized locally after interaction and pauses in the background. Haptics default off; the official Capacitor plugin handles native feedback with browser vibration fallback where available. If storage is blocked, settings/purchases report session-only changes.
 
@@ -62,6 +62,9 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 ## Code map
 
 - `src/domain/`: pure puzzle validation/solver, 20 authored nights, progressive hints and cosmetic transactions.
+- `AGENTS.md`: agreed direction, including an actual demonstration screenshot for every future visual update and a clip for motion changes.
+- `src/game/viewport.ts`: full-viewport camera sizing and isotropic actor/text compensation.
+- `src/game/roomLife.ts`: ongoing room ambience.
 - `src/game/layout.ts`: shared cutaway/queue geometry; logical floor 0 is basement and 1 is upper floor.
 - `src/game/HotelScene.ts`: scene navigation, arrivals, room assignment and room activities.
 - `src/game/art.ts`, `drawMonster.ts`: runtime atlas framing, local art and vector fallback.
@@ -73,4 +76,4 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 82 unit checks and 13 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 86 unit checks and 15 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
