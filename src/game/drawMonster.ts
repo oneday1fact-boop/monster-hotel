@@ -1,36 +1,18 @@
 import Phaser from 'phaser';
 import { reducedMotion } from './art';
+import { roomActivity } from './roomActivities';
 import type { Guest } from '../domain/puzzle';
 
 /** Original local cartoon sprites with procedural activity loops and a vector fallback. */
 export function drawMonster(scene: Phaser.Scene, x: number, y: number, guest: Guest, activity: 'queue' | 'room' = 'queue') {
   if (scene.textures.exists('guests-art') && scene.textures.get('guests-art').has(guest.kind)) {
     const image = scene.add.image(0, 0, 'guests-art', guest.kind).setDisplaySize(190, 190);
-    const children: Phaser.GameObjects.GameObject[] = [image];
+    let children: Phaser.GameObjects.GameObject[] = [image];
     if (!reducedMotion()) {
-      if (activity === 'room') {
-        if (guest.kind === 'werewolf') {
-          scene.tweens.chain({ targets: image, loop: -1, tweens: [
-            { x: -22, y: -2, angle: -5, duration: 700, ease: 'Sine.easeInOut', hold: 350 },
-            { x: 12, y: -7, angle: 7, duration: 700, ease: 'Sine.easeInOut', hold: 400 },
-            { x: 0, y: 0, angle: 0, duration: 450 },
-          ] });
-          const moon = scene.add.text(-38, -49, '☾', { fontSize: '22px', color: '#ffe5a0' }); children.push(moon);
-          scene.tweens.add({ targets: moon, alpha: .2, duration: 1300, yoyo: true, repeat: -1 });
-        } else if (guest.kind === 'jiangshi') {
-          scene.tweens.add({ targets: image, y: -18, duration: 280, yoyo: true, repeat: -1, repeatDelay: 480, ease: 'Sine.easeOut' });
-        } else if (guest.kind === 'lantern') {
-          const glow = scene.add.circle(0, 0, 42, 0xffc96a, .16); children.unshift(glow);
-          image.setAngle(-12); scene.tweens.add({ targets: image, angle: 12, y: -9, duration: 750, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-          scene.tweens.add({ targets: glow, alpha: .5, scale: 1.18, duration: 850, yoyo: true, repeat: -1 });
-        } else {
-          scene.tweens.add({ targets: image, angle: 7, y: -4, duration: 850, yoyo: true, repeat: -1, repeatDelay: 500, ease: 'Sine.easeInOut' });
-          const ribbon = scene.add.graphics().lineStyle(5, 0xffefd0).beginPath().moveTo(20, 31).lineTo(40, 35).lineTo(45, 28).strokePath(); children.push(ribbon);
-          scene.tweens.add({ targets: ribbon, angle: -18, scaleX: 1.3, duration: 850, yoyo: true, repeat: -1, repeatDelay: 500 });
-        }
-      } else scene.tweens.add({ targets: image, y: -2, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      if (activity === 'room') children = roomActivity(scene, image, guest);
+      else scene.tweens.add({ targets: image, y: -2, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
-    return scene.add.container(x, y, children).setSize(110, 110);
+    return scene.add.container(x, y, children).setSize(activity === 'room' ? 160 : 110, activity === 'room' ? 120 : 110);
   }
   return drawVectorMonster(scene, x, y, guest);
 }

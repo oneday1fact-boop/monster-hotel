@@ -11,7 +11,7 @@ npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
 npm test                    # 89 unit tests
-npm run test:browser         # 17 Playwright browser tests; starts Vite on 5175
+npm run test:browser         # 18 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
 
@@ -36,7 +36,7 @@ Stage 1 hints explain the method, stage 2 identifies an unresolved guest, and st
 
 The canvas fills the available viewport with no artificial letterboxing. The 844 × 480 design coordinates adapt to wider phones and tablets; text and characters retain their proportions while room layout uses the available space. Resizing preserves the current puzzle. Android is locked landscape and requests immersive system-bar hiding, with transient system navigation available by swiping. Traditional Chinese is the default; English can be selected and saved. All gameplay art and text are local. Native assets work without Internet; the web dev build needs Vite and is not a PWA.
 
-Guests have different procedural room activities: Luno tilts toward a moon bubble, Dou hops, Ember swings and glows, and Rollo sways with a loose bandage ribbon. The room sets also have flickering fire, moon sparkles, a floating basement glow and a fluttering loft butterfly. Tapping a checked-in guest gives a small heart reaction. These are sprite/tween loops, not skeletal or frame-by-frame animation; a feeding/growth system is not included. The operating system's reduced-motion preference skips arrivals, travel and idle loops. The canvas exposes an accessible busy state while characters arrive or walk; input resumes when they finish.
+Guests have different procedural room activities: Luno crouches and pounces on a moonbeam, Dou practices three hops with landing ripples, Ember plays with orbiting fireflies, and Rollo unwinds and tidies linen from a spool. The room sets also have flickering fire, moon sparkles, a floating basement glow and a fluttering loft butterfly. Tapping a checked-in guest gives a small heart reaction. These are sprite/tween loops, not skeletal or frame-by-frame animation; a feeding/growth system is not included. The operating system's reduced-motion preference skips arrivals, travel and idle loops. The canvas exposes an accessible busy state while characters arrive or walk; input resumes when they finish.
 
 Each night awards 50 coins once. Three purely cosmetic lobby decorations cost 100/200/300 coins; all can be displayed together. Owned items can be put away and redisplayed for free. Shop, settings, guest/room cards and clues are bilingual. Settings provide independent saved music, SFX and haptic switches. Sound is synthesized locally after interaction and pauses in the background. Haptics default off; the official Capacitor plugin handles native feedback with browser vibration fallback where available. If storage is blocked, settings/purchases report session-only changes.
 
@@ -76,7 +76,7 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 89 unit checks and 17 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 89 unit checks and 18 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
 
 ## Room-style and review-format revision
 
@@ -85,3 +85,5 @@ The primitive SVG room placeholders have been replaced by four separate original
 Run `npm run review:record` with Vite running (Node 24 and `ffmpeg` required) to save an actual screenshot, H.264/yuv420p MP4 with fast-start metadata, and an inline animated-GIF fallback in `artifacts/`. Timestamped browser screenshots form the intermediate recording. Review clips are silent full-page captures, including the DOM touch controls. The script verifies H.264 output and a nontrivial frame count. Re-encoding does not establish that every chat client can play a video; use the GIF/download fallback when needed.
 
 Full-screen icon controls, settings switches and language cards are documented in [game UI notes](docs/game-ui.zh-Hant.md). Review recording includes the complete browser frame, including its touch controls.
+
+Four distinct room activity loops now include a moonbeam pounce, hopping practice, orbiting fireflies and linen winding. See [房內角色活動](docs/activities.zh-Hant.md) for choreography and motion limits.
