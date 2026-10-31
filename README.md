@@ -1,6 +1,6 @@
 # Monster Hotel: Midnight Check-in
 
-Fresh implementation through Milestone 3 of an original landscape puzzle game. No previous prototype, licensed character artwork, external fonts, analytics, or live advertising is used. All current art is drawn locally with Phaser graphics.
+Fresh implementation through Milestone 4 of an original landscape puzzle game. No previous prototype, licensed character artwork, external fonts, analytics, or live advertising is used. All current art is drawn locally with Phaser graphics.
 
 ## Develop
 
@@ -38,6 +38,14 @@ Room amenities can overlap; meeting a guest's usual wish is necessary but no lon
 
 Every night is explicit authored content, with one solution verified by exhaustive search. Hints now solve all active conditions before suggesting a placement. Each night awards 50 coins once; a complete campaign awards 1,000 coins. Existing version-1 saves remain valid, including earlier coins and night-one completion. Invalid completion IDs are filtered and locked nights cannot award coins. Returning to selection or reloading abandons an unfinished attempt.
 
+## Decorations, music and haptics (Milestone 4)
+
+Open **Decorate hotel / 佈置旅館** from the lobby. Moon lanterns cost 100 coins, a velvet rug costs 200, and a starlight crest costs 300. All three can be displayed together. Purchases deduct coins once and immediately equip the item; putting away or redisplaying an owned item is free. There are no real-money purchases and no gameplay bonuses. The full collection costs 600 coins, affordable after twelve first-time night completions. Earlier progress saves are still compatible; owned and equipped decoration IDs are optional additions to the existing save record. If storage is blocked, the shop warns that changes last only for the session.
+
+**Settings / 設定** is available at the top of the title, lobby, puzzle and results screens. Music, sound effects and haptics are separate saved switches. Music and effects default on; haptics default off. The built-in test button uses the current preferences. Settings and purchases are bilingual, and their dialogs preserve the current puzzle.
+
+The music is an original short synthesized loop, with separate locally synthesized placement, error, purchase and success cues. No sound files, streaming, downloads or third-party recordings are used. Web Audio starts after a user gesture. Disabling both audio switches suspends the audio context; backgrounding pauses music and clears scheduled cues, and foregrounding resumes if browser policy permits. Native Android feedback uses the official Capacitor Haptics plugin; supported browsers use `navigator.vibrate`, otherwise vibration is a no-op. Hardware intensity and native background behavior still need Android device validation. Storage errors fall back to session-only preferences and are reported in settings.
+
 ## Structure
 
 - `src/domain/puzzle.ts`: scene-independent level data, immutable placement, and complete puzzle validation.
@@ -50,13 +58,18 @@ Every night is explicit authored content, with one solution verified by exhausti
 - `src/game/details.ts`: accessible DOM dialog above the Phaser canvas.
 - `src/game/drawMonster.ts`: four original folklore-inspired vector silhouettes.
 - `docs/characters.zh-Hant.md`: Traditional Chinese character design brief and implementation boundaries.
+- `src/domain/decorations.ts`: pure pricing, ownership and display-state transactions.
+- `src/game/hotelMenus.ts`: accessible bilingual shop and preference controls.
+- `src/platform/feedback.ts`: gesture-gated original audio, lifecycle handling and native/browser haptic adapters.
+- `src/platform/preferences.ts`: independently persisted music, SFX and haptic preferences.
+- `docs/hotel.zh-Hant.md`: decoration and feedback guide.
 - `src/platform/save.ts`: versioned local save boundary and one-time completion rewards.
 - `src/platform/ads.ts`: inactive future provider contract. No ad SDK or live ads.
 - `tests/`: puzzle validation, exhaustive unique-solution check, progression, hints and catalog tests.
 - `e2e/`: reproducible Playwright checks for cards, modal input, hints, locale persistence, rewards, offline dragging and responsive layout.
 - `capacitor.config.ts` and `android/`: native wrapper and landscape configuration.
 
-Presentation intentionally remains a small scene for this vertical slice. Future levels can reuse the pure domain model; localization and details dialogs are separate modules. Audio and native service adapters can be added as their features arrive.
+Presentation intentionally remains a small scene for this vertical slice. Future levels can reuse the pure domain model; localization and details dialogs are separate modules. Audio, haptics, preferences and cosmetic transactions are separate modules.
 
 ## Android preparation
 
@@ -76,8 +89,8 @@ Always rebuild/sync after changing web code. Do not run `android:add` again unle
 
 Milestone 1: title animation, interactive lobby, gameplay navigation, four original vector monster guests, one handcrafted uniquely solvable puzzle, tap/drag controls, results, saved completion and coins, and Android project preparation.
 
-Milestone 2 adds bilingual room and character details, saved language selection, and progressive hints. Milestone 3 adds the complete 20-night campaign, relational rules and sequential selection/unlocking.
+Milestone 2 adds bilingual room and character details, saved language selection, and progressive hints. Milestone 3 adds the complete 20-night campaign, relational rules and sequential selection/unlocking. Milestone 4 adds three purchasable, persistent lobby decorations and independent music, SFX and haptic preferences.
 
-Verified in the cloud environment: production build/type check; 66 unit tests and 6 saved Playwright browser tests; Chromium navigation, tap completion, drag-only completion with networking disabled after load, one-time reward replay, persistence after reload, rejection of three-guest incomplete assignments, and landscape/portrait viewport fit. Native APK assembly and device testing are not verified; the Android SDK is not configured here. Vite reports a large bundle warning from Phaser (about 1.2 MB uncompressed); release optimization remains future work.
+Verified in the cloud environment: production build/type check; 79 unit tests and 10 saved Playwright browser tests; Chromium navigation, tap completion, drag-only completion with networking disabled after load, one-time reward replay, persistence after reload, rejection of three-guest incomplete assignments, and landscape/portrait viewport fit. Native APK assembly and device testing are not verified; the Android SDK is not configured here. Vite reports a large bundle warning from Phaser (about 1.2 MB uncompressed); release optimization remains future work.
 
-Remaining after approval: decoration upgrades, music/SFX/haptics settings, final illustrated assets and animation polish, accessibility improvements, Android device QA, and optional ad provider integration. The current cast stays at four until further expansion is approved. No live advertisements or publishing in this milestone.
+Remaining after approval: final illustrated assets and animation polish, accessibility improvements, Android device QA, and optional ad provider integration. The current cast stays at four until further expansion is approved. No live advertisements or publishing in this milestone.

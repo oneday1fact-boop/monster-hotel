@@ -1,5 +1,5 @@
 export interface DetailSection { title: string; body: string }
-export interface Details { eyebrow: string; title: string; sections: DetailSection[]; close: string; next?: { label: string; action: () => void } }
+export interface Details { eyebrow: string; title: string; sections: DetailSection[]; close: string; content?: HTMLElement; next?: { label: string; action: () => void } }
 /** Accessible DOM dialog above the canvas; caller disables Phaser input while open. */
 export function showDetails(data: Details, onClose: () => void): () => void {
   const overlay = document.createElement('div'); overlay.className = 'details-overlay';
@@ -14,6 +14,7 @@ export function showDetails(data: Details, onClose: () => void): () => void {
     if (section.title) dialog.append(heading);
     dialog.append(body);
   }
+  if (data.content) dialog.append(data.content);
   const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const dismiss = () => { document.removeEventListener('keydown', onKey); overlay.remove(); previous?.focus(); onClose(); };
   const footer = document.createElement('div'); footer.className = 'details-actions';
@@ -23,7 +24,7 @@ export function showDetails(data: Details, onClose: () => void): () => void {
   function onKey(event: KeyboardEvent) {
     if (event.key === 'Escape') { event.preventDefault(); dismiss(); }
     if (event.key === 'Tab') {
-      const buttons = Array.from(dialog.querySelectorAll('button')); const first = buttons[0]; const last = buttons[buttons.length - 1];
+      const buttons = Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')); const first = buttons[0]; const last = buttons[buttons.length - 1];
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }

@@ -26,3 +26,11 @@ describe('campaign saves and compatibility', () => {
     expect(save.coins).toBe(1000); expect(save.completed).toHaveLength(20); expect(readSave()).toEqual(save);
   });
 });
+
+it('persists owned decorations, validates equipment and preserves them through rewards', () => {
+  const store = new Map<string, string>();
+  vi.stubGlobal('localStorage', { getItem: (key: string) => store.get(key) ?? null, setItem: (key: string, value: string) => store.set(key, value) });
+  store.set('midnight-check-in.save.v1', JSON.stringify({ version: 1, completed: [1], coins: 50, decorations: ['moon-lamps', 'moon-lamps', 'unknown'], equipped: ['moon-lamps', 'star-sign'] }));
+  const save = readSave(); expect(save.decorations).toEqual(['moon-lamps']); expect(save.equipped).toEqual(['moon-lamps']);
+  complete(save, 2); expect(readSave().decorations).toEqual(['moon-lamps']); expect(readSave().coins).toBe(100);
+});
