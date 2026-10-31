@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { drawReception, receptionFrame } from './reception';
+import { receptionUI } from '../i18n/reception';
 import { tutorialView } from '../domain/tutorial';
 import { readTutorialDone, saveTutorialDone } from '../platform/tutorial';
 import { tutorialUI } from '../i18n/tutorial';
@@ -54,6 +56,7 @@ export class HotelScene extends Phaser.Scene {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
     this.load.image('guests-art', '/art/guests-cartoon.png');
+    this.load.image('reception-art', '/art/reception.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
   create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
@@ -75,6 +78,7 @@ export class HotelScene extends Phaser.Scene {
     const m = viewportMetrics(width, height);
     this.cameras.main.setViewport(0, 0, width, height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
     for (const object of this.children.list) {
+      if (object.getData('receptionPanel') && object instanceof Phaser.GameObjects.Image) object.setFrame(receptionFrame(this)).setDisplaySize(844, 480);
       const key = object.getData('roomPanel') as string | undefined;
       if (key && object instanceof Phaser.GameObjects.Image) object.setFrame(roomFrame(this, key)).setDisplaySize(roomWidth, roomHeight);
     }
@@ -93,7 +97,7 @@ export class HotelScene extends Phaser.Scene {
     if (this.screen === 'play') g.fillStyle(0x191630).fillRect(0, 0, 844, 480);
     else g.fillStyle(0x191630).fillRoundedRect(12, 12, 820, 456, 28);
     for (let i = 0; i < 32; i++) { g.fillStyle(C.gold, .15 + (i % 3) * .12).fillCircle(25 + (i * 67) % 790, 35 + (i * 113) % 420, i % 2 + 1); }
-    if (this.screen !== 'play') { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
+    if (this.screen !== 'play' && this.screen !== 'title' && this.screen !== 'lobby') { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
     document.documentElement.lang = this.locale;
     this.hud = createHUD({ locale: this.locale, playing: this.screen === 'play', night: this.level.id,
       settings: () => this.settings(), language: () => this.language(), home: () => this.selection(), hint: () => this.hint(), clues: () => this.clues(),
@@ -112,59 +116,36 @@ export class HotelScene extends Phaser.Scene {
     this.add.zone(x, y, width, 48).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.feedback.play('tap'); callback(); });
   }
 
-  private hotel(y: number) {
-    const g = this.add.graphics();
-    g.fillStyle(0x352b50).fillRoundedRect(72, y, 246, 235, 12);
-    g.fillStyle(0x554064).fillTriangle(51, y + 12, 195, y - 72, 339, y + 12);
-    g.lineStyle(2, C.gold, .6).strokeTriangle(51, y + 12, 195, y - 72, 339, y + 12);
-    for (const x of [112, 174, 236]) for (const dy of [35, 102]) {
-      g.fillStyle(0xf2cc83).fillRoundedRect(x, y + dy, 40, 48, { tl: 20, tr: 20, bl: 2, br: 2 });
-      g.lineStyle(3, 0x56405d).lineBetween(x + 20, y + dy, x + 20, y + dy + 48);
-    }
-    if (this.save.equipped?.includes('velvet-rug')) {
-      g.fillStyle(0x864068).fillRoundedRect(137, y + 225, 116, 32, 5);
-      g.lineStyle(2, C.gold).strokeRoundedRect(143, y + 230, 104, 21, 3);
-    }
-    if (this.save.equipped?.includes('moon-lamps')) {
-      for (const x of [58, 332]) {
-        g.lineStyle(3, 0x8f6e72).lineBetween(x, y + 166, x, y + 230);
-        g.fillStyle(C.gold, 0.15).fillCircle(x, y + 160, 21);
-        g.fillStyle(C.gold).fillCircle(x, y + 160, 12);
-        g.fillStyle(0x191630).fillCircle(x + 5, y + 156, 10);
-      }
-    }
-    if (this.save.equipped?.includes('star-sign')) {
-      const points = Array.from({ length: 10 }, (_, i) => {
-        const angle = i * Math.PI / 5 - Math.PI / 2; const radius = i % 2 ? 9 : 20;
-        return new Phaser.Geom.Point(195 + Math.cos(angle) * radius, y - 35 + Math.sin(angle) * radius);
+  private reception() {
+    drawReception(this, this.save);
+    this.level.guests.forEach((guest, index) => {
+      const x = [100, 201, 303, 390][index]; const y = [386, 396, 382, 402][index];
+      const actor = this.monster(x, y, guest).setScale(index === 2 ? .69 : .78);
+      actor.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+        this.feedback.play('tap');
+        const heart = this.text(x, y - 45, '♥', 20, '#ffc3d4').setDepth(10);
+        if (reducedMotion()) this.time.delayedCall(650, () => heart.destroy());
+        else this.tweens.add({ targets: heart, y: y - 68, alpha: 0, duration: 850, onComplete: () => heart.destroy() });
       });
-      g.fillStyle(C.gold).fillPoints(points, true);
-      g.lineStyle(1, C.gold, 0.5).lineBetween(105, y + 5, 285, y + 5);
-      for (const x of [115, 155, 195, 235, 275]) g.fillStyle(C.gold).fillCircle(x, y + 8, 3);
-    }
-    g.fillStyle(0x15132b).fillRoundedRect(166, y + 173, 58, 62, { tl: 29, tr: 29, bl: 0, br: 0 });
-    this.text(195, y + 160, this.t.hotel, 13, '#f2cc83');
+    });
   }
   private title() {
-    this.screen = 'title';
-    this.base(this.t.title);
-    this.text(422, 98, this.t.tagline, 15, C.muted);
-    this.hotel(190);
-    const moon = this.add.circle(300, 140, 25, C.gold);
-    if (!reducedMotion()) this.tweens.add({ targets: moon, y: 130, alpha: .6, duration: 2200, yoyo: true, repeat: -1 });
-    this.text(590, 215, this.t.promise, 26);
-    this.button(330, this.t.open, () => this.lobby(), 310, 590);
-    this.text(590, 385, this.t.adventure, 14, C.muted);
+    this.screen = 'title'; this.base(this.t.title); this.reception();
+    this.text(590, 112, this.t.brand, 12, '#e9cba0');
+    this.text(590, 173, this.t.title, this.locale === 'en' ? 34 : 39, '#ffe1a3').setStyle({ fontStyle: 'bold', shadow: { offsetX: 0, offsetY: 3, color: '#130e25', blur: 0, fill: true } });
+    this.text(590, 230, this.t.tagline, 14, '#e7d0c1');
+    this.button(330, this.t.open, () => this.lobby(), 294, 590);
+    this.text(590, 402, receptionUI[this.locale].offline, 13, '#d2b6ae');
   }
   private lobby() {
-    this.screen = 'lobby';
-    this.base(this.t.welcome);
-    this.text(422, 98, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/20 ${this.t.progress}`, 14, '#f2cc83');
-    this.hotel(190);
-    this.text(590, 180, this.t.arrivals, 26);
-    this.text(590, 235, this.t.intro, 16, C.muted);
-    this.button(325, this.ct.choose, () => this.selection(), 310, 590);
-    this.button(390, this.ht.shop, () => this.shop(), 310, 590);
+    this.screen = 'lobby'; this.base(this.t.welcome); this.reception();
+    this.text(590, 124, this.t.welcome, 26, '#ffe0a5');
+    const badge = this.add.graphics(); badge.fillStyle(0x191323, .75).fillRoundedRect(460, 158, 260, 36, 18);
+    badge.lineStyle(1, 0xbc8f6c, .6).strokeRoundedRect(460, 158, 260, 36, 18);
+    this.text(590, 176, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/20`, 15, '#f2cc83');
+    this.text(590, 242, this.t.arrivals, 21, '#ead4c4');
+    this.button(325, this.ct.choose, () => this.selection(), 294, 590);
+    this.button(390, this.ht.shop, () => this.shop(), 294, 590);
     this.button(450, this.t.titleBack, () => this.title(), 180, 590);
   }
   private selection() {

@@ -11,7 +11,7 @@ npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
 npm test                    # 98 unit tests
-npm run test:browser         # 22 Playwright browser tests; starts Vite on 5175
+npm run test:browser         # 24 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
 
@@ -76,7 +76,7 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 98 unit checks and 22 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 98 unit checks and 24 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
 
 ## Room-style and review-format revision
 
@@ -93,3 +93,5 @@ First-night guidance uses short bilingual coaching and passive target highlights
 ## GitHub APK downloads
 
 [Android test APK workflow](.github/workflows/android-debug.yml) builds and uploads a 14-day download bundle on every push, with a manual trigger once present on the default branch. It runs unit tests and the existing Android build, verifies the debug APK signature, and includes checksums, build metadata and Chinese installation instructions. It does not create a public Release or publish the app. See [GitHub 打包與下載](docs/github-apk.zh-Hant.md).
+
+The title and lobby now share an original illustrated reception, with live guest sprites and compatible cosmetic decorations. See [標題與前台大廳](docs/reception.zh-Hant.md).

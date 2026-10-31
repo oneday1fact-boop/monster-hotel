@@ -1,11 +1,12 @@
 {
-  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review.",
-  "frames": "Guests: 2x2 transparent atlas. Rooms: separate 3:1 panoramic images, framed proportionally at runtime.",
+  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review. Original reception illustration generated from the approved character and moon-bedroom style references; no baked-in characters or UI.",
+  "frames": "Guests: 2x2 transparent atlas. Rooms: separate 3:1 panoramic images, framed proportionally at runtime. Reception: separate 2:1 full-screen panorama, cropped proportionally at runtime.",
   "sha256": {
     "guests-cartoon.png": "54d44ed6c130c74a3d91845f1de6dda94d257440e54acc1dcf855e5a0412deb4",
     "rooms/basement.png": "50bf7863472bd98cda8fce0fd3a4dc1b763eb5c0ab75ed55f82c1bb8c2cd2859",
     "rooms/hearth.png": "e6cebb8705801b2243f81c268e41196ab1b7c7ce26b3fceda463131001447a53",
     "rooms/linen.png": "5dfd7dba927d57b3c5de39e37fa73084eb19bc581df32665dd662a7a0e7c6532",
-    "rooms/elegant.png": "40af59d2fc9cfdc5bc8897a83725a92271588cdfbf918bddb2276c5060e7e40d"
+    "rooms/elegant.png": "40af59d2fc9cfdc5bc8897a83725a92271588cdfbf918bddb2276c5060e7e40d",
+    "reception.png": "3b0f400f1e1d2baf32e36dfe966d158a7bad5f5a09454f4522acac47b2cb6cb3"
   }
 }
