@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 const saveKey = 'midnight-check-in.save.v1';
 async function lobby(page: import('@playwright/test').Page) {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/'); await page.waitForFunction(() => document.documentElement.lang === 'zh-Hant'); await page.mouse.click(590, 330);
 }
 

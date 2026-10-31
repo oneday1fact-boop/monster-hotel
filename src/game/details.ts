@@ -1,5 +1,5 @@
 export interface DetailSection { title: string; body: string }
-export interface Details { eyebrow: string; title: string; sections: DetailSection[]; close: string; content?: HTMLElement; next?: { label: string; action: () => void } }
+export interface Details { eyebrow: string; title: string; sections: DetailSection[]; close: string; content?: HTMLElement; contentFirst?: boolean; next?: { label: string; action: () => void } }
 /** Accessible DOM dialog above the canvas; caller disables Phaser input while open. */
 export function showDetails(data: Details, onClose: () => void): () => void {
   const overlay = document.createElement('div'); overlay.className = 'details-overlay';
@@ -8,13 +8,14 @@ export function showDetails(data: Details, onClose: () => void): () => void {
   const eyebrow = document.createElement('p'); eyebrow.className = 'details-eyebrow'; eyebrow.textContent = data.eyebrow;
   const title = document.createElement('h2'); title.id = 'details-title'; title.textContent = data.title;
   dialog.append(eyebrow, title);
+  if (data.content && data.contentFirst) dialog.append(data.content);
   for (const section of data.sections) {
     const heading = document.createElement('h3'); heading.textContent = section.title;
     const body = document.createElement('p'); body.textContent = section.body;
     if (section.title) dialog.append(heading);
     dialog.append(body);
   }
-  if (data.content) dialog.append(data.content);
+  if (data.content && !data.contentFirst) dialog.append(data.content);
   const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const dismiss = () => { document.removeEventListener('keydown', onKey); overlay.remove(); previous?.focus(); onClose(); };
   const footer = document.createElement('div'); footer.className = 'details-actions';

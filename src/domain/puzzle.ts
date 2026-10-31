@@ -16,10 +16,10 @@ export const guests: readonly Guest[] = [
 export const firstLevel: Level = {
   id: 1, guests,
   rooms: [
-    { id: '201', condition: 'moonlight', floor: 2, position: 1 },
-    { id: '202', condition: 'quiet', floor: 2, position: 2 },
-    { id: '203', condition: 'warm', floor: 2, position: 3 },
-    { id: '204', condition: 'dry', floor: 2, position: 4 },
+    { id: 'B01', condition: 'quiet', floor: 0, position: 1 },
+    { id: 'B02', condition: 'warm', floor: 0, position: 2 },
+    { id: '101', condition: 'moonlight', floor: 1, position: 1 },
+    { id: '102', condition: 'dry', floor: 1, position: 2 },
   ],
 };
 export function roomConditions(room: Room): readonly Condition[] { return [room.condition, ...(room.features ?? [])]; }

@@ -8,3 +8,4 @@ android/app/build/
 *.keystore
 playwright-report/
 test-results/
+artifacts/

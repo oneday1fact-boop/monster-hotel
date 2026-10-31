@@ -24,13 +24,14 @@ describe('relational rules', () => {
   });
   it('checks exclusions against secondary amenities too', () => {
     expect(satisfiesRule(level, ordered, { type: 'avoid', guest: 'luno', condition: 'warm' })).toBe(false);
-    expect(satisfiesRule(levels[0], { luno: '201' }, { type: 'avoid', guest: 'luno', condition: 'warm' })).toBe(true);
+    expect(satisfiesRule(levels[0], { luno: '101' }, { type: 'avoid', guest: 'luno', condition: 'warm' })).toBe(true);
   });
 });
 
 it('distinguishes nonadjacent rooms on one long corridor from separate floors', () => {
-  const assignment = { luno: '201', ember: '203' };
-  expect(satisfiesRule(levels[0], assignment, { type: 'sameFloor', a: 'luno', b: 'ember' })).toBe(true);
-  expect(satisfiesRule(levels[0], assignment, { type: 'adjacent', a: 'luno', b: 'ember' })).toBe(false);
-  expect(satisfiesRule(levels[0], assignment, { type: 'apart', a: 'luno', b: 'ember' })).toBe(true);
+  const long = { ...level, rooms: level.rooms.map((room, i) => ({ ...room, floor: 2, position: i + 1 })) };
+  const assignment = { luno: '201', ember: '301' };
+  expect(satisfiesRule(long, assignment, { type: 'sameFloor', a: 'luno', b: 'ember' })).toBe(true);
+  expect(satisfiesRule(long, assignment, { type: 'adjacent', a: 'luno', b: 'ember' })).toBe(false);
+  expect(satisfiesRule(long, assignment, { type: 'apart', a: 'luno', b: 'ember' })).toBe(true);
 });

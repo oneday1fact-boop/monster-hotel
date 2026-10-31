@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { firstLevel, place, validate } from '../src/domain/puzzle';
 import { complete, readSave } from '../src/platform/save';
-const solved = { luno: '201', dou: '202', ember: '203', rollo: '204' };
+const solved = { luno: '101', dou: 'B01', ember: 'B02', rollo: '102' };
 describe('night one puzzle', () => {
   it('accepts the matching rooms', () => expect(validate(firstLevel, solved).valid).toBe(true));
-  it('requires the fourth guest to be placed', () => expect(validate(firstLevel, { luno: '201', dou: '202', ember: '203' }).reason).toBe('incomplete'));
-  it('checks the fourth guest’s dry requirement', () => expect(validate(firstLevel, { ...solved, ember: '204', rollo: '203' }).reason).toBe('requirement'));
+  it('requires the fourth guest to be placed', () => expect(validate(firstLevel, { luno: '101', dou: 'B01', ember: 'B02' }).reason).toBe('incomplete'));
+  it('checks the fourth guest’s dry requirement', () => expect(validate(firstLevel, { ...solved, ember: '102', rollo: 'B02' }).reason).toBe('requirement'));
   it('rejects incomplete assignments', () => expect(validate(firstLevel, {}).reason).toBe('incomplete'));
-  it('rejects duplicate occupants', () => expect(validate(firstLevel, { ...solved, dou: '201' }).reason).toBe('occupied'));
-  it('rejects unmet wishes', () => expect(validate(firstLevel, { luno: '202', dou: '201', ember: '203', rollo: '204' }).reason).toBe('requirement'));
+  it('rejects duplicate occupants', () => expect(validate(firstLevel, { ...solved, dou: '101' }).reason).toBe('occupied'));
+  it('rejects unmet wishes', () => expect(validate(firstLevel, { luno: 'B01', dou: '101', ember: 'B02', rollo: '102' }).reason).toBe('requirement'));
   it('rejects unknown rooms and guests', () => {
     expect(validate(firstLevel, { ...solved, luno: '404' }).reason).toBe('unknown');
-    expect(validate(firstLevel, { ...solved, intruder: '201' }).reason).toBe('unknown');
+    expect(validate(firstLevel, { ...solved, intruder: '101' }).reason).toBe('unknown');
   });
   it('has exactly one solution across all possible complete assignments', () => {
     const solutions = [];
@@ -22,8 +22,8 @@ describe('night one puzzle', () => {
     expect(solutions).toEqual([solved]);
   });
   it('moves a guest and returns displaced guests to the queue', () => {
-    expect(place(solved, 'luno', '202')).toEqual({ luno: '202', ember: '203', rollo: '204' });
-    expect(solved.dou).toBe('202');
+    expect(place(solved, 'luno', 'B01')).toEqual({ luno: 'B01', ember: 'B02', rollo: '102' });
+    expect(solved.dou).toBe('B01');
   });
 });
 describe('progression', () => {
