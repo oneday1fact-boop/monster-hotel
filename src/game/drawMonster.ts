@@ -39,21 +39,22 @@ export function drawMonster(scene: Phaser.Scene, x: number, y: number, guest: Gu
     g.lineStyle(3, 0xd5ad73).lineBetween(0, 35, 0, 43);
     g.fillStyle(0xe889a4).fillTriangle(-7, 47, 0, 38, 7, 47);
   } else {
-    // A soft snowball silhouette with a scarf and a crystalline snowflake crown.
-    g.fillStyle(guest.color).fillEllipse(0, 17, 67, 53).fillCircle(0, -10, 29);
-    g.fillStyle(0xc3e6f5).fillEllipse(-22, 36, 23, 12).fillEllipse(22, 36, 23, 12);
-    g.fillStyle(0x9bd4ed).fillCircle(-26, -11, 9).fillCircle(26, -11, 9);
-    g.fillStyle(0x947cb5).fillRoundedRect(-27, 12, 54, 10, 5).fillRoundedRect(12, 19, 12, 22, 4);
-    g.fillStyle(0xdac9ed).fillRect(14, 33, 8, 3);
-    g.lineStyle(3, 0x9bd4ed);
-    for (let i = 0; i < 3; i++) {
-      const angle = i * Math.PI / 3;
-      g.lineBetween(-Math.cos(angle) * 10, -41 - Math.sin(angle) * 10, Math.cos(angle) * 10, -41 + Math.sin(angle) * 10);
-    }
-    g.fillStyle(0xffffff).fillCircle(0, -41, 3);
+    // Rounded linen wraps, an oversized eye opening and a loose bow-tied strip.
+    g.fillStyle(0xe4cfab).fillRoundedRect(23, 19, 27, 11, 5);
+    g.fillStyle(guest.color).fillEllipse(-18, 37, 23, 13).fillEllipse(18, 37, 23, 13);
+    g.fillRoundedRect(-28, 0, 56, 38, 17).fillRoundedRect(-33, -36, 66, 61, 25);
+    g.lineStyle(2, 0xc8b495);
+    for (const yy of [-27, -18, 20, 29]) g.lineBetween(-25, yy, 25, yy + 3);
+    g.lineBetween(-22, -34, 19, -19).lineBetween(-23, 23, 21, 9);
+    g.fillStyle(ink).fillRoundedRect(-26, -16, 52, 24, 11);
+    g.fillStyle(0xc1a2cf).fillTriangle(35, 23, 49, 13, 48, 32).fillTriangle(35, 23, 23, 13, 23, 32);
+    g.fillStyle(0xf2cc83).fillCircle(35, 23, 4);
   }
   if (guest.kind !== 'lantern') {
-    g.fillStyle(ink).fillCircle(-11, -5, 4).fillCircle(11, -5, 4);
+    if (guest.kind === 'mummy') {
+      g.fillStyle(0xfff8e6).fillEllipse(-11, -5, 17, 19).fillEllipse(11, -5, 17, 19);
+      g.fillStyle(ink).fillCircle(-10, -4, 5).fillCircle(12, -4, 5);
+    } else g.fillStyle(ink).fillCircle(-11, -5, 4).fillCircle(11, -5, 4);
     g.fillStyle(0xfff6e5).fillCircle(-12, -6, 1.5).fillCircle(10, -6, 1.5);
     g.fillStyle(0xe884a6, .65).fillEllipse(-21, 7, 10, 5).fillEllipse(21, 7, 10, 5);
     g.lineStyle(2, 0x42314e).beginPath().arc(0, 7, 5, 0, Math.PI).strokePath();

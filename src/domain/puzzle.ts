@@ -1,16 +1,16 @@
-export type Condition = 'moonlight' | 'quiet' | 'warm' | 'cool';
+export type Condition = 'moonlight' | 'quiet' | 'warm' | 'dry';
 export interface Room { id: string; name: string; condition: Condition }
-export interface Guest { id: string; name: string; species: string; requirement: Condition; description: string; color: number; kind: 'werewolf' | 'jiangshi' | 'lantern' | 'snowchild' }
+export interface Guest { id: string; name: string; species: string; requirement: Condition; description: string; color: number; kind: 'werewolf' | 'jiangshi' | 'lantern' | 'mummy' }
 export interface Level { id: number; rooms: readonly Room[]; guests: readonly Guest[] }
 export type Assignment = Record<string, string>;
 export const firstLevel: Level = {
   id: 1,
-  rooms: [{ id: '201', name: 'Moon suite', condition: 'moonlight' }, { id: '202', name: 'Whisper room', condition: 'quiet' }, { id: '203', name: 'Hearth room', condition: 'warm' }, { id: '204', name: 'Frost room', condition: 'cool' }],
+  rooms: [{ id: '201', name: 'Moon suite', condition: 'moonlight' }, { id: '202', name: 'Whisper room', condition: 'quiet' }, { id: '203', name: 'Hearth room', condition: 'warm' }, { id: '204', name: 'Linen room', condition: 'dry' }],
   guests: [
     { id: 'luno', name: 'Luno', species: 'Werewolf', requirement: 'moonlight', description: 'A fluffy little werewolf who sleeps best beneath a moonlit window.', color: 0xb5b5d9, kind: 'werewolf' },
     { id: 'dou', name: 'Dou', species: 'Jiangshi', requirement: 'quiet', description: 'A sleepy hopping traveler whose paper charm rustles at every sound.', color: 0xa5d5cf, kind: 'jiangshi' },
     { id: 'ember', name: 'Ember', species: 'Lantern spirit', requirement: 'warm', description: 'A mischievous old paper lantern who needs warmth for a steady glow.', color: 0xf4a265, kind: 'lantern' },
-    { id: 'flurry', name: 'Flurry', species: 'Snow child', requirement: 'cool', description: 'A round little snow spirit in a scarf who needs a cool room to stay frosty.', color: 0xe4f5ff, kind: 'snowchild' }
+    { id: 'rollo', name: 'Rollo', species: 'Mummy', requirement: 'dry', description: 'A round little mummy with a ribbon tail who needs a dry room to keep the bandages crisp.', color: 0xf3e6c9, kind: 'mummy' }
   ]
 };
 export function validate(level: Level, assignment: Assignment): { valid: boolean; reason: 'complete' | 'incomplete' | 'unknown' | 'occupied' | 'requirement' } {
