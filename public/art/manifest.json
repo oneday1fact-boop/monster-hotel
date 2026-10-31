@@ -1,11 +1,11 @@
 {
-  "creation": "Original cartoon characters generated for this project; room sets are hand-authored SVG artwork. Earlier painted assets were rejected and are not shipped.",
-  "grid": "guests-cartoon.png: padded 2x2 transparent atlas; werewolf, jiangshi, lantern, mummy. Four SVG sets are independent wide cartoon cutaways.",
+  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review.",
+  "frames": "Guests: 2x2 transparent atlas. Rooms: separate 3:1 panoramic images, framed proportionally at runtime.",
   "sha256": {
     "guests-cartoon.png": "54d44ed6c130c74a3d91845f1de6dda94d257440e54acc1dcf855e5a0412deb4",
-    "rooms/linen.svg": "45ea28bcc12de67039bbdcef0720d2b5b444a2400991a5a0456b2c5ac6e3dbd3",
-    "rooms/elegant.svg": "f6c7fc82c4271093a0a04916f49dffb0956fe23e08e49b0d039c2cea3ae97044",
-    "rooms/basement.svg": "1a27d730761d0d405918cc1d7a6f631d9d2d03d7cbfa77e2b3ee0b2b3383a040",
-    "rooms/hearth.svg": "f955c79923fd6ea97f7021ea6ff4b284f34538cf68109b74b51b2851accb236f"
+    "rooms/basement.png": "50bf7863472bd98cda8fce0fd3a4dc1b763eb5c0ab75ed55f82c1bb8c2cd2859",
+    "rooms/hearth.png": "e6cebb8705801b2243f81c268e41196ab1b7c7ce26b3fceda463131001447a53",
+    "rooms/linen.png": "5dfd7dba927d57b3c5de39e37fa73084eb19bc581df32665dd662a7a0e7c6532",
+    "rooms/elegant.png": "40af59d2fc9cfdc5bc8897a83725a92271588cdfbf918bddb2276c5060e7e40d"
   }
 }

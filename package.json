@@ -13,7 +13,8 @@
     "android:open": "cap open android",
     "test:browser": "playwright test",
     "android:apk": "bash scripts/build-android.sh",
-    "android:setup:cloud": "bash scripts/setup-android-cloud.sh"
+    "android:setup:cloud": "bash scripts/setup-android-cloud.sh",
+    "review:record": "node scripts/record-review.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.0",

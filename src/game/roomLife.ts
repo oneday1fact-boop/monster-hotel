@@ -1,20 +1,14 @@
 import Phaser from 'phaser';
 import type { Room } from '../domain/puzzle';
-import { roomPoint, roomStyle } from './layout';
-import { reducedMotion } from './art';
+import { roomPoint, roomStyle, roomWidth, roomHeight } from './layout';
+import { reducedMotion, roomFrame } from './art';
 /** Tiny local animation layers bring each room to life without changing puzzle conditions. */
 export function drawRoomLife(scene: Phaser.Scene, room: Room) {
   if (reducedMotion()) return;
   const p = roomPoint(room); const style = roomStyle(room);
   if (style === 'hearth') {
-    const flame = scene.add.graphics();
-    flame.fillStyle(0xffd56c, .8).fillTriangle(-8, 9, -3, -10, 8, 9);
-    flame.fillStyle(0xfff0ac, .9).fillTriangle(-3, 8, 1, -3, 5, 8);
-    const glow = scene.add.circle(0, 0, 15, 0xffb55b, .12);
-    const fire = scene.add.container(p.x - 5, p.y + 15, [glow, flame]).setData('viewportAspect', true);
-    scene.tweens.add({ targets: flame, scaleY: .72, angle: 3, duration: 370, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    scene.tweens.add({ targets: glow, alpha: .35, duration: 650, yoyo: true, repeat: -1 });
-    fire.setAlpha(.9);
+    const warmth = scene.add.image(p.x, p.y, 'room-hearth', roomFrame(scene, 'room-hearth')).setDisplaySize(roomWidth, roomHeight).setData('roomPanel', 'room-hearth').setTint(0xffc477).setBlendMode(Phaser.BlendModes.ADD).setAlpha(.04);
+    scene.tweens.add({ targets: warmth, alpha: .13, duration: 560, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   } else if (style === 'elegant') {
     for (let i = 0; i < 3; i++) {
       const sparkle = scene.add.star(p.x - 45 + i * 14, p.y - 18 + i * 6, 4, 1, 3, 0xffecad, .6).setData('viewportAspect', true);

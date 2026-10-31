@@ -7,3 +7,6 @@
 - Aim for the lively, approachable presentation of a cute raising/management game. Use original characters, artwork and interface designs; do not copy a named game's assets or distinctive designs. The previous painted portrait/card-grid direction was rejected.
 - Preserve the four approved guests: werewolf Luno, jiangshi Dou, lantern spirit Ember and mummy Rollo. Preserve the 20 uniquely solvable puzzles, compatible saves, bilingual UI and cosmetic economy unless the user requests a change.
 - No live ads, app publishing or release signing is authorized. Debug APK builds and local validation are authorized.
+
+- Review clips must be supplied as H.264 MP4 plus an inline animated GIF fallback; WebM-only delivery was not viewable for the user. Verify the files contain multiple real gameplay frames.
+- Room art must match the approved character style and have rich, differentiated furnishings. Primitive geometric placeholder rooms were rejected. Keep the room cutaway near edge-to-edge, with a compact HUD.

@@ -5,7 +5,7 @@ import { enter, load, ready, assign, saved } from './helpers';
 test('cartoon room sets and character cards are local and available offline', async ({ page, context }) => {
   const loaded: string[] = []; page.on('response', response => { if (response.url().includes('/art/') && response.ok()) loaded.push(response.url()); });
   await load(page); expect(loaded.some(url => url.endsWith('/guests-cartoon.png'))).toBe(true);
-  for (const style of ['elegant', 'linen', 'basement', 'hearth']) expect(loaded.some(url => url.endsWith(`/rooms/${style}.svg`))).toBe(true);
+  for (const style of ['elegant', 'linen', 'basement', 'hearth']) expect(loaded.some(url => url.endsWith(`/rooms/${style}.png`))).toBe(true);
   await enter(page); await context.setOffline(true); await page.mouse.click(queueX[3], 412);
   await expect(page.getByRole('img', { name: '卷卷 · 小木乃伊' })).toBeVisible(); await page.keyboard.press('Escape');
   const p = roomPoint(firstLevel.rooms[0]); await page.mouse.click(p.x + 158, p.y - 42);

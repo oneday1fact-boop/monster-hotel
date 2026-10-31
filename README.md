@@ -10,7 +10,7 @@ Use Node.js 24 LTS and npm (minimum Node 22.12).
 npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
-npm test                    # 86 unit tests
+npm test                    # 89 unit tests
 npm run test:browser         # 15 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
@@ -69,11 +69,17 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/game/HotelScene.ts`: scene navigation, arrivals, room assignment and room activities.
 - `src/game/art.ts`, `drawMonster.ts`: runtime atlas framing, local art and vector fallback.
 - `public/art/guests-cartoon.png`: original simplified cartoon sprite atlas, with clear cell gutters.
-- `public/art/rooms/`: four hand-authored wide SVG interiors. Rejected painted assets are not shipped.
+- `public/art/rooms/`: four detailed panoramic cartoon room illustrations matched to the approved characters. Rejected painted assets are not shipped.
 - `public/art/manifest.json`: art provenance and SHA-256 digests; original generation outputs remain outside the checkout.
 - `src/game/details.ts`, `hotelMenus.ts`, `nightSelection.ts`: accessible responsive DOM menus above the canvas.
 - `src/i18n/`: bundled English/Traditional Chinese content and clue descriptions.
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 86 unit checks and 15 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 89 unit checks and 15 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+
+## Room-style and review-format revision
+
+The primitive SVG room placeholders have been replaced by four separate original 3:1 panoramic illustrations, using the approved character atlas as the style reference. Rounded furniture, plum outlines, warm cel shading and distinct palettes tie the rooms to the cast. The cutaway now reaches the left/right edges and uses a compact HUD; residents are larger and their loops more pronounced. Room panels are framed proportionally rather than stretching furniture.
+
+Run `npm run review:record` with Vite running (Node 24 and `ffmpeg` required) to save an actual screenshot, H.264/yuv420p MP4 with fast-start metadata, and an inline animated-GIF fallback in `artifacts/`. WebM is used only as the intermediate recording. Review clips are silent canvas captures. The script verifies H.264 output and a nontrivial frame count. Re-encoding does not establish that every chat client can play a video; use the GIF/download fallback when needed.
