@@ -6,7 +6,7 @@
 
 ## 打包內容
 
-Ubuntu 24.04 runner 會準備 Node.js 24、Temurin JDK 21、Android SDK 35 及 Build-Tools 34/35，執行 `npm ci`、`npm test`、`npm run android:apk`。然後驗證 APK 簽章，產生 APK、SHA-256、版本資訊及中文安裝說明，透過 GitHub Actions Artifact 提供下載。
+Ubuntu 24.04 runner 會準備 Node.js 24、Temurin JDK 21、主機預載的 Android SDK（安裝平台 35 及 Build-Tools 34/35），執行 `npm ci`、`npm test`、`npm run android:apk`。然後驗證 APK 簽章，產生 APK、SHA-256、版本資訊及中文安裝說明，透過 GitHub Actions Artifact 提供下載。
 
 工作流程只要求 `contents: read`；不建立 Release、不發佈網站、不上架應用程式，也不需要提供 Google Drive 或商店簽章秘密。相同分支的新推送會取消尚未完成的舊建置。測試包保留 14 日。
 

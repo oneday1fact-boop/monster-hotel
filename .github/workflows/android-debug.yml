@@ -18,25 +18,26 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Check out game
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: npm
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
+      # GitHub's Ubuntu image already provides the Android SDK and licenses.
       - name: Install required Android packages
-        run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0'
+        run: |
+          sdkmanager="${ANDROID_HOME:?Android SDK is missing}/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          "$sdkmanager" 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0'
 
       - name: Cache Gradle dependencies
         uses: gradle/actions/setup-gradle@v4
