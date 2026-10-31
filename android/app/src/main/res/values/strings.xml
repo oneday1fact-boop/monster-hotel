@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Monster Hotel: Midnight Check-in</string>
+    <string name="title_activity_main">Monster Hotel: Midnight Check-in</string>
+    <string name="package_name">com.midnightcheckin.monsterhotel</string>
+    <string name="custom_url_scheme">com.midnightcheckin.monsterhotel</string>
+</resources>
