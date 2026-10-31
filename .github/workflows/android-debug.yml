@@ -1,0 +1,87 @@
+name: Android test APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-debug-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build downloadable Android APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out game
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required Android packages
+        run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0'
+
+      - name: Cache Gradle dependencies
+        uses: gradle/actions/setup-gradle@v4
+
+      # Reuse the test key when the cache is available, so test updates usually
+      # install over previous CI builds. This is never a store signing key.
+      - name: Cache debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: ${{ runner.os }}-monster-hotel-debug-key-v1
+
+      - name: Install game dependencies
+        run: npm ci
+
+      - name: Test puzzle logic and saved data
+        run: npm test
+
+      - name: Build Android debug APK
+        run: npm run android:apk
+
+      - name: Verify and prepare download
+        run: bash scripts/package-android-artifact.sh
+
+      - name: Upload APK download bundle
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: MonsterHotel-Android-Test-${{ github.run_number }}
+          path: |
+            artifacts/monster-hotel-midnight-check-in-debug.apk
+            artifacts/SHA256SUMS.txt
+            artifacts/build-info.json
+            artifacts/INSTALL-ANDROID.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Show download instructions
+        env:
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          {
+            printf '## Monster Hotel Android 測試版\n\n'
+            printf '[下載 APK ZIP 包](%s)\n\n' "$ARTIFACT_URL"
+            printf '請先登入 GitHub。下載並解壓 ZIP 後，開啟 monster-hotel-midnight-check-in-debug.apk 安裝。\n\n'
+            printf '這是 Android debug 測試版，未發佈到商店。下載保留 14 日；過期後可重新執行工作流程。\n'
+          } >> "$GITHUB_STEP_SUMMARY"

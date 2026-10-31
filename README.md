@@ -89,3 +89,7 @@ Full-screen icon controls, settings switches and language cards are documented i
 Four distinct room activity loops now include a moonbeam pounce, hopping practice, orbiting fireflies and linen winding. See [房內角色活動](docs/activities.zh-Hant.md) for choreography and motion limits.
 
 First-night guidance uses short bilingual coaching and passive target highlights, then leaves three guests to the player. Skipping is saved independently; returning players with a completed first night bypass it. See [第一晚互動教學](docs/tutorial.zh-Hant.md).
+
+## GitHub APK downloads
+
+[Android test APK workflow](.github/workflows/android-debug.yml) builds and uploads a 14-day download bundle on every push, with a manual trigger once present on the default branch. It runs unit tests and the existing Android build, verifies the debug APK signature, and includes checksums, build metadata and Chinese installation instructions. It does not create a public Release or publish the app. See [GitHub 打包與下載](docs/github-apk.zh-Hant.md).
