@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { firstLevel, place, validate, type Assignment, type Guest } from '../domain/puzzle';
+import { drawMonster } from './drawMonster';
 import { readSave, complete, type Save } from '../platform/save';
 
 const C = { ink: 0x100e25, panel: 0x24203e, gold: 0xf2cc83, muted: '#b9b0ce', white: '#fff3df' };
@@ -59,27 +60,14 @@ export class HotelScene extends Phaser.Scene {
     this.button(390, 'Return to title', () => this.title(), 250, 590);
   }
   private monster(x: number, y: number, guest: Guest) {
-    const g = this.add.graphics();
-    g.fillStyle(guest.color);
-    if (guest.kind === 'bat') { g.fillTriangle(-30, -4, -56, -30, -52, 20); g.fillTriangle(30, -4, 56, -30, 52, 20); }
-    if (guest.kind === 'bat' || guest.kind === 'wolf') { g.fillTriangle(-25, -15, -23, -49, -4, -27); g.fillTriangle(25, -15, 23, -49, 4, -27); }
-    g.fillRoundedRect(-31, -30, 62, 63, 26);
-    if (guest.kind === 'ghost') for (let i = 0; i < 3; i++) g.fillCircle(-20 + i * 20, 28, 11);
-    if (guest.kind === 'sprite') {
-      g.fillStyle(0x639b65).fillEllipse(-13, -35, 20, 29).fillEllipse(13, -35, 20, 29);
-      g.fillStyle(0xffdc89).fillCircle(0, -32, 6);
-    }
-    g.fillStyle(0x201b35).fillCircle(-11, -5, 4).fillCircle(11, -5, 4);
-    g.fillStyle(0xfff6e5).fillCircle(-12, -6, 1.5).fillCircle(10, -6, 1.5);
-    g.fillStyle(0xe884a6, .65).fillEllipse(-21, 7, 10, 5).fillEllipse(21, 7, 10, 5);
-    g.lineStyle(2, 0x42314e).beginPath().arc(0, 7, 5, 0, Math.PI).strokePath();
-    return this.add.container(x, y, [g]).setSize(100, 100);
+    return drawMonster(this, x, y, guest);
   }
+
   private play() {
     this.base('A room for everyone');
     const status = this.text(422, 122, this.message || 'Four guests. Four perfect rooms.', 14, '#f2cc83');
     this.text(422, 92, 'Drag a guest into a room, or tap a guest and then a room.', 15, C.muted);
-    const hints = ['Moonlight', 'Quiet', 'Warm', 'Garden'];
+    const hints = ['Moonlight', 'Quiet', 'Warm', 'Water pool'];
     firstLevel.rooms.forEach((room, i) => {
       const x = 140 + i * 188;
       const zone = this.add.rectangle(x, 220, 160, 138, C.panel).setStrokeStyle(1, C.gold, .6).setInteractive({ useHandCursor: true });
@@ -98,8 +86,8 @@ export class HotelScene extends Phaser.Scene {
       avatar.setData('guest', guest.id);
       this.input.setDraggable(avatar);
       avatar.on('pointerdown', () => { this.selected = guest.id; status.setText(`${guest.name} wants ${guest.requirement}. Tap a room.`); });
-      this.text(x, 385, guest.name, 18, this.selected === guest.id ? '#f2cc83' : C.white);
-      this.text(x, 406, `Wants ${guest.requirement}`, 11, C.muted);
+      this.text(x, 382, `${guest.name} · ${guest.species}`, 14, this.selected === guest.id ? '#f2cc83' : C.white);
+      this.text(x, 406, `Needs ${guest.requirement}`, 11, C.muted);
     });
     this.input.removeAllListeners('drag'); this.input.removeAllListeners('drop'); this.input.removeAllListeners('dragend');
     this.input.on('drag', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => { obj.setPosition(x, y); obj.setDepth(10); });

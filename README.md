@@ -18,7 +18,7 @@ Vite serves the game on port 5173. The production build goes into `dist/`. TypeS
 
 ## Play
 
-Open the doors, enter the lobby, and begin Night 01. Drag each guest onto a room, or tap a guest followed by a room. Pip wants moonlight, Momo needs quiet, Bramble needs warmth, and Fern the moss sprite needs a garden. Each room holds one guest. Moving a guest into an occupied room returns the former occupant to the queue. Check in all guests to validate the solution. Reset clears the assignments; returning to the lobby abandons the current attempt. Completing a night awards 50 coins once. Replay is available from the lobby.
+Open the doors, enter the lobby, and begin Night 01. Drag each guest onto a room, or tap a guest followed by a room. Yue the nine-tail fox wants moonlight, Dou the jiangshi needs quiet, Ember the lantern spirit needs warmth, and Sumi the kappa needs water. These are original interpretations of folklore; the hotel preferences are fictional game rules, not claims about traditional beliefs. See [角色設計](docs/characters.zh-Hant.md) for the design brief. Each room holds one guest. Moving a guest into an occupied room returns the former occupant to the queue. Check in all guests to validate the solution. Reset clears the assignments; returning to the lobby abandons the current attempt. Completing a night awards 50 coins once. Replay is available from the lobby.
 
 The 844 × 480 logical canvas scales to fit the available screen without cropping. Android locks landscape; portrait web windows retain a centered landscape canvas. No game action depends on a remote service. Capacitor bundles all web assets for offline native startup. The web development build needs its local Vite server and is not a PWA. Progress is stored locally on the device; clearing app data removes it. If browser storage is unavailable, the session remains playable but cannot retain progress after reload.
 
@@ -26,6 +26,8 @@ The 844 × 480 logical canvas scales to fit the available screen without croppin
 
 - `src/domain/puzzle.ts`: scene-independent level data, immutable placement, and complete puzzle validation.
 - `src/game/HotelScene.ts`: Phaser presentation and title/lobby/puzzle/results navigation.
+- `src/game/drawMonster.ts`: four original folklore-inspired vector silhouettes.
+- `docs/characters.zh-Hant.md`: Traditional Chinese character design brief and implementation boundaries.
 - `src/platform/save.ts`: versioned local save boundary and one-time completion rewards.
 - `src/platform/ads.ts`: inactive future provider contract. No ad SDK or live ads.
 - `tests/puzzle.test.ts`: validation, exhaustive unique-solution check, placement, and progression tests.
