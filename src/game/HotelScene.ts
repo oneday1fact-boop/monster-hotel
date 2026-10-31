@@ -67,7 +67,7 @@ export class HotelScene extends Phaser.Scene {
     this.base('A room for everyone');
     const status = this.text(422, 122, this.message || 'Four guests. Four perfect rooms.', 14, '#f2cc83');
     this.text(422, 92, 'Drag a guest into a room, or tap a guest and then a room.', 15, C.muted);
-    const hints = ['Moonlight', 'Quiet', 'Warm', 'Water pool'];
+    const hints = ['Moonlight', 'Quiet', 'Warm', 'Cool'];
     firstLevel.rooms.forEach((room, i) => {
       const x = 140 + i * 188;
       const zone = this.add.rectangle(x, 220, 160, 138, C.panel).setStrokeStyle(1, C.gold, .6).setInteractive({ useHandCursor: true });

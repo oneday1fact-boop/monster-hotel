@@ -5,20 +5,17 @@ import type { Guest } from '../domain/puzzle';
 export function drawMonster(scene: Phaser.Scene, x: number, y: number, guest: Guest) {
   const g = scene.add.graphics();
   const ink = 0x29203c;
-  if (guest.kind === 'fox') {
-    // Nine individual tails fan around the face, remaining readable at room scale.
-    for (let i = 0; i < 9; i++) {
-      const angle = Math.PI + (i / 8) * Math.PI;
-      const tx = Math.cos(angle) * 36;
-      const ty = Math.sin(angle) * 22 + 8;
-      g.fillStyle(i % 2 ? 0xd3b6e3 : 0xf6dfbd).fillEllipse(tx, ty, 20, 51);
-      g.fillStyle(0xfff5e5).fillEllipse(tx, ty - 17, 12, 19);
-    }
-    g.fillStyle(guest.color).fillTriangle(-26, -12, -28, -48, -5, -28).fillTriangle(26, -12, 28, -48, 5, -28);
-    g.fillRoundedRect(-27, -28, 54, 60, 24);
-    g.fillStyle(0xe5a5b5).fillTriangle(-22, -26, -23, -40, -12, -28).fillTriangle(22, -26, 23, -40, 12, -28);
-    g.fillStyle(0xfff5e5).fillEllipse(0, 12, 40, 26);
-    g.fillStyle(0xa85d89).fillTriangle(-5, -18, 0, -10, 5, -18);
+  if (guest.kind === 'werewolf') {
+    // A single fluffy tail, pointed ears, muzzle and two small fangs.
+    g.fillStyle(0x8b87b6).fillEllipse(30, 22, 38, 23);
+    g.fillStyle(0xe6e4f4).fillEllipse(43, 18, 16, 18);
+    g.fillStyle(guest.color).fillRoundedRect(-27, -9, 54, 48, 19);
+    g.fillTriangle(-28, -12, -28, -47, -6, -28).fillTriangle(28, -12, 28, -47, 6, -28);
+    g.fillRoundedRect(-31, -29, 62, 55, 22);
+    g.fillStyle(0xd698b1).fillTriangle(-22, -27, -23, -39, -13, -27).fillTriangle(22, -27, 23, -39, 13, -27);
+    g.fillStyle(0xe6e4f4).fillTriangle(-8, -28, 0, -15, 8, -28).fillEllipse(0, 12, 41, 25).fillEllipse(0, 29, 26, 18);
+    g.fillStyle(0x575172).fillTriangle(-5, 3, 5, 3, 0, 9);
+    g.fillStyle(0xffffff).fillTriangle(-13, 12, -7, 12, -10, 20).fillTriangle(7, 12, 13, 12, 10, 20);
   } else if (guest.kind === 'jiangshi') {
     g.fillStyle(0x69538a).fillRoundedRect(-26, 0, 52, 38, 9);
     g.fillStyle(guest.color).fillRoundedRect(-28, -28, 56, 51, 20);
@@ -42,20 +39,24 @@ export function drawMonster(scene: Phaser.Scene, x: number, y: number, guest: Gu
     g.lineStyle(3, 0xd5ad73).lineBetween(0, 35, 0, 43);
     g.fillStyle(0xe889a4).fillTriangle(-7, 47, 0, 38, 7, 47);
   } else {
-    g.fillStyle(0x4b7f65).fillEllipse(20, 12, 53, 58);
-    g.lineStyle(2, 0x31554c).strokeEllipse(20, 12, 43, 48).lineBetween(20, -10, 20, 34);
-    g.fillStyle(guest.color).fillRoundedRect(-30, -27, 58, 62, 23);
-    g.fillStyle(0xe1d09b).fillEllipse(-1, 20, 30, 23);
-    g.fillStyle(0x4b7f65).fillTriangle(-31, -16, -21, -38, -10, -19).fillTriangle(10, -19, 21, -38, 29, -16);
-    g.fillStyle(0xe1d09b).fillEllipse(0, -28, 43, 15);
-    g.fillStyle(0x83d5e1).fillEllipse(0, -30, 31, 8);
+    // A soft snowball silhouette with a scarf and a crystalline snowflake crown.
+    g.fillStyle(guest.color).fillEllipse(0, 17, 67, 53).fillCircle(0, -10, 29);
+    g.fillStyle(0xc3e6f5).fillEllipse(-22, 36, 23, 12).fillEllipse(22, 36, 23, 12);
+    g.fillStyle(0x9bd4ed).fillCircle(-26, -11, 9).fillCircle(26, -11, 9);
+    g.fillStyle(0x947cb5).fillRoundedRect(-27, 12, 54, 10, 5).fillRoundedRect(12, 19, 12, 22, 4);
+    g.fillStyle(0xdac9ed).fillRect(14, 33, 8, 3);
+    g.lineStyle(3, 0x9bd4ed);
+    for (let i = 0; i < 3; i++) {
+      const angle = i * Math.PI / 3;
+      g.lineBetween(-Math.cos(angle) * 10, -41 - Math.sin(angle) * 10, Math.cos(angle) * 10, -41 + Math.sin(angle) * 10);
+    }
+    g.fillStyle(0xffffff).fillCircle(0, -41, 3);
   }
   if (guest.kind !== 'lantern') {
     g.fillStyle(ink).fillCircle(-11, -5, 4).fillCircle(11, -5, 4);
     g.fillStyle(0xfff6e5).fillCircle(-12, -6, 1.5).fillCircle(10, -6, 1.5);
     g.fillStyle(0xe884a6, .65).fillEllipse(-21, 7, 10, 5).fillEllipse(21, 7, 10, 5);
-    if (guest.kind === 'kappa') g.fillStyle(0xe9bf6d).fillEllipse(0, 8, 20, 11);
-    else g.lineStyle(2, 0x42314e).beginPath().arc(0, 7, 5, 0, Math.PI).strokePath();
+    g.lineStyle(2, 0x42314e).beginPath().arc(0, 7, 5, 0, Math.PI).strokePath();
   }
   return scene.add.container(x, y, [g]).setSize(110, 110);
 }
