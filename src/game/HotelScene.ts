@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
-import { firstLevel, place, validate, type Assignment, type Guest, type Room } from '../domain/puzzle';
+import { firstLevel, place, validate, type Assignment, type Guest, type Room, type Level } from '../domain/puzzle';
+import { levels, levelTitle, isUnlocked } from '../domain/levels';
+import { campaignUI, roomLabel, ruleText } from '../i18n/rules';
+import { showNightSelection } from './nightSelection';
+import { roomConditions } from '../domain/puzzle';
 import { getHint } from '../domain/hints';
 import { ui, conditions, characters, readLocale, saveLocale, type Locale } from '../i18n/catalog';
 import { showDetails, type Details } from './details';
@@ -13,8 +17,10 @@ export class HotelScene extends Phaser.Scene {
   private selected?: string;
   private message = '';
   private locale: Locale = readLocale();
-  private screen: 'title' | 'lobby' | 'play' | 'win' = 'title';
+  private screen: 'title' | 'lobby' | 'play' | 'win' | 'selection' = 'title';
   private hintStage = 0;
+  private level: Level = firstLevel;
+  private get ct() { return campaignUI[this.locale]; }
   private dismissDetails?: () => void;
   private get t() { return ui[this.locale]; }
   constructor() { super('hotel'); }
@@ -68,12 +74,23 @@ export class HotelScene extends Phaser.Scene {
   private lobby() {
     this.screen = 'lobby';
     this.base(this.t.welcome);
-    this.text(422, 98, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/1 ${this.t.progress}`, 14, '#f2cc83');
+    this.text(422, 98, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/20 ${this.t.progress}`, 14, '#f2cc83');
     this.hotel(190);
     this.text(590, 180, this.t.arrivals, 26);
     this.text(590, 235, this.t.intro, 16, C.muted);
-    this.button(325, this.save.completed.includes(1) ? this.t.replay : this.t.begin, () => { this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.play(); }, 310, 590);
+    this.button(325, this.ct.choose, () => this.selection(), 310, 590);
     this.button(390, this.t.titleBack, () => this.title(), 250, 590);
+  }
+  private selection() {
+    this.screen = 'selection'; this.base(this.ct.levels); this.input.enabled = false;
+    this.dismissDetails = showNightSelection(this.locale, this.save.completed, id => this.startNight(id), () => this.lobby(), () => {
+      this.locale = this.locale === 'en' ? 'zh-Hant' : 'en'; saveLocale(this.locale); this.selection();
+    });
+  }
+  private startNight(id: number) {
+    if (!isUnlocked(id, this.save.completed)) return;
+    const level = levels.find(l => l.id === id); if (!level) return;
+    this.level = level; this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.play();
   }
   private monster(x: number, y: number, guest: Guest) {
     return drawMonster(this, x, y, guest);
@@ -82,23 +99,25 @@ export class HotelScene extends Phaser.Scene {
   private play() {
     this.screen = 'play';
     this.base(this.t.puzzle);
-    const status = this.text(422, 122, this.message || this.t.ready, 14, '#f2cc83');
+    const status = this.text(422, 122, this.message || `${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`, 14, '#f2cc83');
     this.text(422, 92, this.t.instructions, 15, C.muted);
     this.text(74, 26, this.t.hint + ' ✦', 14, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => this.hint());
-    firstLevel.rooms.forEach((room, i) => {
+    this.text(190, 26, this.ct.clues + ' ⓘ', 13, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => this.clues());
+    this.level.rooms.forEach((room, i) => {
       const x = 140 + i * 188;
       const zone = this.add.rectangle(x, 220, 160, 138, C.panel).setStrokeStyle(1, C.gold, .6).setInteractive({ useHandCursor: true });
       const drop = this.add.zone(x, 220, 160, 138).setRectangleDropZone(160, 138);
       drop.setData('room', room.id);
       drop.on('pointerdown', () => { if (this.selected) this.assign(this.selected, room.id); });
       this.text(x, 165, room.id, 13, '#f2cc83');
-      this.text(x, 270, conditions[this.locale][room.condition].name, 13);
-      const guest = firstLevel.guests.find(g => this.assignment[g.id] === room.id);
+      this.text(x, 265, roomLabel(room, this.locale), 11).setWordWrapWidth(148);
+      this.text(x, 186, `${this.ct.floor} ${room.floor} · ${room.position}`, 11, C.muted);
+      const guest = this.level.guests.find(g => this.assignment[g.id] === room.id);
       if (guest) this.monster(x, 220, guest).setScale(.65);
       zone.on('pointerdown', () => { if (this.selected) this.assign(this.selected, room.id); });
       this.text(x + 60, 166, 'ⓘ', 20, '#f2cc83').setPadding(5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.roomCard(room));
     });
-    firstLevel.guests.forEach((guest, i) => {
+    this.level.guests.forEach((guest, i) => {
       const x = 140 + i * 188;
       const avatar = this.monster(x, 340, guest).setScale(.8).setInteractive({ useHandCursor: true });
       avatar.setData('guest', guest.id);
@@ -112,11 +131,11 @@ export class HotelScene extends Phaser.Scene {
     this.input.on('drop', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, target: Phaser.GameObjects.Zone) => this.assign(obj.getData('guest'), target.getData('room')));
     this.input.on('dragend', (_p: Phaser.Input.Pointer, _obj: Phaser.GameObjects.Container, dropped: boolean) => { if (!dropped) this.play(); });
     this.button(442, this.t.check, () => {
-      const result = validate(firstLevel, this.assignment);
-      if (result.valid) { this.save = complete(this.save, 1); this.win(); }
-      else { this.message = result.reason === 'incomplete' ? this.t.incomplete : this.t.mismatch; this.play(); }
+      const result = validate(this.level, this.assignment);
+      if (result.valid) { this.save = complete(this.save, this.level.id); this.win(); }
+      else { this.message = result.reason === 'incomplete' ? this.t.incomplete : result.reason === 'rule' ? this.ct.retry : this.t.mismatch; this.play(); }
     });
-    this.text(105, 442, this.t.lobby, 15, C.muted).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.lobby());
+    this.text(105, 442, this.ct.return, 13, C.muted).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.selection());
     this.text(739, 442, this.t.reset, 15, C.muted).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.assignment = {}; this.selected = undefined; this.message = ''; this.hintStage = 0; this.play(); });
   }
   private details(data: Details) {
@@ -128,25 +147,41 @@ export class HotelScene extends Phaser.Scene {
     const c = characters[this.locale][guest.kind];
     this.details({ eyebrow: this.t.guestCard, title: `${c.name} · ${c.species}`, close: this.t.close, sections: [
       { title: this.t.personality, body: c.personality }, { title: this.t.wish, body: c.wish }, { title: '', body: c.quote },
+      { title: this.ct.tonight, body: this.guestRules(guest.id).map(rule => ruleText(this.level, rule, this.locale)).join('\n') || this.ct.noRules },
     ] });
   }
   private roomCard(room: Room) {
     const c = conditions[this.locale][room.condition];
     this.details({ eyebrow: this.t.roomCard, title: `${room.id} · ${c.room}`, close: this.t.close, sections: [
-      { title: this.t.condition, body: c.name }, { title: '', body: c.description }, { title: '', body: this.t.occupancy },
+      { title: this.t.condition, body: roomLabel(room, this.locale) },
+      { title: '', body: roomConditions(room).map(amenity => conditions[this.locale][amenity].description).join('\n\n') },
+      { title: this.ct.floor, body: `${room.floor} · ${room.position}` }, { title: '', body: this.t.occupancy },
     ] });
+  }
+  private guestRules(id: string) {
+    return (this.level.rules ?? []).filter(rule => 'guest' in rule ? rule.guest === id : rule.a === id || rule.b === id);
+  }
+  private clues() {
+    this.details({ eyebrow: `${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`, title: this.ct.clues, close: this.t.close,
+      sections: [
+        { title: this.t.wish, body: this.level.guests.map(g => `${characters[this.locale][g.kind].name} · ${conditions[this.locale][g.requirement].name}`).join('\n') },
+        { title: this.ct.tonight, body: this.level.rules?.length ? this.level.rules.map(rule => ruleText(this.level, rule, this.locale)).join('\n') : this.ct.noRules },
+        { title: '', body: this.ct.map },
+      ] });
   }
   private hint() {
     this.hintStage = Math.min(this.hintStage + 1, 3);
-    const hint = getHint(firstLevel, this.assignment, this.hintStage);
-    let body: string = this.t.hintStrategy;
+    const hint = getHint(this.level, this.assignment, this.hintStage);
+    let body: string = this.t.hintStrategy + (this.level.rules?.length ? `\n\n${this.ct.rulesReminder}\n${this.ct.map}` : '');
     if (hint.type === 'complete') body = this.t.hintDone;
     if (hint.type === 'focus' || hint.type === 'placement') {
-      const guest = firstLevel.guests.find(g => g.id === hint.guestId)!;
+      const guest = this.level.guests.find(g => g.id === hint.guestId)!;
       const c = characters[this.locale][guest.kind];
       body = `${this.t.hintFocus} ${c.name}\n${c.wish}`;
+      const rules = this.guestRules(guest.id);
+      if (rules.length) body += `\n\n${rules.map(rule => ruleText(this.level, rule, this.locale)).join('\n')}`;
       if (hint.type === 'placement') {
-        const room = firstLevel.rooms.find(r => r.id === hint.roomId)!;
+        const room = this.level.rooms.find(r => r.id === hint.roomId)!;
         body += `\n\n${this.t.hintSolution} ${room.id} · ${conditions[this.locale][room.condition].room}`;
       }
     }
@@ -158,9 +193,11 @@ export class HotelScene extends Phaser.Scene {
     this.screen = 'win';
     this.base(this.t.win);
     this.text(422, 128, '✦  ✦  ✦', 38, '#f2cc83');
-    firstLevel.guests.forEach((g, i) => { const avatar = this.monster(140 + i * 188, 230, g).setScale(.9); this.tweens.add({ targets: avatar, y: 218, duration: 650 + i * 100, repeat: -1, yoyo: true }); });
+    this.level.guests.forEach((g, i) => { const avatar = this.monster(140 + i * 188, 230, g).setScale(.9); this.tweens.add({ targets: avatar, y: 218, duration: 650 + i * 100, repeat: -1, yoyo: true }); });
     this.text(422, 312, this.t.happy, 26);
-    this.text(422, 359, this.t.reward, 16, C.muted);
-    this.button(422, this.t.lobbyBack, () => this.lobby());
+    this.text(422, 348, `${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}\n${this.ct.reward}`, 15, C.muted);
+    if (this.level.id < levels.length) this.button(398, this.ct.next, () => this.startNight(this.level.id + 1));
+    else this.text(422, 395, this.ct.finished, 20, '#f2cc83');
+    this.text(422, 450, this.ct.return, 16, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => this.selection());
   }
 }

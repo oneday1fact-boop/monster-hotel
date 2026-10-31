@@ -8,6 +8,7 @@ async function load(page: Page) {
 }
 async function enter(page: Page) {
   await page.mouse.click(590, 330); await page.mouse.click(590, 325);
+  await page.locator('[data-night="1"]').click();
 }
 async function assign(page: Page, x: number) { await page.mouse.click(x, 340); await page.mouse.click(x, 220); }
 async function saved(page: Page) { return page.evaluate(key => JSON.parse(localStorage.getItem(key) ?? 'null'), saveKey); }
@@ -75,7 +76,7 @@ test('offline drag completion, modal keyboard focus, and small screens', async (
   await page.keyboard.press('Escape');
   for (const x of xs) { await page.mouse.move(x, 340); await page.mouse.down(); await page.mouse.move(x, 220, { steps: 10 }); await page.mouse.up(); }
   await page.mouse.click(422, 442); expect((await saved(page))?.coins).toBe(50);
-  await page.mouse.click(422, 422); await page.mouse.click(590, 325);
+  await page.mouse.click(422, 450); await page.locator('[data-night="1"]').click();
   for (const viewport of [{ width: 740, height: 360 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     const canvas = page.locator('canvas'); await expect(canvas).toBeVisible();
