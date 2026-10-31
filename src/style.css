@@ -123,3 +123,18 @@ button:focus-visible, .setting-tile:focus-within { outline: 3px solid #b9e4e4; o
   .night-grid strong { font-size: 24px; }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior: auto!important; transition: none!important; } }
+/* First-night coaching stays in the existing HUD rail, leaving the hotel touchable. */
+.tutorial-coach { position: absolute; top: max(5px,env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: min(54vw,580px); min-height: 49px; display: flex; align-items: center; gap: 9px; padding: 3px 5px 3px 12px; color: #ffedc5; background: linear-gradient(#6b4a68,#3a2948); border: 2px solid #dfb678; border-radius: 17px; box-shadow: inset 0 2px #ad8090,0 3px #1c1329; pointer-events: none; }
+.tutorial-coach[hidden],.tutorial-target[hidden] { display: none; }
+.tutorial-coach p { margin: 0; flex: 1; font-size: 13px; font-weight: 650; line-height: 1.3; }
+.tutorial-symbol { color: #ffe39a; display: flex; }
+.tutorial-symbol .game-icon { width: 24px; height: 24px; }
+.tutorial-skip { flex: 0 0 auto; min-width: 48px; min-height: 44px; padding: 4px 8px; border: 1px solid #bd936f; border-radius: 12px; color: #ffe6be; font-weight: 650; background: linear-gradient(#73536c,#49334f); box-shadow: inset 0 1px #b08394,inset 0 -3px #32213b; pointer-events: auto; cursor: pointer; }
+.game-hud[data-tutorial] .night-badge { visibility: hidden; }
+.tutorial-target { position: absolute; pointer-events: none; border: 3px solid #ffe1a0; border-radius: 17px; box-shadow: 0 0 0 3px #62415c88,inset 0 0 17px #ffe0a425,0 0 14px #f5ca7877; animation: tutorial-glow 1.3s ease-in-out infinite alternate; }
+.tutorial-target--guest { border-radius: 50%; }
+.game-hud[data-tutorial="free"] [data-action="hint"],.game-hud[data-tutorial="check"] [data-action="check-in"] { outline: 3px solid #ffe6a5; outline-offset: 3px; }
+@keyframes tutorial-glow { from { border-color: #ffe3a6; } to { border-color: #fff7d9; box-shadow: 0 0 0 4px #f3c57a35,inset 0 0 20px #ffe0a435,0 0 20px #f5ca78aa; } }
+@media(max-height:420px) and (min-width:600px) { .tutorial-coach { top: 3px; min-height: 44px; padding: 0 3px 0 8px; gap: 5px; } .tutorial-coach p { font-size: 12px; } }
+@media(max-width:600px) { .tutorial-coach { top: 62px; width: min(94vw,500px); } }
+@media(prefers-reduced-motion:reduce) { .tutorial-target { animation: none; } }

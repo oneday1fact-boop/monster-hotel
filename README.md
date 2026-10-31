@@ -10,8 +10,8 @@ Use Node.js 24 LTS and npm (minimum Node 22.12).
 npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
-npm test                    # 89 unit tests
-npm run test:browser         # 18 Playwright browser tests; starts Vite on 5175
+npm test                    # 98 unit tests
+npm run test:browser         # 22 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
 
@@ -76,7 +76,7 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 89 unit checks and 18 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 98 unit checks and 22 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
 
 ## Room-style and review-format revision
 
@@ -87,3 +87,5 @@ Run `npm run review:record` with Vite running (Node 24 and `ffmpeg` required) to
 Full-screen icon controls, settings switches and language cards are documented in [game UI notes](docs/game-ui.zh-Hant.md). Review recording includes the complete browser frame, including its touch controls.
 
 Four distinct room activity loops now include a moonbeam pounce, hopping practice, orbiting fireflies and linen winding. See [房內角色活動](docs/activities.zh-Hant.md) for choreography and motion limits.
+
+First-night guidance uses short bilingual coaching and passive target highlights, then leaves three guests to the player. Skipping is saved independently; returning players with a completed first night bypass it. See [第一晚互動教學](docs/tutorial.zh-Hant.md).

@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { tutorialView } from '../domain/tutorial';
+import { readTutorialDone, saveTutorialDone } from '../platform/tutorial';
+import { tutorialUI } from '../i18n/tutorial';
 import { firstLevel, place, validate, type Assignment, type Guest, type Room, type Level } from '../domain/puzzle';
 import { levels, levelTitle, isUnlocked } from '../domain/levels';
 import { campaignUI, roomLabel, ruleText } from '../i18n/rules';
@@ -27,6 +30,7 @@ export class HotelScene extends Phaser.Scene {
   private save!: Save;
   private hud?: ReturnType<typeof createHUD>;
   private earnedCoins = 0;
+  private tutorialDismissed = readTutorialDone();
   private viewportWidth = 0;
   private viewportHeight = 0;
   private feedback = new Feedback();
@@ -93,6 +97,7 @@ export class HotelScene extends Phaser.Scene {
     document.documentElement.lang = this.locale;
     this.hud = createHUD({ locale: this.locale, playing: this.screen === 'play', night: this.level.id,
       settings: () => this.settings(), language: () => this.language(), home: () => this.selection(), hint: () => this.hint(), clues: () => this.clues(),
+      skipTutorial: () => this.finishTutorial(),
       check: () => this.checkGuests(), reset: () => { this.assignment = {}; this.selected = undefined; this.message = ''; this.hintStage = 0; this.queueArrival = true; this.play(); },
     });
     this.game.canvas.setAttribute('aria-label', this.screen === 'play' ? `${levelTitle(this.level.id, this.locale)}. ${dollhouseUI[this.locale].instructions}` : label);
@@ -180,6 +185,7 @@ export class HotelScene extends Phaser.Scene {
   private setBusy(busy: boolean) {
     this.input.enabled = !busy; this.hud?.busy(busy);
     this.game.canvas.setAttribute('aria-busy', String(busy));
+    if (busy) this.hud?.tutorial(undefined, this.assignment); else if (this.screen === 'play') this.updateTutorial();
   }
   private play() {
     this.screen = 'play';
@@ -200,12 +206,13 @@ export class HotelScene extends Phaser.Scene {
     const bindGuest = (avatar: Phaser.GameObjects.Container, guest: Guest) => {
       avatar.setInteractive({ useHandCursor: true }).setData('guest', guest.id); this.input.setDraggable(avatar);
       avatar.on('pointerdown', () => {
-        this.selected = guest.id; selection.setPosition(avatar.x, avatar.y).setVisible(true);
+        this.selected = guest.id; selection.setPosition(avatar.x, avatar.y).setVisible(true); this.updateTutorial();
         if (this.assignment[guest.id] && !reducedMotion()) {
           const heart = this.text(avatar.x, avatar.y - 30, '♥', 17, '#ef9bb4').setDepth(12);
           this.tweens.add({ targets: heart, y: avatar.y - 48, alpha: 0, duration: 650, onComplete: () => heart.destroy() });
         }
-        status.setText(`${characters[this.locale][guest.kind].name} · ${conditions[this.locale][guest.requirement].name}`);
+        const guided = guest.kind === 'werewolf' && tutorialView(this.level.id, this.save.completed, this.tutorialDismissed, this.assignment, this.selected);
+        if (guided) status.setText(''); else status.setText(`${characters[this.locale][guest.kind].name} · ${conditions[this.locale][guest.requirement].name}`);
       });
       if (this.selected === guest.id) selection.setPosition(avatar.x, avatar.y).setVisible(true);
     };
@@ -255,10 +262,19 @@ export class HotelScene extends Phaser.Scene {
     this.input.on('drag', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => { obj.setPosition(x, y); obj.setDepth(10); });
     this.input.on('drop', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, target: Phaser.GameObjects.Zone) => this.assign(obj.getData('guest'), target.getData('room')));
     this.input.on('dragend', (_p: Phaser.Input.Pointer, _obj: Phaser.GameObjects.Container, dropped: boolean) => { if (!dropped) this.play(); });
+    if (this.game.canvas.getAttribute('aria-busy') === 'false') this.updateTutorial();
+  }
+  private updateTutorial() {
+    this.hud?.tutorial(this.screen === 'play' ? tutorialView(this.level.id, this.save.completed, this.tutorialDismissed, this.assignment, this.selected) : undefined, this.assignment);
+  }
+  private finishTutorial() {
+    this.tutorialDismissed = true; const saved = saveTutorialDone(); this.updateTutorial();
+    if (!saved) this.hud?.show(tutorialUI[this.locale].session);
   }
   private checkGuests() {
     const result = validate(this.level, this.assignment);
     if (result.valid) {
+      if (this.level.id === 1 && !this.tutorialDismissed) this.finishTutorial();
       this.feedback.play('success'); void this.feedback.pulse('success'); const before = this.save.coins;
       this.save = complete(this.save, this.level.id); this.earnedCoins = this.save.coins - before; this.win();
     } else {
