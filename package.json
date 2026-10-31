@@ -1,1 +1,28 @@
-{"name":"monster-hotel-midnight-check-in","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"tsc --noEmit && vite build","preview":"vite preview --host 0.0.0.0","test":"vitest run","android:add":"cap add android","android:sync":"npm run build && cap sync android","android:open":"cap open android"},"dependencies":{"@capacitor/android":"^7.4.0","@capacitor/core":"^7.4.0","phaser":"^3.90.0"},"devDependencies":{"@capacitor/cli":"^7.4.0","typescript":"~5.9.3","vite":"^7.1.12","vitest":"^3.2.4"}}
+{
+  "name": "monster-hotel-midnight-check-in",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "android:add": "cap add android",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/core": "^7.4.0",
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.0",
+    "@playwright/test": "^1.64.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.12",
+    "vitest": "^3.2.4"
+  }
+}

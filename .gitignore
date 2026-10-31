@@ -6,3 +6,5 @@ android/app/build/
 *.log
 *.jks
 *.keystore
+playwright-report/
+test-results/
