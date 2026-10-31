@@ -1,6 +1,6 @@
 # Monster Hotel: Midnight Check-in
 
-Fresh Milestone 1 implementation of an original portrait puzzle game. No previous prototype, licensed character artwork, external fonts, analytics, or live advertising is used. All current art is drawn locally with Phaser graphics.
+Fresh Milestone 1 implementation of an original landscape puzzle game. No previous prototype, licensed character artwork, external fonts, analytics, or live advertising is used. All current art is drawn locally with Phaser graphics.
 
 ## Develop
 
@@ -18,9 +18,9 @@ Vite serves the game on port 5173. The production build goes into `dist/`. TypeS
 
 ## Play
 
-Open the doors, enter the lobby, and begin Night 01. Drag each guest onto a room, or tap a guest followed by a room. Pip wants moonlight, Momo needs quiet, and Bramble needs warmth. Each room holds one guest. Moving a guest into an occupied room returns the former occupant to the queue. Check in all guests to validate the solution. Reset clears the assignments; returning to the lobby abandons the current attempt. Completing a night awards 50 coins once. Replay is available from the lobby.
+Open the doors, enter the lobby, and begin Night 01. Drag each guest onto a room, or tap a guest followed by a room. Pip wants moonlight, Momo needs quiet, Bramble needs warmth, and Fern the moss sprite needs a garden. Each room holds one guest. Moving a guest into an occupied room returns the former occupant to the queue. Check in all guests to validate the solution. Reset clears the assignments; returning to the lobby abandons the current attempt. Completing a night awards 50 coins once. Replay is available from the lobby.
 
-The 390 × 844 logical canvas scales to fit the available screen without cropping. Android locks portrait; landscape web windows retain a centered portrait canvas. No game action depends on a remote service. Capacitor bundles all web assets for offline native startup. The web development build needs its local Vite server and is not a PWA. Progress is stored locally on the device; clearing app data removes it. If browser storage is unavailable, the session remains playable but cannot retain progress after reload.
+The 844 × 480 logical canvas scales to fit the available screen without cropping. Android locks landscape; portrait web windows retain a centered landscape canvas. No game action depends on a remote service. Capacitor bundles all web assets for offline native startup. The web development build needs its local Vite server and is not a PWA. Progress is stored locally on the device; clearing app data removes it. If browser storage is unavailable, the session remains playable but cannot retain progress after reload.
 
 ## Structure
 
@@ -29,7 +29,7 @@ The 390 × 844 logical canvas scales to fit the available screen without croppin
 - `src/platform/save.ts`: versioned local save boundary and one-time completion rewards.
 - `src/platform/ads.ts`: inactive future provider contract. No ad SDK or live ads.
 - `tests/puzzle.test.ts`: validation, exhaustive unique-solution check, placement, and progression tests.
-- `capacitor.config.ts` and `android/`: native wrapper and portrait configuration.
+- `capacitor.config.ts` and `android/`: native wrapper and landscape configuration.
 
 Presentation intentionally remains a small scene for this vertical slice. Future levels can reuse the pure domain model; production localization, content catalogs, audio, and native service adapters should be extracted as their features arrive.
 
@@ -45,12 +45,12 @@ cd android
 ./gradlew assembleDebug
 ```
 
-Always rebuild/sync after changing web code. Do not run `android:add` again unless deliberately regenerating the native project; regeneration would require restoring the portrait manifest setting. Release signing, final app ID ownership, launcher artwork, store policy review, device testing, and publishing are outside Milestone 1. Never commit signing keys or `local.properties`.
+Always rebuild/sync after changing web code. Do not run `android:add` again unless deliberately regenerating the native project; regeneration would require restoring the landscape manifest setting. Release signing, final app ID ownership, launcher artwork, store policy review, device testing, and publishing are outside Milestone 1. Never commit signing keys or `local.properties`.
 
 ## Validation and scope
 
-Milestone 1: title animation, interactive lobby, gameplay navigation, three original vector monster guests, one handcrafted uniquely solvable puzzle, tap/drag controls, results, saved completion and coins, and Android project preparation.
+Milestone 1: title animation, interactive lobby, gameplay navigation, four original vector monster guests, one handcrafted uniquely solvable puzzle, tap/drag controls, results, saved completion and coins, and Android project preparation.
 
-Verified in the cloud environment: production build/type check; 9 automated tests; Chromium navigation, tap completion, drag-only completion with networking disabled after load, one-time reward replay, persistence after reload, and 320 px responsive canvas fit. Native APK assembly and device testing are not verified; the Android SDK is not configured here. Vite reports a large bundle warning from Phaser (about 1.2 MB uncompressed); release optimization remains future work.
+Verified in the cloud environment: production build/type check; 11 automated tests; Chromium navigation, tap completion, drag-only completion with networking disabled after load, one-time reward replay, persistence after reload, rejection of three-guest incomplete assignments, and landscape/portrait viewport fit. Native APK assembly and device testing are not verified; the Android SDK is not configured here. Vite reports a large bundle warning from Phaser (about 1.2 MB uncompressed); release optimization remains future work.
 
-Remaining after approval: 19 more handcrafted levels, a level-selection screen, three further original monster types, richer conditions, decoration upgrades, English/Traditional Chinese localization, music/SFX/haptics settings, final illustrated assets and animation polish, accessibility improvements, Android device QA, and optional ad provider integration. No live advertisements or publishing in this milestone.
+Remaining after approval: 19 more handcrafted levels, a level-selection screen, two further original monster types, richer conditions, decoration upgrades, English/Traditional Chinese localization, music/SFX/haptics settings, final illustrated assets and animation polish, accessibility improvements, Android device QA, and optional ad provider integration. No live advertisements or publishing in this milestone.
