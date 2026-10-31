@@ -21,20 +21,20 @@ test('Chinese room details and all four character cards preserve the puzzle', as
 });
 
 test('hints reveal strategy, a guest, then a room without placing anyone', async ({ page }) => {
-  await load(page); await enter(page); await page.mouse.click(74, 26);
+  await load(page); await enter(page); await page.getByRole('button', { name: '提示', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('提示階段 1/3'); await expect(page.getByRole('dialog')).not.toContainText('101 ·');
   await page.getByRole('button', { name: '再給我一點提示' }).click(); await expect(page.getByRole('dialog')).toContainText('月毛'); await expect(page.getByRole('dialog')).not.toContainText('101 ·');
   await page.getByRole('button', { name: '再給我一點提示' }).click(); await expect(page.getByRole('dialog')).toContainText('101 · 月光貴賓房');
   await page.keyboard.press('Escape');
   for (let i = 1; i < 4; i++) await assign(page, i);
   await page.mouse.click(422, 448); expect(await saved(page)).toBeNull();
-  await page.mouse.click(74, 26); await expect(page.getByRole('dialog')).toContainText('月毛'); await page.keyboard.press('Escape'); await assign(page, 0);
-  await page.mouse.click(74, 26); await expect(page.getByRole('dialog')).toContainText('每位住客都有合適房間了');
+  await page.getByRole('button', { name: '提示', exact: true }).click(); await expect(page.getByRole('dialog')).toContainText('月毛'); await page.keyboard.press('Escape'); await assign(page, 0);
+  await page.getByRole('button', { name: '提示', exact: true }).click(); await expect(page.getByRole('dialog')).toContainText('每位住客都有合適房間了');
 });
 
 test('language switches in place, persists after reload, and preserves completion rewards', async ({ page }) => {
   await load(page); await enter(page); await assign(page, 0);
-  await page.mouse.click(765, 26); await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.getByRole('button', { name: '語言', exact: true }).click(); await page.getByRole('button', { name: 'English', exact: true }).click(); await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const p = roomPoint(firstLevel.rooms[3]); await page.mouse.click(p.x + 158, p.y - 42); await expect(page.getByRole('dialog')).toContainText('102 · Breezy linen loft');
   await page.keyboard.press('Escape'); await page.mouse.click(queueX[3], 412); await expect(page.getByRole('dialog')).toContainText('Rollo · Mummy'); await page.keyboard.press('Escape');
   for (let i = 1; i < 4; i++) await assign(page, i);

@@ -11,7 +11,7 @@ npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
 npm test                    # 89 unit tests
-npm run test:browser         # 15 Playwright browser tests; starts Vite on 5175
+npm run test:browser         # 17 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
 
@@ -76,10 +76,12 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 89 unit checks and 15 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 89 unit checks and 17 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
 
 ## Room-style and review-format revision
 
 The primitive SVG room placeholders have been replaced by four separate original 3:1 panoramic illustrations, using the approved character atlas as the style reference. Rounded furniture, plum outlines, warm cel shading and distinct palettes tie the rooms to the cast. The cutaway now reaches the left/right edges and uses a compact HUD; residents are larger and their loops more pronounced. Room panels are framed proportionally rather than stretching furniture.
 
-Run `npm run review:record` with Vite running (Node 24 and `ffmpeg` required) to save an actual screenshot, H.264/yuv420p MP4 with fast-start metadata, and an inline animated-GIF fallback in `artifacts/`. WebM is used only as the intermediate recording. Review clips are silent canvas captures. The script verifies H.264 output and a nontrivial frame count. Re-encoding does not establish that every chat client can play a video; use the GIF/download fallback when needed.
+Run `npm run review:record` with Vite running (Node 24 and `ffmpeg` required) to save an actual screenshot, H.264/yuv420p MP4 with fast-start metadata, and an inline animated-GIF fallback in `artifacts/`. Timestamped browser screenshots form the intermediate recording. Review clips are silent full-page captures, including the DOM touch controls. The script verifies H.264 output and a nontrivial frame count. Re-encoding does not establish that every chat client can play a video; use the GIF/download fallback when needed.
+
+Full-screen icon controls, settings switches and language cards are documented in [game UI notes](docs/game-ui.zh-Hant.md). Review recording includes the complete browser frame, including its touch controls.

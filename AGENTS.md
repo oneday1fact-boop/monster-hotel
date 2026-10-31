@@ -10,3 +10,5 @@
 
 - Review clips must be supplied as H.264 MP4 plus an inline animated GIF fallback; WebM-only delivery was not viewable for the user. Verify the files contain multiple real gameplay frames.
 - Room art must match the approved character style and have rich, differentiated furnishings. Primitive geometric placeholder rooms were rejected. Keep the room cutaway near edge-to-edge, with a compact HUD.
+
+- Keep the main HUD minimal: native-style icon buttons and short action labels. Settings, language, night selection and shop must use full-screen illustrated-game panels with large tap targets, rather than document-style links or web form layouts.

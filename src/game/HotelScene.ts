@@ -5,9 +5,12 @@ import { campaignUI, roomLabel, ruleText } from '../i18n/rules';
 import { showNightSelection } from './nightSelection';
 import { purchase, toggleDecoration } from '../domain/decorations';
 import { hotelUI } from '../i18n/hotel';
-import { shopContent, settingsContent } from './hotelMenus';
+import { shopContent, settingsContent, languageContent } from './hotelMenus';
 import { Feedback } from '../platform/feedback';
 import { savePreferences } from '../platform/preferences';
+import { createHUD } from './hud';
+import { svgMarkup } from './icons';
+import { roomConditions, type Condition } from '../domain/puzzle';
 import { getHint } from '../domain/hints';
 import { ui, conditions, characters, readLocale, saveLocale, type Locale } from '../i18n/catalog';
 import { showDetails, type Details } from './details';
@@ -22,6 +25,8 @@ import { readSave, complete, writeSave, type Save } from '../platform/save';
 const C = { ink: 0x100e25, panel: 0x24203e, gold: 0xf2cc83, muted: '#b9b0ce', white: '#fff3df' };
 export class HotelScene extends Phaser.Scene {
   private save!: Save;
+  private hud?: ReturnType<typeof createHUD>;
+  private earnedCoins = 0;
   private viewportWidth = 0;
   private viewportHeight = 0;
   private feedback = new Feedback();
@@ -41,10 +46,13 @@ export class HotelScene extends Phaser.Scene {
   constructor() { super('hotel'); }
   preload() {
     this.text(422, 230, this.locale === 'en' ? 'Lighting the hotel…' : '正在點亮旅館…', 24);
+    for (const [condition, symbol] of Object.entries({ moonlight: 'moon', quiet: 'quiet', warm: 'flame', dry: 'sun' } as const)) {
+      this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
+    }
     this.load.image('guests-art', '/art/guests-cartoon.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
-  create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedback.dispose(); this.dismissDetails?.(); }); this.title(); }
+  create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
   update() {
     this.resizeViewport();
     const m = viewportMetrics(this.scale.width, this.scale.height);
@@ -71,6 +79,7 @@ export class HotelScene extends Phaser.Scene {
     return this.add.text(x, y, text, { fontFamily: 'Georgia, "Noto Sans TC", serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setOrigin(.5);
   }
   private base(label: string) {
+    this.hud?.destroy(); this.hud = undefined;
     this.dismissDetails?.(); this.dismissDetails = undefined;
     this.setBusy(false);
     this.tweens.killAll(); this.children.removeAll(true);
@@ -80,19 +89,24 @@ export class HotelScene extends Phaser.Scene {
     if (this.screen === 'play') g.fillStyle(0x191630).fillRect(0, 0, 844, 480);
     else g.fillStyle(0x191630).fillRoundedRect(12, 12, 820, 456, 28);
     for (let i = 0; i < 32; i++) { g.fillStyle(C.gold, .15 + (i % 3) * .12).fillCircle(25 + (i * 67) % 790, 35 + (i * 113) % 420, i % 2 + 1); }
-    if (this.screen === 'play') this.text(422, 25, label, 17);
-    else { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
-    this.text(650, 26, this.ht.settings, 13, '#f2cc83').setPadding(5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.settings());
+    if (this.screen !== 'play') { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
     document.documentElement.lang = this.locale;
-    this.text(765, 26, this.locale === 'en' ? '繁體中文' : 'English', 13, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => {
-      this.locale = this.locale === 'en' ? 'zh-Hant' : 'en'; saveLocale(this.locale); this.message = ''; this[this.screen]();
+    this.hud = createHUD({ locale: this.locale, playing: this.screen === 'play', night: this.level.id,
+      settings: () => this.settings(), language: () => this.language(), home: () => this.selection(), hint: () => this.hint(), clues: () => this.clues(),
+      check: () => this.checkGuests(), reset: () => { this.assignment = {}; this.selected = undefined; this.message = ''; this.hintStage = 0; this.queueArrival = true; this.play(); },
     });
+    this.game.canvas.setAttribute('aria-label', this.screen === 'play' ? `${levelTitle(this.level.id, this.locale)}. ${dollhouseUI[this.locale].instructions}` : label);
   }
   private button(y: number, label: string, callback: () => void, width = 310, x = 422) {
-    const bg = this.add.rectangle(x, y, width, 48, C.gold).setStrokeStyle(1, 0xffe7b5).setInteractive({ useHandCursor: true });
-    this.text(x, y, label, 18, '#292039');
-    bg.on('pointerdown', () => { this.feedback.play('tap'); callback(); });
+    const g = this.add.graphics();
+    g.fillStyle(0x503044).fillRoundedRect(x - width / 2, y - 20, width, 48, 16);
+    g.fillStyle(0xe0ac68).fillRoundedRect(x - width / 2, y - 24, width, 46, 16);
+    g.fillStyle(C.gold).fillRoundedRect(x - width / 2 + 3, y - 22, width - 6, 37, 13);
+    g.lineStyle(2, 0xffedbd).strokeRoundedRect(x - width / 2 + 1, y - 24, width - 2, 44, 16);
+    this.text(x, y - 2, label, 18, '#553047');
+    this.add.zone(x, y, width, 48).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.feedback.play('tap'); callback(); });
   }
+
   private hotel(y: number) {
     const g = this.add.graphics();
     g.fillStyle(0x352b50).fillRoundedRect(72, y, 246, 235, 12);
@@ -146,14 +160,14 @@ export class HotelScene extends Phaser.Scene {
     this.text(590, 235, this.t.intro, 16, C.muted);
     this.button(325, this.ct.choose, () => this.selection(), 310, 590);
     this.button(390, this.ht.shop, () => this.shop(), 310, 590);
-    this.text(590, 450, this.t.titleBack, 15, C.muted).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.title());
+    this.button(450, this.t.titleBack, () => this.title(), 180, 590);
   }
   private selection() {
     this.screen = 'selection'; this.base(this.ct.levels); this.input.enabled = false;
-    this.dismissDetails = showNightSelection(this.locale, this.save.completed, id => this.startNight(id), () => this.lobby(), () => {
-      this.locale = this.locale === 'en' ? 'zh-Hant' : 'en'; saveLocale(this.locale); this.selection();
-    });
+    this.hud?.visible(false);
+    this.dismissDetails = showNightSelection(this.locale, this.save.completed, id => this.startNight(id), () => this.lobby(), () => this.language());
   }
+
   private startNight(id: number) {
     if (!isUnlocked(id, this.save.completed)) return;
     const level = levels.find(l => l.id === id); if (!level) return;
@@ -164,16 +178,14 @@ export class HotelScene extends Phaser.Scene {
   }
 
   private setBusy(busy: boolean) {
-    this.input.enabled = !busy;
+    this.input.enabled = !busy; this.hud?.busy(busy);
     this.game.canvas.setAttribute('aria-busy', String(busy));
   }
   private play() {
     this.screen = 'play';
     this.base(`${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`);
-    this.text(422, 47, dollhouseUI[this.locale].instructions, 12, C.muted);
-    const status = this.text(422, 60, this.message || this.t.ready, 12, '#f2cc83');
-    this.text(74, 26, this.t.hint + ' ✦', 14, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => this.hint());
-    this.text(190, 26, this.ct.clues + ' ⓘ', 13, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => this.clues());
+    if (this.message) this.hud?.show(this.message);
+    const status = { setText: (message: string) => this.hud?.show(message) };
     const frame = this.add.graphics();
     frame.fillStyle(0x574057).fillRect(0, 66, 844, 276);
     frame.lineStyle(3, 0xb18a70).strokeRect(0, 66, 844, 276);
@@ -193,7 +205,7 @@ export class HotelScene extends Phaser.Scene {
           const heart = this.text(avatar.x, avatar.y - 30, '♥', 17, '#ef9bb4').setDepth(12);
           this.tweens.add({ targets: heart, y: avatar.y - 48, alpha: 0, duration: 650, onComplete: () => heart.destroy() });
         }
-        status.setText(`${this.t.select} ${characters[this.locale][guest.kind].name} · ${conditions[this.locale][guest.requirement].name}`);
+        status.setText(`${characters[this.locale][guest.kind].name} · ${conditions[this.locale][guest.requirement].name}`);
       });
       if (this.selected === guest.id) selection.setPosition(avatar.x, avatar.y).setVisible(true);
     };
@@ -204,12 +216,13 @@ export class HotelScene extends Phaser.Scene {
       this.add.rectangle(p.x, p.y, roomWidth, roomHeight, C.panel);
       if (this.textures.exists(`room-${style}`)) this.add.image(p.x, p.y, `room-${style}`, roomFrame(this, `room-${style}`)).setDisplaySize(roomWidth, roomHeight).setData('roomPanel', `room-${style}`);
       drawRoomLife(this, room);
-      this.add.rectangle(p.x, p.y - 54, 402, 24, 0x251c32, .75);
-      this.add.rectangle(p.x - 85, p.y + 56, 230, 20, 0x251c32, .82);
+      this.add.rectangle(p.x - 174, p.y - 54, 54, 23, 0x34243e, .85).setStrokeStyle(1, 0xc89d6e);
+      this.add.rectangle(p.x - 142, p.y + 56, 118, 22, 0x251c32, .75);
       const drop = this.add.zone(p.x, p.y, roomWidth, roomHeight).setRectangleDropZone(roomWidth, roomHeight).setData('room', room.id);
       drop.on('pointerdown', () => { if (this.selected) this.assign(this.selected, room.id); });
-      this.text(p.x - 24, p.y - 54, `${room.id} · ${roomDesign[this.locale][style].name}`, 12, C.white);
-      this.text(p.x - 85, p.y + 56, roomLabel(room, this.locale), 10, '#fff0cf');
+      this.text(p.x - 174, p.y - 54, room.id, 12, '#ffdea0');
+      roomConditions(room).forEach((condition, index) => this.add.image(p.x - 180 + index * 25, p.y + 56, `condition-${condition}`).setDisplaySize(18, 18).setData('viewportAspect', true));
+      this.add.circle(p.x + 158, p.y - 54, 17, 0x4e3556, .95).setStrokeStyle(2, 0xcfa66e);
       this.text(p.x + 158, p.y - 54, 'ⓘ', 18, '#f2cc83').setPadding(5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.roomCard(room));
       const guest = this.level.guests.find(g => this.assignment[g.id] === room.id);
       if (guest) {
@@ -217,10 +230,10 @@ export class HotelScene extends Phaser.Scene {
         bindGuest(actor, guest);
         if (this.arriving === guest.id && !reducedMotion()) {
           const index = this.level.guests.indexOf(guest); actor.setPosition(queueX[index], queueY).setDepth(10); this.setBusy(true);
-          status.setText(dollhouseUI[this.locale].moving);
+          status.setText('');
           this.tweens.chain({ targets: actor, tweens: [
             { x: 422, y: 349, duration: 160 }, { x: 422, y: point.y, duration: 200 }, { x: point.x, y: point.y, duration: 180 },
-          ], onComplete: () => { actor.setDepth(0); this.setBusy(false); status.setText(this.t.ready); } });
+          ], onComplete: () => { actor.setDepth(0); this.setBusy(false); status.setText(''); } });
         }
       }
     }
@@ -234,36 +247,46 @@ export class HotelScene extends Phaser.Scene {
           avatar.setX(63).setAlpha(0);
           this.tweens.add({ targets: avatar, x, alpha: 1, duration: 450 + i * 80, delay: i * 150, ease: 'Sine.easeInOut', onComplete: () => { if (i === this.level.guests.length - 1) this.setBusy(false); } });
         }
-      } else this.text(x, queueY, `✓ ${dollhouseUI[this.locale].arrived}`, 12, '#b8cfbc');
+      } else this.text(x, queueY, '✓', 23, '#b8cfbc');
       const c = characters[this.locale][guest.kind];
-      this.text(x, 412, `${c.name} · ${c.species} ⓘ`, 11, C.white).setPadding(2).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.guestCard(guest));
+      this.text(x, 412, `${c.name} ⓘ`, 12, C.white).setPadding(2).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.guestCard(guest));
     });
     this.input.removeAllListeners('drag'); this.input.removeAllListeners('drop'); this.input.removeAllListeners('dragend');
     this.input.on('drag', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => { obj.setPosition(x, y); obj.setDepth(10); });
     this.input.on('drop', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, target: Phaser.GameObjects.Zone) => this.assign(obj.getData('guest'), target.getData('room')));
     this.input.on('dragend', (_p: Phaser.Input.Pointer, _obj: Phaser.GameObjects.Container, dropped: boolean) => { if (!dropped) this.play(); });
-    this.button(448, this.t.check, () => {
-      const result = validate(this.level, this.assignment);
-      if (result.valid) { this.feedback.play('success'); void this.feedback.pulse('success'); this.save = complete(this.save, this.level.id); this.win(); }
-      else { this.feedback.play('error'); void this.feedback.pulse('error'); this.message = result.reason === 'incomplete' ? this.t.incomplete : result.reason === 'rule' ? this.ct.retry : this.t.mismatch; this.play(); }
-    });
-    this.text(105, 448, this.ct.return, 13, C.muted).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.selection());
-    this.text(739, 448, this.t.reset, 15, C.muted).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.assignment = {}; this.selected = undefined; this.message = ''; this.hintStage = 0; this.queueArrival = true; this.play(); });
   }
-  private details(data: Details) {
-    this.dismissDetails?.();
-    this.input.enabled = false;
-    this.dismissDetails = showDetails(data, () => { this.input.enabled = true; this.dismissDetails = undefined; });
+  private checkGuests() {
+    const result = validate(this.level, this.assignment);
+    if (result.valid) {
+      this.feedback.play('success'); void this.feedback.pulse('success'); const before = this.save.coins;
+      this.save = complete(this.save, this.level.id); this.earnedCoins = this.save.coins - before; this.win();
+    } else {
+      this.feedback.play('error'); void this.feedback.pulse('error'); this.message = result.reason === 'incomplete' ? this.t.incomplete : result.reason === 'rule' ? this.ct.retry : this.t.mismatch; this.play();
+    }
+  }
+  private details(data: Details, onClose?: () => void) {
+    this.dismissDetails?.(); this.input.enabled = false; this.hud?.visible(false);
+    this.dismissDetails = showDetails(data, () => {
+      this.dismissDetails = undefined; this.input.enabled = this.screen !== 'selection'; this.hud?.visible(this.screen !== 'selection'); onClose?.();
+    });
+  }
+  private language(fromSettings = false) {
+    const title = this.locale === 'en' ? 'Language' : '語言';
+    this.details({ kind: 'language', eyebrow: '', title, close: this.ht.back, sections: [], content: languageContent(this.locale, locale => {
+      this.dismissDetails?.(); this.dismissDetails = undefined; this.locale = locale; saveLocale(locale); this.message = ''; this[this.screen]();
+      if (fromSettings) this.settings();
+    }) }, () => { if (fromSettings) this.settings(); else if (this.screen === 'selection') this.selection(); });
   }
   private settings() {
-    this.details({ eyebrow: this.t.brand, title: this.ht.settings, close: this.ht.back, sections: [],
+    this.details({ kind: 'settings', eyebrow: this.t.brand, title: this.ht.settings, close: this.ht.back, sections: [],
       content: settingsContent(this.locale, this.feedback.preferences, preferences => {
         this.feedback.setPreferences(preferences); return savePreferences(preferences);
-      }, () => { this.feedback.play('place'); void this.feedback.pulse('place'); }) });
+      }, () => { this.feedback.play('place'); void this.feedback.pulse('place'); }, () => this.language(true)) });
   }
   private shop(message = '') {
-    this.details({ eyebrow: `${this.save.coins} ${this.ht.coins}`, title: this.ht.shop, close: this.ht.back,
-      sections: [{ title: '', body: message || this.ht.intro }],
+    this.details({ kind: 'shop', eyebrow: `${this.save.coins} ${this.ht.coins}`, title: this.ht.shop, close: this.ht.back,
+      sections: message ? [{ title: '', body: message }] : [],
       content: shopContent(this.locale, this.save, (id, owned) => {
         let status: string = this.ht.displayed;
         if (owned) this.save = toggleDecoration(this.save, id);
@@ -297,7 +320,7 @@ export class HotelScene extends Phaser.Scene {
     return (this.level.rules ?? []).filter(rule => 'guest' in rule ? rule.guest === id : rule.a === id || rule.b === id);
   }
   private clues() {
-    this.details({ eyebrow: `${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`, title: this.ct.clues, close: this.t.close,
+    this.details({ kind: 'hints', eyebrow: `${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`, title: this.ct.clues, close: this.t.close,
       sections: [
         { title: this.t.wish, body: this.level.guests.map(g => `${characters[this.locale][g.kind].name} · ${conditions[this.locale][g.requirement].name}`).join('\n') },
         { title: this.ct.tonight, body: this.level.rules?.length ? this.level.rules.map(rule => ruleText(this.level, rule, this.locale)).join('\n') : this.ct.noRules },
@@ -320,7 +343,7 @@ export class HotelScene extends Phaser.Scene {
         body += `\n\n${this.t.hintSolution} ${room.id} · ${roomDesign[this.locale][roomStyle(room)].name}`;
       }
     }
-    this.details({ eyebrow: `${this.t.hintStage} ${this.hintStage}/3`, title: this.t.hintTitle, close: this.t.close,
+    this.details({ kind: 'hints', eyebrow: `${this.t.hintStage} ${this.hintStage}/3`, title: this.t.hintTitle, close: this.t.close,
       sections: [{ title: '', body }], next: this.hintStage < 3 && hint.type !== 'complete' ? { label: this.t.nextHint, action: () => this.hint() } : undefined });
   }
   private assign(guest: string, room: string) { this.arriving = guest; this.feedback.play('place'); void this.feedback.pulse('place'); this.assignment = place(this.assignment, guest, room); this.selected = undefined; this.message = ''; this.play(); }
@@ -330,9 +353,9 @@ export class HotelScene extends Phaser.Scene {
     this.text(422, 128, '✦  ✦  ✦', 38, '#f2cc83');
     this.level.guests.forEach((g, i) => { const avatar = this.monster(140 + i * 188, 230, g).setScale(.9); if (!reducedMotion()) this.tweens.add({ targets: avatar, y: 218, duration: 650 + i * 100, repeat: reducedMotion() ? 0 : -1, yoyo: true }); });
     this.text(422, 312, this.t.happy, 26);
-    this.text(422, 348, `${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}\n${this.ct.reward}`, 15, C.muted);
+    this.text(422, 348, `+${this.earnedCoins} ${this.t.coins}`, 21, '#f2cc83');
     if (this.level.id < levels.length) this.button(398, this.ct.next, () => this.startNight(this.level.id + 1));
     else this.text(422, 395, this.ct.finished, 20, '#f2cc83');
-    this.text(422, 450, this.ct.return, 16, '#f2cc83').setInteractive({ useHandCursor: true }).on('pointerdown', () => this.selection());
+    this.button(450, this.ct.return, () => this.selection(), 210);
   }
 }
