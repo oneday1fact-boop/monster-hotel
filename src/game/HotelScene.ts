@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { drawReception, receptionFrame } from './reception';
-import { receptionUI } from '../i18n/reception';
 import { tutorialView } from '../domain/tutorial';
 import { readTutorialDone, saveTutorialDone } from '../platform/tutorial';
 import { tutorialUI } from '../i18n/tutorial';
@@ -117,7 +116,7 @@ export class HotelScene extends Phaser.Scene {
   }
 
   private reception() {
-    drawReception(this, this.save);
+    drawReception(this, this.save, this.screen === 'lobby');
     this.level.guests.forEach((guest, index) => {
       const x = [100, 201, 303, 390][index]; const y = [386, 396, 382, 402][index];
       const actor = this.monster(x, y, guest).setScale(index === 2 ? .69 : .78);
@@ -131,11 +130,8 @@ export class HotelScene extends Phaser.Scene {
   }
   private title() {
     this.screen = 'title'; this.base(this.t.title); this.reception();
-    this.text(590, 112, this.t.brand, 12, '#e9cba0');
-    this.text(590, 173, this.t.title, this.locale === 'en' ? 34 : 39, '#ffe1a3').setStyle({ fontStyle: 'bold', shadow: { offsetX: 0, offsetY: 3, color: '#130e25', blur: 0, fill: true } });
-    this.text(590, 230, this.t.tagline, 14, '#e7d0c1');
+    this.hud?.coverLogo();
     this.button(330, this.t.open, () => this.lobby(), 294, 590);
-    this.text(590, 402, receptionUI[this.locale].offline, 13, '#d2b6ae');
   }
   private lobby() {
     this.screen = 'lobby'; this.base(this.t.welcome); this.reception();

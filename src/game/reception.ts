@@ -13,13 +13,15 @@ export function receptionFrame(scene: Phaser.Scene) {
   }
   return name;
 }
-export function drawReception(scene: Phaser.Scene, save: Save) {
+export function drawReception(scene: Phaser.Scene, save: Save, menuPanel = true) {
   scene.add.image(422, 240, 'reception-art', receptionFrame(scene)).setDisplaySize(844, 480).setData('receptionPanel', true);
-  // The menu is part of the hotel wall; the artwork remains full bleed behind it.
-  const panel = scene.add.graphics();
-  panel.fillStyle(0x20172f, .84).fillRoundedRect(421, 74, 339, 393, 30);
-  panel.lineStyle(2, 0xb88b68, .7).strokeRoundedRect(425, 78, 331, 385, 27);
-  panel.lineStyle(1, 0xe4ba7d, .25).strokeRoundedRect(431, 84, 319, 373, 23);
+  if (menuPanel) {
+    // The menu is part of the hotel wall; the artwork remains full bleed behind it.
+    const panel = scene.add.graphics();
+    panel.fillStyle(0x20172f, .84).fillRoundedRect(421, 74, 339, 393, 30);
+    panel.lineStyle(2, 0xb88b68, .7).strokeRoundedRect(425, 78, 331, 385, 27);
+    panel.lineStyle(1, 0xe4ba7d, .25).strokeRoundedRect(431, 84, 319, 373, 23);
+  }
   if (save.equipped?.includes('velvet-rug')) {
     const rug = scene.add.graphics(); rug.fillStyle(0x793250, .95).fillEllipse(244, 441, 360, 67);
     rug.lineStyle(3, 0xedc483).strokeEllipse(244, 441, 340, 52);

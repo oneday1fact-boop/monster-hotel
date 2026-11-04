@@ -12,3 +12,5 @@
 - Room art must match the approved character style and have rich, differentiated furnishings. Primitive geometric placeholder rooms were rejected. Keep the room cutaway near edge-to-edge, with a compact HUD.
 
 - Keep the main HUD minimal: native-style icon buttons and short action labels. Settings, language, night selection and shop must use full-screen illustrated-game panels with large tap targets, rather than document-style links or web form layouts.
+
+- The title cover must remain full bleed with standalone buttons, without the large framed menu panel. Place the cute rounded bilingual 怪物旅館 / MONSTER HOTEL wordmark upper-centre. Keep proposed raising/bond systems distinct from implemented features when reporting.

@@ -26,6 +26,13 @@ export function createHUD(options: { locale: Locale; playing: boolean; night: nu
   document.body.append(root); let timeout: ReturnType<typeof setTimeout> | undefined;
   return {
     tutorial,
+    coverLogo() {
+      const logo = document.createElement('header'); logo.className = 'cover-logo'; logo.setAttribute('aria-label', '怪物旅館 — Monster Hotel');
+      const chinese = document.createElement('h1'); chinese.className = 'cover-logo-zh'; chinese.lang = 'zh-Hant';
+      for (const glyph of '怪物旅館') { const letter = document.createElement('span'); letter.textContent = glyph; chinese.append(letter); }
+      const english = document.createElement('div'); english.className = 'cover-logo-en'; english.lang = 'en'; english.textContent = 'MONSTER HOTEL';
+      logo.append(chinese, english); root.append(logo);
+    },
     show(message: string) { clearTimeout(timeout); toast.textContent = message; toast.hidden = !message; if (message) timeout = setTimeout(() => { toast.hidden = true; }, 2800); },
     visible(show: boolean) { root.hidden = !show; },
     busy(busy: boolean) { root.querySelectorAll('button').forEach(button => { button.disabled = busy; }); },

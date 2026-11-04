@@ -138,3 +138,12 @@ button:focus-visible, .setting-tile:focus-within { outline: 3px solid #b9e4e4; o
 @media(max-height:420px) and (min-width:600px) { .tutorial-coach { top: 3px; min-height: 44px; padding: 0 3px 0 8px; gap: 5px; } .tutorial-coach p { font-size: 12px; } }
 @media(max-width:600px) { .tutorial-coach { top: 62px; width: min(94vw,500px); } }
 @media(prefers-reduced-motion:reduce) { .tutorial-target { animation: none; } }
+@font-face { font-family: MonsterCover; src: url('/fonts/monster-cover.woff') format('woff'); font-style: normal; font-weight: 900; font-display: swap; }
+/* A floating bilingual wordmark, with no panel over the cover illustration. */
+.cover-logo { position: absolute; left: 50%; top: max(11px,env(safe-area-inset-top)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; white-space: nowrap; }
+.cover-logo-zh { display: flex; gap: .045em; margin: 0; color: #fff0bb; font-family: MonsterCover,sans-serif; font-weight: 900; font-size: clamp(42px,6.6vw,70px); line-height: 1.1; -webkit-text-stroke: 7px #673852; paint-order: stroke fill; text-shadow: 0 5px #492440,0 8px 2px #241429; }
+.cover-logo-zh span { display: inline-block; }
+.cover-logo-zh span:nth-child(odd) { transform: rotate(-3deg) translateY(1px); }
+.cover-logo-zh span:nth-child(even) { transform: rotate(3deg); }
+.cover-logo-en { margin-top: 7px; color: #ffd78f; font-family: MonsterCover,sans-serif; font-weight: 900; font-size: clamp(13px,1.9vw,20px); line-height: 1.1; letter-spacing: .2em; -webkit-text-stroke: 3px #673852; paint-order: stroke fill; text-shadow: 0 3px #2c182e; }
+@media(max-width:600px) { .cover-logo { top: max(62px,env(safe-area-inset-top)); } }
