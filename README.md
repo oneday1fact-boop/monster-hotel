@@ -10,8 +10,8 @@ Use Node.js 24 LTS and npm (minimum Node 22.12).
 npm ci
 npm run dev                 # Vite on port 5173
 npm run build               # TypeScript + production assets in dist/
-npm test                    # 98 unit tests
-npm run test:browser         # 25 Playwright browser tests; starts Vite on 5175
+npm test                    # 109 unit tests
+npm run test:browser         # 31 Playwright browser tests; starts Vite on 5175
 npm run preview
 ```
 
@@ -76,7 +76,7 @@ This is a **debug APK**, not a store release. Physical-device installation, vibr
 - `src/platform/`: version-1 save compatibility, preferences, original synthesized audio, haptics and an inactive future ad-provider boundary.
 - `tests/`, `e2e/`: unit tests plus real-browser campaign, economy, offline, animation, art and responsive checks.
 
-The 98 unit checks and 25 browser checks pass, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
+The 109 unit checks pass; browser coverage now has 31 scenarios, including all twenty nights, topology/render agreement, original asset loading, arrivals, resident reassignment, reduced motion, rewards, save compatibility, shop purchases and sound/haptic switches. Production build passes; Phaser still produces a large-bundle warning (about 1.26 MB minified, 355 KB gzip). Art direction and motion can be refined further after review; no live ad integration is included.
 
 ## Room-style and review-format revision
 
@@ -96,4 +96,10 @@ First-night guidance uses short bilingual coaching and passive target highlights
 
 The title and lobby now share an original illustrated reception, with live guest sprites and compatible cosmetic decorations. See [標題與前台大廳](docs/reception.zh-Hant.md).
 
-The cover now uses a frame-free illustration with a rounded bilingual upper-centred wordmark. Its small OFL font subset is bundled offline. A proposed guest-bond progression system is documented separately in [輕育成規劃](docs/guest-bond-plan.zh-Hant.md); it is not implemented in this build.
+The cover now uses a frame-free illustration with a rounded bilingual upper-centred wordmark. Its small OFL font subset is bundled offline. The first story-night friendship outcome is implemented. The broader heart/gift progression remains proposed in [輕育成規劃](docs/guest-bond-plan.zh-Hant.md).
+
+## Play the first story night
+
+From the lobby choose **Story night: Moonlight & Linen / 故事夜：月光與繃帶**. Assign the four guests, use the draggable curtains or moon lamp to solve their wishes and noise conflict, then choose one of two small character events. The first ending awards 50 coins, friendship and a persistent toy basket. Replays do not farm rewards. The original twenty uniquely solvable levels remain under **20-night puzzle challenge**.
+
+The renderer now uses up to two device pixels per CSS pixel, tightly framed guests, four separate action atlases and room close-ups. See [可玩故事夜與高清示範](docs/story-night.zh-Hant.md) for implemented features, save compatibility, test results and actual previews.

@@ -9,7 +9,32 @@ export function registerArt(scene: Phaser.Scene) {
     if (!scene.textures.exists(key)) continue;
     const texture = scene.textures.get(key); const source = texture.source[0];
     const w = source.width / 2; const h = source.height / 2;
-    frames.forEach((name, i) => { if (!texture.has(name)) texture.add(name, 0, (i % 2) * w, Math.floor(i / 2) * h, w, h); });
+    const canvas = document.createElement('canvas'); canvas.width = source.width; canvas.height = source.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true })!;
+    context.drawImage(source.image as HTMLImageElement, 0, 0);
+    const pixels = context.getImageData(0, 0, source.width, source.height).data;
+    frames.forEach((name, i) => {
+      const left = (i % 2) * w; const top = Math.floor(i / 2) * h;
+      if (!texture.has(name)) texture.add(name, 0, left, top, w, h);
+      let x0 = w, y0 = h, x1 = 0, y1 = 0;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (pixels[((top + y) * source.width + left + x) * 4 + 3] > 128) {
+        x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+      }
+      if (!texture.has(`${name}-tight`) && x1 > x0) texture.add(`${name}-tight`, 0, left + x0, top + y0, x1 - x0 + 1, y1 - y0 + 1);
+    });
+  }
+  for (const kind of guestFrames) {
+    const key = `pose-${kind}`; if (!scene.textures.exists(key)) continue;
+    const texture = scene.textures.get(key); const source = texture.source[0]; const w = source.width / 2; const h = source.height / 2;
+    const canvas = document.createElement('canvas'); canvas.width = source.width; canvas.height = source.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true })!; context.drawImage(source.image as HTMLImageElement, 0, 0);
+    const pixels = context.getImageData(0, 0, source.width, source.height).data;
+    for (let pose = 0; pose < 4; pose++) {
+      const name = String(pose); if (texture.has(name)) continue;
+      const left = pose % 2 * w; const top = Math.floor(pose / 2) * h; let foot = h - 1;
+      outer: for (let y = h - 1; y >= 0; y--) for (let x = 0; x < w; x++) if (pixels[((top + y) * source.width + left + x) * 4 + 3] > 192) { foot = y; break outer; }
+      const frame = texture.add(name, 0, left, top, w, h); if (frame) frame.customData = { foot: (foot + 1) / h };
+    }
   }
   for (const style of ['elegant', 'linen', 'basement', 'hearth']) {
     const key = `room-${style}`; if (scene.textures.exists(key)) roomFrame(scene, key);
@@ -30,7 +55,7 @@ export function reducedMotion(): boolean { return window.matchMedia?.('(prefers-
 export function portrait(kind: Guest['kind']): HTMLElement {
   const index = guestFrames.indexOf(kind); const image = document.createElement('div'); image.className = 'guest-portrait';
   image.setAttribute('role', 'img'); image.setAttribute('aria-label', kind);
-  image.style.backgroundPosition = `${index % 2 ? 100 : 0}% ${index >= 2 ? 100 : 0}%`;
+  image.style.backgroundPosition = `${index % 2 ? 87.5 : 12.5}% ${index >= 2 ? 87.5 : 12.5}%`;
   return image;
 }
 

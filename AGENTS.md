@@ -14,3 +14,5 @@
 - Keep the main HUD minimal: native-style icon buttons and short action labels. Settings, language, night selection and shop must use full-screen illustrated-game panels with large tap targets, rather than document-style links or web form layouts.
 
 - The title cover must remain full bleed with standalone buttons, without the large framed menu panel. Place the cute rounded bilingual 怪物旅館 / MONSTER HOTEL wordmark upper-centre. Keep proposed raising/bond systems distinct from implemented features when reporting.
+
+- The playable story night Moonlight & Linen is the main new gameplay prototype; preserve the original 20 unique-solution nights as a separate challenge mode. Keep both story choices, multiple supply-based room solutions, idempotent first rewards and compatible saves. Show actual high-density close-ups and multi-character event recordings for visual reviews.

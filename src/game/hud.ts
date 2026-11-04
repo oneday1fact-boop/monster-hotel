@@ -26,6 +26,9 @@ export function createHUD(options: { locale: Locale; playing: boolean; night: nu
   document.body.append(root); let timeout: ReturnType<typeof setTimeout> | undefined;
   return {
     tutorial,
+    storyEntry(label: string, action: () => void) {
+      const button = document.createElement('button'); button.className = 'game-primary-button story-entry'; button.textContent = label; button.onclick = action; root.append(button);
+    },
     coverLogo() {
       const logo = document.createElement('header'); logo.className = 'cover-logo'; logo.setAttribute('aria-label', '怪物旅館 — Monster Hotel');
       const chinese = document.createElement('h1'); chinese.className = 'cover-logo-zh'; chinese.lang = 'zh-Hant';

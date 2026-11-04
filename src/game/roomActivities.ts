@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
+import { hopPose, windowPulse } from './motion';
 import type { Guest } from '../domain/puzzle';
 
 const TAU = Math.PI * 2;
 /** Room-local props and choreography. Only children move: the draggable root stays put. */
-export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Image, guest: Guest) {
+export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Image, guest: Guest, setPose: (pose: number) => void) {
   const shadow = scene.add.ellipse(0, 44, 72, 14, 0x22172f, .24);
   const behind = scene.add.graphics(); const front = scene.add.graphics();
-  const sx = image.scaleX; const sy = image.scaleY;
   const clock = { phase: 0 };
   const star = (g: Phaser.GameObjects.Graphics, x: number, y: number, size: number, color = 0xffe6a0) => {
     g.fillStyle(color).fillTriangle(x, y - size, x - size * .35, y, x + size * .35, y)
@@ -16,13 +16,16 @@ export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Imag
   };
   const render = () => {
     const t = clock.phase; const wave = Math.sin(t * TAU); behind.clear(); front.clear();
+    const hop = hopPose(t);
+    const pose = guest.kind === 'werewolf' ? (t > .22 && t < .34 ? 1 : t > .34 && t < .64 ? 2 : t > .8 ? 3 : 0) : guest.kind === 'jiangshi' ? (hop.active ? (hop.height > .18 ? 2 : hop.cycle < .12 ? 1 : 0) : 3) : guest.kind === 'lantern' ? (t < .25 ? 1 : t < .5 ? 2 : t < .75 ? 3 : 0) : t < .45 ? 1 : t < .8 ? 2 : 3;
+    setPose(pose); const sx = image.scaleX; const sy = image.scaleY;
     image.setPosition(0, 0).setAngle(0).setScale(sx, sy); shadow.setPosition(0, 44).setScale(1).setAlpha(.24);
     if (guest.kind === 'werewolf') {
       // Watch a wandering moonbeam, crouch, pounce, land, then shake off moon dust.
       const chase = Math.max(0, Math.sin(Math.max(0, Math.min(1, (t - .18) / .58)) * Math.PI));
       const leap = Math.max(0, Math.sin(Math.max(0, Math.min(1, (t - .34) / .3)) * Math.PI));
       const crouch = t > .22 && t < .34 ? Math.sin((t - .22) / .12 * Math.PI) : 0;
-      image.setPosition(-38 * chase, -27 * leap + 5 * crouch).setAngle(-11 * leap + (t > .8 ? Math.sin(t * TAU * 12) * 3 : 0)).setScale(sx * (1 + crouch * .08), sy * (1 - crouch * .1));
+      image.setPosition(-38 * chase, -27 * leap + 5 * crouch).setAngle(-11 * leap + Math.sin(t * TAU * 12) * 3 * windowPulse(t, .8, 1, .05)).setScale(sx * (1 + crouch * .08), sy * (1 - crouch * .1));
       shadow.setX(image.x).setScale(1 - leap * .3).setAlpha(.24 - leap * .1);
       const lightX = -62 + wave * 13;
       behind.fillStyle(0xffedb2, .14).fillEllipse(lightX, 44, 47, 16);
@@ -31,9 +34,8 @@ export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Imag
       if (t > .55 && t < .85) for (let i = 0; i < 3; i++) star(front, image.x - 23 + i * 23, -15 - (t - .55) * 55, 3, 0xffe9b5);
     } else if (guest.kind === 'jiangshi') {
       // Three little practice hops, with a paper charm flutter and landing ripples.
-      const cycle = (t * 3) % 1; const hopping = t < .8;
-      const jump = hopping ? Math.sin(Math.min(1, cycle / .75) * Math.PI) : 0;
-      image.setPosition(wave * 8, -29 * jump).setAngle(hopping ? Math.sin(cycle * TAU) * 4 : wave * 2);
+      const { cycle, active: hopping, height: jump } = hop;
+      image.setPosition(wave * 8, -29 * jump).setAngle(wave * 2 + Math.sin(cycle * TAU) * 4 * jump);
       shadow.setScale(1 - jump * .28).setAlpha(.24 - jump * .1);
       behind.lineStyle(2, 0xe6ca8d, .38).strokeEllipse(0, 46, 82, 18);
       if (hopping && cycle > .75) behind.lineStyle(2, 0xd7e8c1, 1 - (cycle - .75) * 4).strokeEllipse(image.x, 45, 65 + cycle * 25, 12 + cycle * 8);
@@ -69,5 +71,8 @@ export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Imag
   const tween = scene.tweens.add({ targets: clock, phase: 1, duration: { werewolf: 5600, jiangshi: 4400, lantern: 6200, mummy: 5800 }[guest.kind], repeat: -1, onUpdate: render });
   // Scene redraws and dragging destroy the actor; never retain its graphics in a timer.
   image.once(Phaser.GameObjects.Events.DESTROY, () => tween.remove());
-  return [shadow, behind, image, front];
+  return { children: [shadow, behind, image, front], pause(value: boolean) {
+    behind.setVisible(!value); front.setVisible(!value); shadow.setVisible(!value);
+    if (value) { tween.pause(); setPose(0); image.setPosition(0, 0).setAngle(0); } else tween.resume();
+  } };
 }

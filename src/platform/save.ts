@@ -1,6 +1,6 @@
 import { isDecoration, type DecorationId } from '../domain/decorations';
 import { isUnlocked, levels } from '../domain/levels';
-export interface Save { version: 1; completed: number[]; coins: number; decorations?: DecorationId[]; equipped?: DecorationId[] }
+export interface Save { version: 1; completed: number[]; coins: number; decorations?: DecorationId[]; equipped?: DecorationId[]; storyNight?: { outcome: 'play' | 'together' } }
 const key = 'midnight-check-in.save.v1';
 export function readSave(): Save {
   try {
@@ -11,6 +11,7 @@ export function readSave(): Save {
         save.decorations = [...new Set<DecorationId>(value.decorations.filter(isDecoration))];
         save.equipped = Array.isArray(value.equipped) ? [...new Set<DecorationId>(value.equipped.filter((id: unknown) => isDecoration(id) && save.decorations!.includes(id)))] : [];
       }
+      if (value.storyNight?.outcome === 'play' || value.storyNight?.outcome === 'together') save.storyNight = { outcome: value.storyNight.outcome };
       return save;
     }
   } catch { /* Storage unavailable or corrupt: continue offline in memory. */ }

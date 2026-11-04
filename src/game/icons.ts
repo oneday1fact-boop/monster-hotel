@@ -1,4 +1,5 @@
 export const iconPaths = {
+  zoom: '<circle cx="10" cy="10" r="7"/><path d="m15 15 8 8M10 6v8M6 10h8"/>',
   gear: '<path d="m10 3 1-2h4l1 2 3 1 2-1 2 3-1 2v4l1 2-2 3-2-1-3 1-1 2h-4l-1-2-3-1-2 1-2-3 1-2V8L3 6l2-3 2 1z"/><circle cx="13" cy="10" r="4"/>',
   globe: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6h14M5 18h14"/>',
   bulb: '<path d="M8 16c0-3-3-3-3-7a7 7 0 0 1 14 0c0 4-3 4-3 7zM8 19h8m-7 3h6M12 1v2"/>',

@@ -43,7 +43,7 @@ button:focus-visible, .setting-tile:focus-within { outline: 3px solid #b9e4e4; o
 .sheet-body h3 { margin: 15px 0 6px; color: #f2ca8b; font-size: 15px; }
 .sheet-body p { white-space: pre-line; line-height: 1.65; margin: 5px 0; font-size: 15px; }
 .details-actions { clear: both; display: flex; justify-content: center; padding: 16px 0; }
-.guest-portrait { float: right; width: 240px; height: 240px; margin: 0 20px 15px 30px; background: url('/art/guests-cartoon.png') no-repeat; background-size: 200% 200%; filter: drop-shadow(0 12px 18px #0006); }
+.guest-portrait { float: right; width: 240px; height: 240px; margin: 0 20px 15px 30px; background: url('/art/guests-cartoon.png') no-repeat; background-size: 300% 300%; filter: drop-shadow(0 12px 18px #0006); }
 .room-portrait { float: right; width: min(54vw,560px); height: 180px; background-size: cover; background-repeat: no-repeat; border-radius: 16px; border: 3px solid #bd9669; margin: 0 0 18px 28px; box-shadow: 0 6px 0 #1d142b; }
 .settings-controls { max-width: 920px; margin: 0 auto; }
 .settings-tiles { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
@@ -147,3 +147,35 @@ button:focus-visible, .setting-tile:focus-within { outline: 3px solid #b9e4e4; o
 .cover-logo-zh span:nth-child(even) { transform: rotate(3deg); }
 .cover-logo-en { margin-top: 7px; color: #ffd78f; font-family: MonsterCover,sans-serif; font-weight: 900; font-size: clamp(13px,1.9vw,20px); line-height: 1.1; letter-spacing: .2em; -webkit-text-stroke: 3px #673852; paint-order: stroke fill; text-shadow: 0 3px #2c182e; }
 @media(max-width:600px) { .cover-logo { top: max(62px,env(safe-area-inset-top)); } }
+.story-entry { position: absolute; left: 69.905%; top: 54.167%; transform: translate(-50%,-50%); width: min(294px,35vw); min-height: 48px; pointer-events: auto; font-size: 16px; padding: 8px 12px; }
+.story-entry:active { transform: translate(-50%,calc(-50% + 2px)); }
+.story-hud { position: fixed; inset: env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); z-index: 5; pointer-events: none; color: #ffe7ba; }
+.story-top { position: absolute; top: 6px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
+.story-top button { pointer-events: auto; }
+.story-heading { position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: flex; align-items: center; flex-direction: column; gap: 3px; min-height: 45px; padding: 5px 18px; background: #32213ee8; border: 1px solid #ba9269; border-radius: 18px; }
+.story-heading strong { font-size: 17px; }
+.story-progress { font-size: 11px; color: #d0b78e; }
+.story-room-label { position: absolute; pointer-events: auto; min-width: 65px; min-height: 44px; border: 2px solid #b58d6b; border-radius: 14px; color: #ffe5ad; background: linear-gradient(#67435eeb,#31213bef); box-shadow: inset 0 2px #ab7c8b,0 3px #231829; font-weight: 800; cursor: pointer; }
+.story-room-focus { position: absolute; pointer-events: auto; width: 44px; height: 44px; padding: 8px; }
+.story-dock { position: absolute; bottom: 6px; left: 8px; right: 8px; display: flex; gap: 8px; justify-content: center; align-items: center; overflow-x: auto; padding: 4px 3px 8px; pointer-events: auto; scrollbar-width: thin; }
+.story-dock .game-secondary-button { padding: 8px 12px; min-height: 48px; font-size: 14px; flex: 0 0 auto; gap: 5px; }
+.story-dock .game-primary-button { min-height: 48px; padding: 8px 18px; white-space: nowrap; flex: 0 0 auto; }
+.story-dock .game-icon-button { flex: 0 0 auto; }
+.story-dock [aria-pressed="true"] { outline: 3px solid #ffe4a2; outline-offset: -1px; background: linear-gradient(#9b735d,#65516a); }
+.story-face { width: 27px; height: 30px; display: block; flex: 0 0 auto; background-image: url('/art/guests-cartoon.png'); background-repeat: no-repeat; background-size: 300% 300%; }
+.story-face--werewolf { background-position: 12.5% 12.5%; }.story-face--jiangshi { background-position: 87.5% 12.5%; }.story-face--lantern { background-position: 12.5% 87.5%; }.story-face--mummy { background-position: 87.5% 87.5%; }
+.story-tool { touch-action: none; }
+.story-tool-ghost { position: fixed; z-index: 30; pointer-events: none; transform: translate(-50%,-50%); display: grid; place-items: center; width: 56px; height: 56px; border: 3px solid #ffdfa0; border-radius: 18px; color: #ffdfa0; background: #65445bdc; box-shadow: 0 6px 20px #0008; }
+.story-notice { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); max-width: 85vw; padding: 8px 18px; border: 1px solid #d9ae77; border-radius: 18px; background: #33213fe8; color: #fff0ce; font-size: 14px; text-align: center; }
+.story-notice[hidden] { display: none; }
+.story-focus-back { position: absolute; right: 14px; top: 68px; pointer-events: auto; min-height: 44px; padding: 7px 15px; font-size: 14px; }
+.story-event-copy { position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 86vw; margin: 0; padding: 10px 20px; font-size: 17px; text-align: center; color: #ffe7bc; background: #33223ee8; border: 1px solid #bd946a; border-radius: 20px; }
+.story-choices { position: absolute; bottom: 19px; left: 6%; right: 6%; display: flex; gap: 26px; justify-content: center; pointer-events: auto; }
+.story-choices button { width: 44%; min-height: 58px; font-size: 17px; padding: 10px 15px; }
+.story-skip { position: absolute; right: 14px; top: 68px; pointer-events: auto; min-height: 44px; padding: 7px 13px; font-size: 13px; }
+.story-ending { position: absolute; top: 19%; right: 4%; width: 43%; padding: 18px 22px; border: 2px solid #c59a70; border-radius: 24px; background: #31213de8; display: flex; flex-direction: column; gap: 12px; pointer-events: auto; }
+.story-ending h2 { font-size: 23px; margin: 0; color: #ffe0a2; }
+.story-ending p { margin: 0; }.story-coins { display: flex; align-items: center; gap: 10px; font-size: 20px; color: #ffdd92; }.story-bond { font-size: 19px; color: #ffc4d4; letter-spacing: 1px; }
+.story-ending small { font-size: 12px; color: #d6bdac; }.story-ending button { min-height: 44px; font-size: 15px; padding: 8px 16px; }
+@media(max-height:420px) and (min-width:600px) { .story-dock { bottom: 2px; }.story-dock .game-secondary-button { padding: 6px 8px; }.story-ending { top: 16%; gap: 7px; padding: 13px 17px; }.story-ending h2 { font-size: 19px; }.story-choices { bottom: 12px; }.story-event-copy { bottom: 86px; font-size: 15px; } }
+@media(max-width:600px) { .story-heading { width: calc(100vw - 240px); min-width: 115px; padding: 5px; }.story-heading strong { font-size: 12px; }.story-progress { display: none; }.story-dock { justify-content: flex-start; }.story-ending { top: 25%; width: 88%; right: 6%; }.story-event-copy { font-size: 14px; }.story-choices { gap: 12px; left: 3%; right: 3%; }.story-choices button { font-size: 14px; width: 48%; }.story-entry { font-size: 12px; } }

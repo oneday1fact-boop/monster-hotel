@@ -6,13 +6,20 @@ import type { Guest } from '../domain/puzzle';
 /** Original local cartoon sprites with procedural activity loops and a vector fallback. */
 export function drawMonster(scene: Phaser.Scene, x: number, y: number, guest: Guest, activity: 'queue' | 'room' = 'queue') {
   if (scene.textures.exists('guests-art') && scene.textures.get('guests-art').has(guest.kind)) {
-    const image = scene.add.image(0, 0, 'guests-art', guest.kind).setDisplaySize(190, 190);
-    let children: Phaser.GameObjects.GameObject[] = [image];
+    const frame = scene.textures.get('guests-art').has(`${guest.kind}-tight`) ? `${guest.kind}-tight` : guest.kind;
+    const image = scene.add.image(0, 0, 'guests-art', frame).setOrigin(.5, .64);
+    const setPose = (pose = 0) => {
+      if (pose > 0 && scene.textures.exists(`pose-${guest.kind}`)) {
+        image.setTexture(`pose-${guest.kind}`, String(pose)).setDisplaySize(168, 168);
+        image.setOrigin(.5, ((image.frame.customData as { foot?: number }).foot ?? .89) - 45 / 168);
+      } else { image.setTexture('guests-art', frame).setOrigin(.5, .64); image.setDisplaySize(125 * image.frame.width / image.frame.height, 125); }
+    };
+    setPose(); let children: Phaser.GameObjects.GameObject[] = [image]; let pause = (_value: boolean) => {};
     if (!reducedMotion()) {
-      if (activity === 'room') children = roomActivity(scene, image, guest);
+      if (activity === 'room') { const motion = roomActivity(scene, image, guest, setPose); children = motion.children; pause = motion.pause; }
       else scene.tweens.add({ targets: image, y: -2, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
-    return scene.add.container(x, y, children).setSize(activity === 'room' ? 160 : 110, activity === 'room' ? 120 : 110);
+    return scene.add.container(x, y, children).setSize(activity === 'room' ? 170 : 130, activity === 'room' ? 140 : 130).setData('body', image).setData('setPose', setPose).setData('pauseActivity', pause);
   }
   return drawVectorMonster(scene, x, y, guest);
 }

@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { displayDensity } from './display';
+import { drawToyBasket } from './storyProps';
+import { storyBonds } from '../domain/storyNight';
 import { drawReception, receptionFrame } from './reception';
 import { tutorialView } from '../domain/tutorial';
 import { readTutorialDone, saveTutorialDone } from '../platform/tutorial';
@@ -55,6 +58,7 @@ export class HotelScene extends Phaser.Scene {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
     this.load.image('guests-art', '/art/guests-cartoon.png');
+    for (const kind of ['werewolf', 'jiangshi', 'lantern', 'mummy']) this.load.image(`pose-${kind}`, `/art/${kind}-poses.png`);
     this.load.image('reception-art', '/art/reception.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
@@ -83,7 +87,7 @@ export class HotelScene extends Phaser.Scene {
     }
   }
   private text(x: number, y: number, text: string, size = 20, color = C.white) {
-    return this.add.text(x, y, text, { fontFamily: 'Georgia, "Noto Sans TC", serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setOrigin(.5);
+    return this.add.text(x, y, text, { fontFamily: 'Georgia, "Noto Sans TC", serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
   }
   private base(label: string) {
     this.hud?.destroy(); this.hud = undefined;
@@ -117,14 +121,28 @@ export class HotelScene extends Phaser.Scene {
 
   private reception() {
     drawReception(this, this.save, this.screen === 'lobby');
+    if (this.save.storyNight) drawToyBasket(this, 258, 436, .85);
     this.level.guests.forEach((guest, index) => {
       const x = [100, 201, 303, 390][index]; const y = [386, 396, 382, 402][index];
       const actor = this.monster(x, y, guest).setScale(index === 2 ? .69 : .78);
+      if (this.save.storyNight && guest.kind === 'werewolf' && !reducedMotion()) {
+        const ball = this.add.container(256, 417, [this.add.circle(0, 0, 10, 0xf2cc83).setStrokeStyle(2, 0x67405b), this.add.star(0, 0, 5, 2, 5, 0x9b7ec7)]).setData('viewportAspect', true);
+        const pose = (p: number) => (actor.getData('setPose') as (pose: number) => void)?.(p);
+        this.tweens.chain({ targets: actor, loop: -1, loopDelay: 2200, tweens: [
+          { x: 220, y: 394, duration: 850, delay: 1400, ease: 'Sine.easeInOut', onStart: () => pose(2) },
+          { x: 238, y: 397, duration: 350, hold: 450, ease: 'Sine.easeInOut', onStart: () => {
+            pose(1); this.tweens.chain({ targets: ball, tweens: [{ x: 202, y: 375, angle: -100, duration: 400, ease: 'Sine.easeOut' }, { x: 172, y: 416, angle: -190, duration: 450, ease: 'Bounce.easeOut' }, { x: 256, y: 417, angle: 0, duration: 750, ease: 'Sine.easeInOut' }] });
+          } },
+          { x: 170, y: 390, duration: 600, ease: 'Sine.easeInOut', onStart: () => pose(2) },
+          { x, y, duration: 650, hold: 900, ease: 'Sine.easeInOut', onComplete: () => pose(3) },
+        ] });
+      }
       actor.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
         this.feedback.play('tap');
-        const heart = this.text(x, y - 45, '♥', 20, '#ffc3d4').setDepth(10);
+        const bond = storyBonds(this.save); const amount = guest.id === 'luno' ? bond.luno : guest.id === 'rollo' ? bond.rollo : 0;
+        const heart = this.text(actor.x, actor.y - 45, amount ? `♥ ${amount}/5` : '♥', 20, '#ffc3d4').setDepth(10);
         if (reducedMotion()) this.time.delayedCall(650, () => heart.destroy());
-        else this.tweens.add({ targets: heart, y: y - 68, alpha: 0, duration: 850, onComplete: () => heart.destroy() });
+        else this.tweens.add({ targets: heart, y: actor.y - 68, alpha: 0, duration: 850, onComplete: () => heart.destroy() });
       });
     });
   }
@@ -139,10 +157,17 @@ export class HotelScene extends Phaser.Scene {
     const badge = this.add.graphics(); badge.fillStyle(0x191323, .75).fillRoundedRect(460, 158, 260, 36, 18);
     badge.lineStyle(1, 0xbc8f6c, .6).strokeRoundedRect(460, 158, 260, 36, 18);
     this.text(590, 176, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/20`, 15, '#f2cc83');
-    this.text(590, 242, this.t.arrivals, 21, '#ead4c4');
-    this.button(325, this.ct.choose, () => this.selection(), 294, 590);
+    this.text(590, 211, this.t.arrivals, 17, '#ead4c4');
+    this.hud?.storyEntry(this.locale === 'en' ? 'Story night: Moonlight & Linen' : '故事夜：月光與繃帶', () => this.openStory());
+    this.button(325, this.locale === 'en' ? '20-night puzzle challenge →' : '20 晚解謎挑戰 →', () => this.selection(), 294, 590);
     this.button(390, this.ht.shop, () => this.shop(), 294, 590);
     this.button(450, this.t.titleBack, () => this.title(), 180, 590);
+  }
+  private openStory() {
+    this.hud?.visible(false);
+    this.scene.launch('story', { locale: this.locale, feedback: this.feedback, save: this.save, onExit: (save: Save, locale: Locale) => {
+      this.scene.wake('hotel'); this.save = save; this.locale = locale; this.lobby();
+    } }); this.scene.sleep('hotel');
   }
   private selection() {
     this.screen = 'selection'; this.base(this.ct.levels); this.input.enabled = false;
@@ -213,11 +238,11 @@ export class HotelScene extends Phaser.Scene {
         const point = residentPoint(room); const actor = this.monster(point.x, point.y, guest, 'room').setScale(.72);
         bindGuest(actor, guest);
         if (this.arriving === guest.id && !reducedMotion()) {
-          const index = this.level.guests.indexOf(guest); actor.setPosition(queueX[index], queueY).setDepth(10); this.setBusy(true);
+          const index = this.level.guests.indexOf(guest); actor.setPosition(queueX[index], queueY).setDepth(10); (actor.getData('pauseActivity') as (v: boolean) => void)?.(true); this.setBusy(true);
           status.setText('');
           this.tweens.chain({ targets: actor, tweens: [
             { x: 422, y: 349, duration: 160 }, { x: 422, y: point.y, duration: 200 }, { x: point.x, y: point.y, duration: 180 },
-          ], onComplete: () => { actor.setDepth(0); this.setBusy(false); status.setText(''); } });
+          ], onComplete: () => { actor.setDepth(0); (actor.getData('pauseActivity') as (v: boolean) => void)?.(false); this.setBusy(false); status.setText(''); } });
         }
       }
     }
