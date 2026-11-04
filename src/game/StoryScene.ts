@@ -60,7 +60,7 @@ export class StoryScene extends Phaser.Scene {
     }
   }
   private text(x: number, y: number, label: string, size = 17, color = '#fff0cc') {
-    return this.add.text(x, y, label, { fontFamily: 'system-ui,"Noto Sans TC",sans-serif', fontSize: size, color, stroke: '#2d2039', strokeThickness: 3, align: 'center' }).setResolution(displayDensity()).setOrigin(.5);
+    return this.add.text(x, y, label, { fontFamily: 'GameRounded,"Noto Sans TC",sans-serif', fontSize: size, color, stroke: '#2d2039', strokeThickness: 3, align: 'center' }).setResolution(displayDensity()).setOrigin(.5);
   }
   private frame(key: string, width: number, height: number) {
     const texture = this.textures.get(key); const source = texture.source[0]; const m = viewportMetrics(this.scale.width, this.scale.height);

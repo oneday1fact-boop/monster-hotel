@@ -10,7 +10,11 @@ test('curtain drag fixes noise, play ending persists reward, toy basket and frie
   const from = (await page.locator('[data-tool="curtain"]').boundingBox())!; const to = (await page.locator('[data-room="102"]').boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2); await page.mouse.down(); await page.mouse.move(to.x + to.width / 2, to.y + to.height + 25, { steps: 15 }); await page.mouse.up();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('midnight-check-in.story-night.v1')!).equipment.curtain)).toBe('102');
-  await page.getByRole('button', { name: '安頓好喇' }).click(); await ready(page); await page.getByRole('button', { name: '用玩具陪月毛玩' }).click(); await ready(page);
+  await page.getByRole('button', { name: '安頓好喇' }).click(); await ready(page);
+  await expect(page.locator('.story-speaker')).toHaveText('月毛 & 卷卷');
+  await expect(page.locator('.story-dialogue-portrait')).toBeVisible();
+  expect(await page.evaluate(() => document.fonts.check('16px GameRounded', '月毛卷卷'))).toBe(true);
+  await page.getByRole('button', { name: '用玩具陪月毛玩' }).click(); await ready(page);
   await expect(page.locator('.story-hud')).toHaveAttribute('data-phase', 'settled'); expect((await saved(page)).coins).toBe(50); expect((await saved(page)).storyNight.outcome).toBe('play');
   await expect(page.locator('[data-bond="luno"]')).toContainText('♥♥');
   await page.getByRole('button', { name: '重看小事件' }).click(); await ready(page); await page.getByRole('button', { name: '邀請卷卷一齊玩' }).click(); await ready(page);

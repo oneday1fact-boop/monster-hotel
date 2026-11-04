@@ -9,7 +9,7 @@ const fs = require('node:fs'); const path = require('node:path'); const { execFi
     const page = await context.newPage(); page.setDefaultTimeout(20000); const started = Date.now(); page.on('pageerror', e => errors.push(e.message));
     const ready = () => page.waitForFunction(() => document.querySelector('canvas').getAttribute('aria-busy') === 'false');
     const enter = async p => { await p.goto(process.env.REVIEW_URL || 'http://127.0.0.1:5173'); await p.waitForFunction(() => document.documentElement.lang === 'zh-Hant'); const box = await p.locator('canvas').boundingBox(); await p.mouse.click(box.x + 590 / 844 * box.width, box.y + 330 / 480 * box.height); await p.getByRole('button', { name: '故事夜：月光與繃帶' }).click(); };
-    await enter(page); await ready(); const begin = Math.max(0, (Date.now() - started) / 1000 - .4);
+    await enter(page); await ready(); await page.getByRole('button', { name: '設定', exact: true }).click(); await page.screenshot({ path: path.join(out, 'native-ui-settings.png') }); await page.keyboard.press('Escape'); await ready(); const begin = Math.max(0, (Date.now() - started) / 1000 - .4);
     await page.screenshot({ path: path.join(out, 'story-overview.png') });
     for (const [guest, room] of Object.entries({ luno: '101', dou: '102', ember: 'B02', rollo: 'B01' })) { await page.locator(`[data-guest="${guest}"]`).click(); await page.locator(`[data-room="${room}"]`).click(); await ready(); }
     await page.getByRole('button', { name: '安頓好喇' }).click(); await page.screenshot({ path: path.join(out, 'story-noise.png') });

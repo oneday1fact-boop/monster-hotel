@@ -179,3 +179,33 @@ button:focus-visible, .setting-tile:focus-within { outline: 3px solid #b9e4e4; o
 .story-ending small { font-size: 12px; color: #d6bdac; }.story-ending button { min-height: 44px; font-size: 15px; padding: 8px 16px; }
 @media(max-height:420px) and (min-width:600px) { .story-dock { bottom: 2px; }.story-dock .game-secondary-button { padding: 6px 8px; }.story-ending { top: 16%; gap: 7px; padding: 13px 17px; }.story-ending h2 { font-size: 19px; }.story-choices { bottom: 12px; }.story-event-copy { bottom: 86px; font-size: 15px; } }
 @media(max-width:600px) { .story-heading { width: calc(100vw - 240px); min-width: 115px; padding: 5px; }.story-heading strong { font-size: 12px; }.story-progress { display: none; }.story-dock { justify-content: flex-start; }.story-ending { top: 25%; width: 88%; right: 6%; }.story-event-copy { font-size: 14px; }.story-choices { gap: 12px; left: 3%; right: 3%; }.story-choices button { font-size: 14px; width: 48%; }.story-entry { font-size: 12px; } }
+
+/* Illustrated game skins, shared by the DOM HUD and full-screen menus. */
+@font-face { font-family: GameRounded; src: url('/fonts/monster-ui.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+body { font-family: GameRounded,"Noto Sans TC",sans-serif; }
+.game-primary-button { border: 0; border-radius: 0; box-shadow: none; background: url('/art/ui/gold-button.png') center/100% 100% no-repeat; min-height: 56px; padding: 14px 30px; color: #542d40; font-size: 18px; font-weight: 700; text-shadow: 0 1px #fff3c3; filter: drop-shadow(0 3px 3px #160e2466); }
+.game-secondary-button, .game-icon-button, .story-room-label, .story-notice, .story-event-copy, .story-ending, .setting-tile, .language-tile, .shop-items article, .night-grid button {
+  border: 0 solid transparent; border-radius: 0; border-image: url('/art/ui/frame.png') 190 fill / 20px / 0 stretch; background: none; box-shadow: none; color: #fff0ce; text-shadow: 0 2px 2px #25122c; }
+.game-secondary-button { min-height: 52px; padding: 12px 24px; font-size: 17px; }
+.game-icon-button { border-image-width: 14px; }
+.story-room-label { border-image-width: 13px; font: 700 17px GameRounded,sans-serif; }
+.story-heading { border: 0; border-radius: 0; background: url('/art/ui/nameplate.png') center/100% 100% no-repeat; padding: 17px 55px 14px; min-width: 300px; text-shadow: 0 2px #32152d; }
+.story-heading strong { font-size: 19px; }.story-progress { font-size: 12px; color: #ffe1ad; }
+.story-notice { padding: 18px 28px; font-size: 17px; line-height: 1.5; }
+.story-event-copy { width: min(700px,84vw); max-width: 84vw; min-height: 90px; display: flex; align-items: center; gap: 18px; padding: 20px 30px; text-align: left; border-image-width: 26px; }
+.story-dialogue-portrait { width: 72px; height: 76px; filter: drop-shadow(0 3px 2px #170e28); }
+.story-dialogue-content { flex: 1; min-width: 0; }.story-speaker { display: inline-block; min-width: 165px; padding: 12px 32px; margin: -30px 0 0 -10px; background: url('/art/ui/nameplate.png') center/100% 100% no-repeat; text-align: center; color: #ffe09b; font-size: 17px; }
+.story-message { margin: 5px 0 0; font-size: 19px; line-height: 1.55; }
+.story-ending { border-image-width: 30px; padding: 30px 32px; gap: 12px; }
+.story-ending h2 { font-size: 23px; text-align: center; }.story-coins { justify-content: center; font-size: 23px; }.story-bond { padding: 3px 10px; font-size: 22px; }.story-ending small { line-height: 1.5; font-size: 13px; }
+.sheet-header h1, .sheet-header h2 { background: url('/art/ui/nameplate.png') center/100% 100% no-repeat; font-family: GameRounded,sans-serif; padding: 18px 55px; font-size: 26px; }
+.night-badge { font-family: GameRounded,sans-serif; }.language-glyph, .night-grid strong { font-family: GameRounded,sans-serif; }
+.setting-tile, .language-tile, .shop-items article { border-image-width: 26px; }.night-grid button { border-image-width: 17px; }
+.language-tile.is-selected, .night-grid .night-cleared, .story-dock [aria-pressed="true"] { background: none; filter: brightness(1.23); }
+.story-dock .game-secondary-button { min-height: 52px; padding: 11px 14px; font-size: 16px; }.story-dock .game-primary-button { min-height: 56px; padding: 12px 24px; }
+.story-entry { padding: 12px 25px; }
+@media(max-height:450px) { .story-heading { padding: 12px 42px 10px; min-width: 270px; }.story-heading strong { font-size: 17px; }.story-progress { display: none; }.story-event-copy { min-height: 78px; padding: 16px 24px; gap: 12px; bottom: 84px; }.story-message { font-size: 17px; }.story-dialogue-portrait { width: 58px; height: 62px; }.story-ending { padding: 24px 28px; gap: 7px; top: 16%; }.story-ending h2 { font-size: 20px; }.story-ending .story-bond { font-size: 18px; }.story-ending button { min-height: 44px; }.story-speaker { margin-top: -25px; font-size: 15px; padding: 10px 28px; }.story-dock { gap: 5px; }.story-dock .game-secondary-button { padding: 10px 11px; font-size: 15px; } }
+@media(max-width:600px) { .story-heading { min-width: 130px; padding: 12px 24px; }.story-heading strong { font-size: 13px; }.story-dialogue-portrait { width: 46px; height: 50px; }.story-message { font-size: 15px; }.story-event-copy { padding: 16px 22px; } }
+.tutorial-coach, .night-badge { border: 0 solid transparent; border-radius: 0; border-image: url('/art/ui/frame.png') 190 fill / 16px / 0 stretch; background: none; box-shadow: none; }
+.tutorial-coach { padding: 10px 12px 10px 18px; }.tutorial-coach p { font-size: 14px; }.tutorial-skip { border: 0; background: none; color: #ffdc9c; font-family: GameRounded,sans-serif; }
+@media(max-width:600px) { .sheet-header h1,.sheet-header h2 { min-width: 0; padding: 13px 24px; font-size: 20px; }.setting-tile { border-image-width: 18px; padding: 18px; } }

@@ -44,7 +44,12 @@ export function createStoryHUD(locale: Locale, draft: StoryDraft, selected: stri
     }
     const ready = button(t.ready, actions.ready, true); ready.dataset.action = 'settle'; ready.prepend(icon('check')); dock.append(ready, iconButton('reset', t.reset, actions.reset)); root.append(dock);
   } else if (draft.phase === 'event') {
-    const caption = document.createElement('p'); caption.className = 'story-event-copy'; caption.textContent = t.event; root.append(caption);
+    const caption = document.createElement('section'); caption.className = 'story-event-copy';
+    const face = document.createElement('span'); face.className = 'story-dialogue-portrait story-face story-face--werewolf'; face.setAttribute('aria-hidden', 'true');
+    const content = document.createElement('div'); content.className = 'story-dialogue-content';
+    const speaker = document.createElement('strong'); speaker.className = 'story-speaker'; speaker.textContent = `${t.luno} & ${t.rollo}`;
+    const message = document.createElement('p'); message.className = 'story-message'; message.textContent = t.event;
+    content.append(speaker, message); caption.append(face, content); root.append(caption);
     const choices = document.createElement('div'); choices.className = 'story-choices'; choices.append(button(t.play, () => actions.choice('play'), true), button(t.together, () => actions.choice('together'), true)); root.append(choices);
     const skip = button(locale === 'en' ? 'Skip scene' : '跳過演出', actions.skip); skip.classList.add('story-skip'); skip.dataset.escape = 'true'; root.append(skip);
   }
@@ -53,7 +58,7 @@ export function createStoryHUD(locale: Locale, draft: StoryDraft, selected: stri
     root,
     show(message: string) { clearTimeout(noticeTimer); notice.hidden = !message; notice.textContent = message; if (message) noticeTimer = setTimeout(() => { notice.hidden = true; }, 4500); },
     busy(value: boolean) { root.querySelectorAll<HTMLButtonElement>('button').forEach(b => { if (!b.dataset.escape) b.disabled = value; }); },
-    caption(text: string) { const p = root.querySelector('.story-event-copy'); if (p) p.textContent = text; },
+    caption(text: string) { const p = root.querySelector('.story-message'); if (p) p.textContent = text; },
     ending(reward: number, bonds: { luno: number; rollo: number }, replayed: boolean) {
       const panel = document.createElement('section'); panel.className = 'story-ending'; panel.setAttribute('aria-label', t.done);
       const title = document.createElement('h2'); title.textContent = t.done; const coins = document.createElement('p'); coins.className = 'story-coins'; coins.textContent = `${t.reward} +${reward}`; coins.prepend(icon('coin')); panel.append(title, coins);

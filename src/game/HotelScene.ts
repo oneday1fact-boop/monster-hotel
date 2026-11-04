@@ -57,6 +57,7 @@ export class HotelScene extends Phaser.Scene {
     for (const [condition, symbol] of Object.entries({ moonlight: 'moon', quiet: 'quiet', warm: 'flame', dry: 'sun' } as const)) {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
+    this.load.image('ui-gold-button', '/art/ui/gold-button.png');
     this.load.image('guests-art', '/art/guests-cartoon.png');
     for (const kind of ['werewolf', 'jiangshi', 'lantern', 'mummy']) this.load.image(`pose-${kind}`, `/art/${kind}-poses.png`);
     this.load.image('reception-art', '/art/reception.png');
@@ -87,7 +88,7 @@ export class HotelScene extends Phaser.Scene {
     }
   }
   private text(x: number, y: number, text: string, size = 20, color = C.white) {
-    return this.add.text(x, y, text, { fontFamily: 'Georgia, "Noto Sans TC", serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
+    return this.add.text(x, y, text, { fontFamily: 'GameRounded, "Noto Sans TC", sans-serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
   }
   private base(label: string) {
     this.hud?.destroy(); this.hud = undefined;
@@ -110,11 +111,7 @@ export class HotelScene extends Phaser.Scene {
     this.game.canvas.setAttribute('aria-label', this.screen === 'play' ? `${levelTitle(this.level.id, this.locale)}. ${dollhouseUI[this.locale].instructions}` : label);
   }
   private button(y: number, label: string, callback: () => void, width = 310, x = 422) {
-    const g = this.add.graphics();
-    g.fillStyle(0x503044).fillRoundedRect(x - width / 2, y - 20, width, 48, 16);
-    g.fillStyle(0xe0ac68).fillRoundedRect(x - width / 2, y - 24, width, 46, 16);
-    g.fillStyle(C.gold).fillRoundedRect(x - width / 2 + 3, y - 22, width - 6, 37, 13);
-    g.lineStyle(2, 0xffedbd).strokeRoundedRect(x - width / 2 + 1, y - 24, width - 2, 44, 16);
+    this.add.image(x, y, 'ui-gold-button').setDisplaySize(width, 64);
     this.text(x, y - 2, label, 18, '#553047');
     this.add.zone(x, y, width, 48).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.feedback.play('tap'); callback(); });
   }

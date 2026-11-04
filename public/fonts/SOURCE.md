@@ -10,3 +10,8 @@ Only the bilingual logo characters are bundled. The subset was renamed to Monste
 Source TTF SHA-256: 6bd74fe76cd39ee0ec18775c3661d845343fb3f6f8fa09a3076638417baf741f
 
 Subset WOFF SHA-256: 40dabf2bf7259ea1c72c9f7235466387ae97111300612c5cec5231a6c36cb354
+
+# Game UI rounded typeface
+Huninn Regular, copyright 2025 The Huninn Project Authors (https://github.com/justfont/Huninn).
+Source: https://raw.githubusercontent.com/google/fonts/main/ofl/huninn/Huninn-Regular.ttf
+SIL OFL 1.1: OFL-Huninn.txt. Renamed to Monster Hotel UI and subset with scripts/subset-ui-font.py; all source Chinese glyphs verified. Bundled offline, no font CDN.
