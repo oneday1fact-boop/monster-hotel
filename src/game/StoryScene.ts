@@ -1,13 +1,16 @@
 import Phaser from 'phaser';
 import { place, roomConditions, type Guest, type Room } from '../domain/puzzle';
-import { effectiveStoryLevel, emptyStory, hasNoiseConflict, putTool, settleStory, storyBonds, storyLevel, storyValidation, type StoryChoice, type StoryDraft, type Tool } from '../domain/storyNight';
+import { effectiveStoryLevel, emptyStory, hasNoiseConflict, putTool, settleStory, chapterBonds, storyOutcome, storyUnlocked, storyLevel, storyValidation, type StoryChoice, type StoryDraft, type Tool } from '../domain/storyNight';
 import { readSave, writeSave, type Save } from '../platform/save';
 import { readStoryDraft, writeStoryDraft } from '../platform/storyNight';
 import { savePreferences } from '../platform/preferences';
 import type { Feedback } from '../platform/feedback';
 import { characters, conditions, saveLocale, type Locale } from '../i18n/catalog';
 import { hotelUI } from '../i18n/hotel';
-import { storyUI } from '../i18n/storyNight';
+import { chapterLevels, chapterPairs, type ChapterId } from '../domain/storyChapters';
+import { showStoryBook } from './storyBook';
+import { chapterCinema } from './chapterCinema';
+import { chapterUI } from '../i18n/storyNight';
 import { reducedMotion } from './art';
 import { drawMonster } from './drawMonster';
 import { drawReception } from './reception';
@@ -20,23 +23,26 @@ import { storyCinema } from './storyCinema';
 import { showDetails } from './details';
 import { settingsContent, languageContent } from './hotelMenus';
 
-interface StoryData { locale: Locale; feedback: Feedback; save?: Save; onExit(save: Save, locale: Locale): void }
+interface StoryData { chapter?: ChapterId; locale: Locale; feedback: Feedback; save?: Save; onExit(save: Save, locale: Locale): void }
 interface Panel { x: number; y: number; width: number; height: number }
 const queue = [88, 210, 332, 454];
 export class StoryScene extends Phaser.Scene {
+  private chapter: ChapterId = 1;
+  private drafts: Partial<Record<ChapterId, StoryDraft>> = {};
   private locale!: Locale; private feedback!: Feedback; private save!: Save; private state!: StoryDraft;
   private ui?: ReturnType<typeof createStoryHUD>; private cinema?: ReturnType<typeof storyCinema>;
   private onExit!: StoryData['onExit']; private selected?: string; private tool?: Tool; private focus?: string;
   private choice?: StoryChoice; private reward = 0; private busy = false; private width = 0; private height = 0;
   private modal?: () => void; private storageFailed = false;
-  private get t() { return storyUI[this.locale]; }
+  private get t() { return chapterUI(this.locale, this.chapter); }
   constructor() { super('story'); }
   init(data: StoryData) {
     this.locale = data.locale; this.feedback = data.feedback; this.onExit = data.onExit; this.save = data.save ?? readSave();
-    this.state = readStoryDraft(); this.selected = undefined; this.tool = undefined; this.focus = undefined; this.choice = undefined;
+    this.chapter = data.chapter && storyUnlocked(this.save, data.chapter) ? data.chapter : 1;
+    this.drafts = {}; this.state = readStoryDraft(this.chapter); this.selected = undefined; this.tool = undefined; this.focus = undefined; this.choice = undefined;
     this.reward = 0; this.busy = false; this.width = 0; this.height = 0; this.storageFailed = false;
-    if (this.state.phase === 'settled' && !this.save.storyNight) this.state = emptyStory();
-    if (this.save.storyNight && !this.state.introduced) this.state.phase = 'settled';
+    if (this.state.phase === 'settled' && !storyOutcome(this.save, this.chapter)) this.state = emptyStory();
+    if (storyOutcome(this.save, this.chapter) && !this.state.introduced) this.state.phase = 'settled';
   }
   create() {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.ui?.destroy(); this.modal?.(); this.input.removeAllListeners(); });
@@ -60,7 +66,7 @@ export class StoryScene extends Phaser.Scene {
     }
   }
   private text(x: number, y: number, label: string, size = 17, color = '#fff0cc') {
-    return this.add.text(x, y, label, { fontFamily: 'GameRounded,"Noto Sans TC",sans-serif', fontSize: size, color, stroke: '#2d2039', strokeThickness: 3, align: 'center' }).setResolution(displayDensity()).setOrigin(.5);
+    return this.add.text(x, y, label, { fontFamily: 'GameNumbers, GameRounded,"Noto Sans TC",sans-serif', fontSize: size, color, stroke: '#2d2039', strokeThickness: 3, align: 'center' }).setResolution(displayDensity()).setOrigin(.5);
   }
   private frame(key: string, width: number, height: number) {
     const texture = this.textures.get(key); const source = texture.source[0]; const m = viewportMetrics(this.scale.width, this.scale.height);
@@ -69,9 +75,9 @@ export class StoryScene extends Phaser.Scene {
     return name;
   }
   private panel(room: Room): Panel {
-    return this.focus ? { x: 422, y: 220, width: 820, height: 280 } : { x: room.position === 1 ? 203 : 641, y: room.floor === 1 ? 130 : 264, width: 406, height: 128 };
+    return this.focus ? { x: 422, y: 228, width: 844, height: 344 } : { x: room.position === 1 ? 203 : 641, y: room.floor === 1 ? 136 : 300, width: 406, height: 160 };
   }
-  private persist() { this.storageFailed = !writeStoryDraft(this.state) || this.storageFailed; }
+  private persist() { this.drafts[this.chapter] = this.state; this.storageFailed = !writeStoryDraft(this.state, this.chapter) || this.storageFailed; }
   private setBusy(value: boolean) { this.busy = value; this.input.enabled = !value; this.ui?.busy(value); this.game.canvas.setAttribute('aria-busy', String(value)); }
   private render(arriving?: string) {
     this.ui?.destroy(); this.modal?.(); this.modal = undefined; this.tweens.killAll(); this.time.removeAllEvents(); this.children.removeAll(true);
@@ -79,19 +85,30 @@ export class StoryScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#19152c'); document.documentElement.lang = this.locale;
     this.game.canvas.setAttribute('aria-label', `${this.t.title} · ${this.state.phase}`);
     this.ui = createStoryHUD(this.locale, this.state, this.selected, this.tool, this.focus, {
-      home: () => this.exit(), language: () => this.language(), settings: () => this.settings(),
+      chapters: () => this.book(), next: () => this.changeChapter((this.chapter + 1) as ChapterId), home: () => this.exit(), language: () => this.language(), settings: () => this.settings(),
       reset: () => { this.state = { ...emptyStory(), introduced: true }; this.selected = undefined; this.tool = undefined; this.persist(); this.render(); },
       ready: () => this.ready(), guest: id => this.selectGuest(id), tool: tool => { this.tool = tool; this.selected = undefined; this.render(); this.ui?.show(`${this.t[tool]} — ${this.t.selected}`); },
       room: id => this.roomAction(id), focus: id => { this.focus = id; this.render(); }, dropTool: (tool, x, y) => this.dropTool(tool, x, y),
       choice: choice => this.choose(choice), skip: () => { if (this.choice) this.finishEvent(this.choice); else this.cinema?.skipIntro(); },
-      replay: () => { this.state.phase = storyValidation(this.state.assignment, this.state.equipment).valid ? 'event' : 'arranging'; this.persist(); this.render(); },
-    });
+      replay: () => { this.state.phase = storyValidation(this.state.assignment, this.state.equipment, this.chapter).valid ? 'event' : 'arranging'; this.persist(); this.render(); },
+    }, this.chapter);
     this.setBusy(false);
     if (this.state.phase === 'arranging') this.drawHotel(arriving);
-    else if (this.state.phase === 'event') { drawReception(this, this.save, false); this.setBusy(true); this.cinema = storyCinema(this, () => this.setBusy(false)); }
+    else if (this.state.phase === 'event') { drawReception(this, this.save, false); this.setBusy(true); this.cinema = this.chapter === 1 ? storyCinema(this, () => this.setBusy(false)) : chapterCinema(this, this.chapter, () => this.setBusy(false)); }
     else this.drawEnding();
     if (this.storageFailed) this.ui.show(this.t.session);
     this.update();
+  }
+  private changeChapter(chapter: ChapterId) {
+    if (!chapterLevels[chapter] || !storyUnlocked(this.save, chapter)) return;
+    this.persist(); this.chapter = chapter; this.state = this.drafts[chapter] ?? readStoryDraft(chapter); this.reward = 0; this.selected = undefined; this.tool = undefined; this.focus = undefined;
+    if (storyOutcome(this.save, chapter)) this.state.phase = 'settled';
+    else if (this.state.phase === 'settled') this.state.phase = 'arranging';
+    this.render();
+  }
+  private book() {
+    this.input.enabled = false; this.ui!.root.hidden = true;
+    this.modal = showStoryBook(this.locale, this.save, id => this.changeChapter(id), () => { this.modal = undefined; this.ui!.root.hidden = false; this.input.enabled = !this.busy; });
   }
   private language() {
     this.modal?.(); this.input.enabled = false; this.ui!.root.hidden = true;
@@ -102,11 +119,12 @@ export class StoryScene extends Phaser.Scene {
     this.modal = showDetails({ kind: 'settings', title: t.settings, eyebrow: '', close: t.back, sections: [], content: settingsContent(this.locale, this.feedback.preferences, p => { this.feedback.setPreferences(p); return savePreferences(p); }, () => { this.feedback.play('place'); void this.feedback.pulse('place'); }, () => this.language()) }, () => { this.modal = undefined; this.ui!.root.hidden = false; this.input.enabled = !this.busy; });
   }
   private drawHotel(arriving?: string) {
-    const level = effectiveStoryLevel(this.state.equipment);
+    const level = effectiveStoryLevel(this.state.equipment, this.chapter);
     const waiting = level.guests.filter(g => !this.state.assignment[g.id]);
     const entering = !this.state.introduced && !reducedMotion() && !this.focus && waiting.length > 0;
     if (entering) this.setBusy(true);
-    this.add.rectangle(422, 196, 844, 272, 0x6c475d); this.add.rectangle(422, 196, 32, 272, 0x36263e);
+    drawReception(this, this.save, false);
+    this.add.rectangle(422, 218, 32, 324, 0x36263e);
     const selection = this.add.ellipse(0, 0, 100, 96).setStrokeStyle(3, 0xffe1a0).setVisible(false).setData('viewportAspect', true).setDepth(20);
     const bind = (actor: Phaser.GameObjects.Container, guest: Guest) => {
       actor.setInteractive({ useHandCursor: true }).setData('guest', guest.id); this.input.setDraggable(actor);
@@ -125,12 +143,12 @@ export class StoryScene extends Phaser.Scene {
       const guest = level.guests.find(g => this.state.assignment[g.id] === room.id);
       if (guest) {
         const x = p.x + (this.focus ? 140 : 94); const y = p.y + 13;
-        const actor = drawMonster(this, x, y, guest, 'room').setScale(this.focus ? 1.5 : .86).setData('viewportAspect', true); bind(actor, guest);
+        const actor = drawMonster(this, x, y, guest, 'room').setScale(this.focus ? 1.5 : 1.02).setData('viewportAspect', true); bind(actor, guest);
         let happy = roomConditions(room).includes(guest.requirement);
         if (guest.id === 'dou' && hasNoiseConflict(this.state.assignment, this.state.equipment)) happy = false;
         this.text(x - (this.focus ? 95 : 62), y - 21, happy ? '♥' : '?', this.focus ? 28 : 20, happy ? '#d5f0bd' : '#ffba97');
         if (guest.id === arriving && !reducedMotion() && !this.focus) {
-          const start = queue[level.guests.findIndex(g => g.id === guest.id)]; actor.setPosition(start, 378).setDepth(10); (actor.getData('pauseActivity') as (v: boolean) => void)(true); this.setBusy(true);
+          const start = queue[level.guests.findIndex(g => g.id === guest.id)]; actor.setPosition(start, 402).setDepth(10); (actor.getData('pauseActivity') as (v: boolean) => void)(true); this.setBusy(true);
           let last = 0;
           this.tweens.chain({ targets: actor, tweens: [{ x: 422, y: 350, duration: 260, ease: 'Sine.easeInOut' }, { x: 422, y, duration: 330, ease: 'Sine.easeInOut' }, { x, y, duration: 320, ease: 'Sine.easeInOut' }], onUpdate: () => {
             if (this.time.now - last > 130) { last = this.time.now; const step = this.add.ellipse(actor.x, actor.y + 25, 10, 4, 0xf7d694, .55); this.tweens.add({ targets: step, alpha: 0, duration: 600, onComplete: () => step.destroy() }); }
@@ -147,10 +165,10 @@ export class StoryScene extends Phaser.Scene {
       }
     }
     if (!this.focus) {
-      this.add.rectangle(257, 381, 504, 87, 0x31243e, .95).setStrokeStyle(1, 0x9d765e);
+      // The illustrated reception floor remains visible behind the waiting guests.
       level.guests.forEach((guest, i) => {
-        if (!this.state.assignment[guest.id]) { const actor = drawMonster(this, queue[i], 378, guest).setScale(.68).setData('viewportAspect', true); bind(actor, guest); if (entering) { actor.setX(30).setAlpha(0); this.tweens.add({ targets: actor, x: queue[i], alpha: 1, duration: 550, delay: i * 160, ease: 'Sine.easeInOut', onComplete: () => { if (guest.id === waiting.at(-1)?.id) this.setBusy(false); } }); } }
-        else this.text(queue[i], 378, '✓', 24, '#d3e9bc');
+        if (!this.state.assignment[guest.id]) { const actor = drawMonster(this, queue[i], 402, guest).setScale(.68).setData('viewportAspect', true); bind(actor, guest); if (entering) { actor.setX(30).setAlpha(0); this.tweens.add({ targets: actor, x: queue[i], alpha: 1, duration: 550, delay: i * 160, ease: 'Sine.easeInOut', onComplete: () => { if (guest.id === waiting.at(-1)?.id) this.setBusy(false); } }); } }
+        else this.text(queue[i], 402, '✓', 24, '#d3e9bc');
       });
     }
     this.input.removeAllListeners('drag'); this.input.removeAllListeners('drop'); this.input.removeAllListeners('dragend');
@@ -170,7 +188,7 @@ export class StoryScene extends Phaser.Scene {
     if (this.busy) return;
     if (this.tool) { this.state.equipment = putTool(this.state.equipment, this.tool, id); this.tool = undefined; this.feedback.play('place'); this.persist(); this.render(); }
     else if (this.selected) this.assign(this.selected, id);
-    else { const room = effectiveStoryLevel(this.state.equipment).rooms.find(r => r.id === id)!; this.ui?.show(`${id} · ${roomConditions(room).map(c => conditions[this.locale][c].name).join(' · ')}`); }
+    else { const room = effectiveStoryLevel(this.state.equipment, this.chapter).rooms.find(r => r.id === id)!; this.ui?.show(`${id} · ${roomConditions(room).map(c => conditions[this.locale][c].name).join(' · ')}`); }
   }
   private dropTool(tool: Tool, clientX: number, clientY: number) {
     if (this.busy) return; const box = this.game.canvas.getBoundingClientRect(); const x = (clientX - box.x) / box.width * 844; const y = (clientY - box.y) / box.height * 480;
@@ -178,8 +196,8 @@ export class StoryScene extends Phaser.Scene {
     if (room) { this.tool = tool; this.selected = undefined; this.roomAction(room.id); }
   }
   private ready() {
-    const result = storyValidation(this.state.assignment, this.state.equipment);
-    if (!result.valid) { this.feedback.play('error'); this.ui?.show(result.reason === 'noise' ? this.t.noise : result.reason === 'incomplete' ? this.t.incomplete : this.t.mismatch); return; }
+    const result = storyValidation(this.state.assignment, this.state.equipment, this.chapter);
+    if (!result.valid) { this.feedback.play('error'); this.ui?.show(result.reason === 'noise' ? this.t.noise : result.reason === 'incomplete' ? this.t.incomplete : result.reason === 'path' || result.reason === 'buddy' ? this.t.rule : this.t.mismatch); return; }
     this.feedback.play('success'); this.state.phase = 'event'; this.focus = undefined; this.persist(); this.render();
   }
   private choose(choice: StoryChoice) {
@@ -188,15 +206,15 @@ export class StoryScene extends Phaser.Scene {
   }
   private finishEvent(choice: StoryChoice) {
     if (this.state.phase !== 'event') return;
-    const settled = settleStory(this.save, choice); this.save = settled.save; this.reward = settled.reward;
+    const settled = settleStory(this.save, choice, this.chapter); this.save = settled.save; this.reward = settled.reward;
     if (!writeSave(this.save)) this.storageFailed = true;
     this.state.phase = 'settled'; this.persist(); this.feedback.play('success'); void this.feedback.pulse('success'); this.render();
   }
   private drawEnding() {
     drawReception(this, this.save, false); drawToyBasket(this, 246, 400, 1.2);
-    const wolf = drawMonster(this, 150, 342, storyLevel.guests[0]).setScale(1.05).setData('viewportAspect', true); (wolf.getData('setPose') as (p: number) => void)?.(3);
-    const mummy = drawMonster(this, 345, 350, storyLevel.guests[3]).setScale(1.05).setData('viewportAspect', true); (mummy.getData('setPose') as (p: number) => void)?.(3);
-    this.ui?.ending(this.reward, storyBonds(this.save), this.reward === 0); this.setBusy(false);
+    const wolf = drawMonster(this, 150, 342, storyLevel.guests.find(g => g.id === chapterPairs[this.chapter][0])!).setScale(1.05).setData('viewportAspect', true); (wolf.getData('setPose') as (p: number) => void)?.(3);
+    const mummy = drawMonster(this, 345, 350, storyLevel.guests.find(g => g.id === chapterPairs[this.chapter][1])!).setScale(1.05).setData('viewportAspect', true); (mummy.getData('setPose') as (p: number) => void)?.(3);
+    this.ui?.ending(this.reward, chapterBonds(this.save, this.chapter), this.reward === 0); this.setBusy(false);
   }
   private exit() {
     this.persist(); this.ui?.destroy(); this.ui = undefined; this.modal?.(); this.modal = undefined;

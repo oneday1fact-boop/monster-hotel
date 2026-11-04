@@ -100,8 +100,12 @@ The cover now uses a frame-free illustration with a rounded bilingual upper-cent
 
 ## Play the first story night
 
-From the lobby choose **Story night: Moonlight & Linen / 故事夜：月光與繃帶**. Assign the four guests, use the draggable curtains or moon lamp to solve their wishes and noise conflict, then choose one of two small character events. The first ending awards 50 coins, friendship and a persistent toy basket. Replays do not farm rewards. The original twenty uniquely solvable levels remain under **20-night puzzle challenge**.
+From the lobby choose **Guest storybook / 住客故事簿**, then choose **Moonlight & Linen / 月光與繃帶**. Assign the four guests, use the draggable curtains or moon lamp to solve their wishes and noise conflict, then choose one of two small character events. The first ending awards 50 coins, friendship and a persistent toy basket. Replays do not farm rewards. The original twenty uniquely solvable levels remain under **20-night puzzle challenge**.
 
-The renderer now uses up to two device pixels per CSS pixel, tightly framed guests, four separate action atlases and room close-ups. See [可玩故事夜與高清示範](docs/story-night.zh-Hant.md) for implemented features, save compatibility, test results and actual previews.
+The renderer now uses up to three device pixels per CSS pixel, tightly framed guests, four separate action atlases and room close-ups. See [可玩故事夜與高清示範](docs/story-night.zh-Hant.md) for implemented features, save compatibility, test results and actual previews.
 
 手機遊戲介面修訂、圓體字授權與實際預覽：[介面說明](docs/native-game-ui.zh-Hant.md)。
+
+## Expanded hotel and follow-up stories
+
+The lobby storybook now contains three playable stories with separate drafts, sequential unlocks and one-time rewards. Lobby decorations have actual in-hotel previews before purchase. The hotel fills more of the viewport; high-resolution action art is used even while guests idle, with up to 3× device-pixel rendering and bundled playful numerals. See [全螢幕酒店與三晚故事](docs/expanded-hotel-stories.zh-Hant.md) for scope, saves, solutions and actual gameplay previews.

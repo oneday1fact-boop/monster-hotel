@@ -1,5 +1,5 @@
 {
-  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review. Original reception illustration generated from the approved character and moon-bedroom style references; no baked-in characters or UI. Four independent original action-pose atlases were generated from the approved guest designs for the story-night update. Original hand-inked purple/gold UI frame, primary button and bat-wing nameplate generated using the reception illustration as style reference; blank centres allow real localized text.",
+  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review. Original reception illustration generated from the approved character and moon-bedroom style references; no baked-in characters or UI. Four independent original action-pose atlases were generated from the approved guest designs for the story-night update. Original hand-inked purple/gold UI frame, primary button and bat-wing nameplate generated using the reception illustration as style reference; blank centres allow real localized text. Original three-column transparent decoration atlas generated from the approved reception style: crescent floor lamp, velvet rug and star garland. Runtime alpha bounds select each sprite without resampling source artwork.",
   "frames": "Guests: 2x2 transparent atlas. Rooms: separate 3:1 panoramic images, framed proportionally at runtime. Reception: separate 2:1 full-screen panorama, cropped proportionally at runtime. Action poses: four separate 1254x1254 transparent 2x2 atlases, four poses per guest. Runtime alpha bounds align feet and remove unused padding without resampling source artwork.",
   "sha256": {
     "guests-cartoon.png": "54d44ed6c130c74a3d91845f1de6dda94d257440e54acc1dcf855e5a0412deb4",
@@ -14,6 +14,7 @@
     "mummy-poses.png": "a66754d9403562000230e78b95a153f251f2b234bdc7efd2b25e8d9b7b480ee3",
     "ui/nameplate.png": "95f3e6d37d3ef55955c03e2fc6d31a70f93669942d2c510b8878a1c07f1b59e4",
     "ui/frame.png": "16ebe79fc86a02038ce7c0e9d0023b4920b7d7ddd1aa06d5789f2ea934f3a848",
-    "ui/gold-button.png": "343e6ff55ed636a42de7b17da763dd5df2e63c48a0f2b4b211d74cbbe6eb8fdb"
+    "ui/gold-button.png": "343e6ff55ed636a42de7b17da763dd5df2e63c48a0f2b4b211d74cbbe6eb8fdb",
+    "decorations.png": "3fed150613b3b1ed441a5293ba53e05bc402ccf1c6d59b53a37d2c5ebcc52b4b"
   }
 }

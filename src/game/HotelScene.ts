@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { displayDensity } from './display';
 import { drawToyBasket } from './storyProps';
+import { showStoryBook } from './storyBook';
+import type { ChapterId } from '../domain/storyChapters';
 import { storyBonds } from '../domain/storyNight';
 import { drawReception, receptionFrame } from './reception';
 import { tutorialView } from '../domain/tutorial';
@@ -10,7 +12,7 @@ import { firstLevel, place, validate, type Assignment, type Guest, type Room, ty
 import { levels, levelTitle, isUnlocked } from '../domain/levels';
 import { campaignUI, roomLabel, ruleText } from '../i18n/rules';
 import { showNightSelection } from './nightSelection';
-import { purchase, toggleDecoration } from '../domain/decorations';
+import { isDecoration, decorations, purchase, toggleDecoration } from '../domain/decorations';
 import { hotelUI } from '../i18n/hotel';
 import { shopContent, settingsContent, languageContent } from './hotelMenus';
 import { Feedback } from '../platform/feedback';
@@ -57,6 +59,7 @@ export class HotelScene extends Phaser.Scene {
     for (const [condition, symbol] of Object.entries({ moonlight: 'moon', quiet: 'quiet', warm: 'flame', dry: 'sun' } as const)) {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
+    this.load.image('decor-art', '/art/decorations.png');
     this.load.image('ui-gold-button', '/art/ui/gold-button.png');
     this.load.image('guests-art', '/art/guests-cartoon.png');
     for (const kind of ['werewolf', 'jiangshi', 'lantern', 'mummy']) this.load.image(`pose-${kind}`, `/art/${kind}-poses.png`);
@@ -88,7 +91,7 @@ export class HotelScene extends Phaser.Scene {
     }
   }
   private text(x: number, y: number, text: string, size = 20, color = C.white) {
-    return this.add.text(x, y, text, { fontFamily: 'GameRounded, "Noto Sans TC", sans-serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
+    return this.add.text(x, y, text, { fontFamily: 'GameNumbers, GameRounded, "Noto Sans TC", sans-serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
   }
   private base(label: string) {
     this.hud?.destroy(); this.hud = undefined;
@@ -155,14 +158,19 @@ export class HotelScene extends Phaser.Scene {
     badge.lineStyle(1, 0xbc8f6c, .6).strokeRoundedRect(460, 158, 260, 36, 18);
     this.text(590, 176, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/20`, 15, '#f2cc83');
     this.text(590, 211, this.t.arrivals, 17, '#ead4c4');
-    this.hud?.storyEntry(this.locale === 'en' ? 'Story night: Moonlight & Linen' : '故事夜：月光與繃帶', () => this.openStory());
+    this.hud?.storyEntry(this.locale === 'en' ? 'Guest storybook' : '住客故事簿', () => this.openStory());
     this.button(325, this.locale === 'en' ? '20-night puzzle challenge →' : '20 晚解謎挑戰 →', () => this.selection(), 294, 590);
     this.button(390, this.ht.shop, () => this.shop(), 294, 590);
     this.button(450, this.t.titleBack, () => this.title(), 180, 590);
   }
-  private openStory() {
+  private openStory(chapter?: ChapterId) {
     this.hud?.visible(false);
-    this.scene.launch('story', { locale: this.locale, feedback: this.feedback, save: this.save, onExit: (save: Save, locale: Locale) => {
+    if (!chapter) {
+      this.input.enabled = false;
+      this.dismissDetails = showStoryBook(this.locale, this.save, id => { this.dismissDetails?.(); this.dismissDetails = undefined; this.openStory(id); }, () => this.lobby());
+      return;
+    }
+    this.scene.launch('story', { chapter, locale: this.locale, feedback: this.feedback, save: this.save, onExit: (save: Save, locale: Locale) => {
       this.scene.wake('hotel'); this.save = save; this.locale = locale; this.lobby();
     } }); this.scene.sleep('hotel');
   }
@@ -191,16 +199,13 @@ export class HotelScene extends Phaser.Scene {
     this.base(`${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`);
     if (this.message) this.hud?.show(this.message);
     const status = { setText: (message: string) => this.hud?.show(message) };
+    drawReception(this, this.save, false);
     const frame = this.add.graphics();
-    frame.fillStyle(0x574057).fillRect(0, 66, 844, 276);
-    frame.lineStyle(3, 0xb18a70).strokeRect(0, 66, 844, 276);
-    frame.fillStyle(0x3d2a43).fillRect(406, 68, 32, 272).fillRect(0, 200, 844, 8);
+    frame.fillStyle(0x574057).fillRect(0, 56, 844, 324);
+    frame.lineStyle(3, 0xb18a70).strokeRect(0, 56, 844, 324);
+    frame.fillStyle(0x3d2a43).fillRect(406, 56, 32, 324).fillRect(0, 216, 844, 4);
     frame.lineStyle(2, 0xb28c72);
     for (let y = 88; y < 337; y += 17) frame.lineBetween(413, y, 431, y - 10);
-    frame.fillStyle(0x33273f).fillRoundedRect(100, 345, 666, 75, 15);
-    frame.fillStyle(0x5a425c).fillRoundedRect(30, 348, 66, 67, 10);
-    frame.lineStyle(2, C.gold, .5).strokeRoundedRect(43, 355, 40, 45, 16);
-    this.text(63, 407, dollhouseUI[this.locale].waiting, 9, '#f2cc83');
     const selection = this.add.ellipse(0, 0, 76, 72).setStrokeStyle(2, C.gold, .8).setVisible(false).setDepth(5).setData('viewportAspect', true);
     const bindGuest = (avatar: Phaser.GameObjects.Container, guest: Guest) => {
       avatar.setInteractive({ useHandCursor: true }).setData('guest', guest.id); this.input.setDraggable(avatar);
@@ -232,7 +237,7 @@ export class HotelScene extends Phaser.Scene {
       this.text(p.x + 158, p.y - 54, 'ⓘ', 18, '#f2cc83').setPadding(5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.roomCard(room));
       const guest = this.level.guests.find(g => this.assignment[g.id] === room.id);
       if (guest) {
-        const point = residentPoint(room); const actor = this.monster(point.x, point.y, guest, 'room').setScale(.72);
+        const point = residentPoint(room); const actor = this.monster(point.x, point.y, guest, 'room').setScale(.94);
         bindGuest(actor, guest);
         if (this.arriving === guest.id && !reducedMotion()) {
           const index = this.level.guests.indexOf(guest); actor.setPosition(queueX[index], queueY).setDepth(10); (actor.getData('pauseActivity') as (v: boolean) => void)?.(true); this.setBusy(true);
@@ -247,7 +252,7 @@ export class HotelScene extends Phaser.Scene {
     this.level.guests.forEach((guest, i) => {
       const x = queueX[i]; const placed = !!this.assignment[guest.id];
       if (!placed) {
-        this.add.ellipse(x, 404, 60, 7, 0x0a0817, .4);
+        this.add.ellipse(x, 433, 60, 7, 0x0a0817, .4);
         const avatar = this.monster(x, queueY, guest).setScale(.62); bindGuest(avatar, guest);
         if (entering) {
           avatar.setX(63).setAlpha(0);
@@ -255,7 +260,7 @@ export class HotelScene extends Phaser.Scene {
         }
       } else this.text(x, queueY, '✓', 23, '#b8cfbc');
       const c = characters[this.locale][guest.kind];
-      this.text(x, 412, `${c.name} ⓘ`, 12, C.white).setPadding(2).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.guestCard(guest));
+      this.text(x, queueY + 31, `${c.name} ⓘ`, 12, C.white).setPadding(2).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.guestCard(guest));
     });
     this.input.removeAllListeners('drag'); this.input.removeAllListeners('drop'); this.input.removeAllListeners('dragend');
     this.input.on('drag', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => { obj.setPosition(x, y); obj.setDepth(10); });
@@ -312,7 +317,28 @@ export class HotelScene extends Phaser.Scene {
         }
         if (!writeSave(this.save)) status += `\n${this.ht.session}`;
         this.lobby(); this.shop(status);
-      }) });
+      }, id => this.previewDecoration(id)) });
+  }
+  private previewDecoration(id: string) {
+    if (!isDecoration(id)) return;
+    this.base(this.ht.shop); this.hud?.visible(false);
+    drawReception(this, { ...this.save, equipped: [...new Set([...(this.save.equipped ?? []), id])] }, false);
+    const root = document.createElement('nav'); root.className = 'decoration-demo';
+    this.input.enabled = false;
+    for (const name of ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click']) root.addEventListener(name, e => e.stopPropagation());
+    const title = document.createElement('strong'); title.className = 'decoration-demo-title'; title.textContent = this.locale === 'en' ? 'Lobby preview · Nothing charged' : '大廳效果預覽 · 未扣金幣';
+    const controls = document.createElement('div'); controls.className = 'decoration-demo-actions';
+    const back = document.createElement('button'); back.className = 'game-secondary-button'; back.textContent = this.locale === 'en' ? 'Back to decorations' : '返回佈置'; back.onclick = () => { this.lobby(); this.shop(); };
+    const apply = document.createElement('button'); apply.className = 'game-primary-button';
+    const owned = this.save.decorations?.includes(id); const price = decorations.find(d => d.id === id)!.price;
+    apply.textContent = owned ? (this.locale === 'en' ? 'Place in lobby' : '擺放喺大廳') : `${this.locale === 'en' ? 'Buy & place' : '買入並擺放'} · ${price}`;
+    apply.disabled = !owned && this.save.coins < price;
+    apply.onclick = () => {
+      if (owned) { if (!this.save.equipped?.includes(id)) this.save = toggleDecoration(this.save, id); }
+      else { const result = purchase(this.save, id); if (result.status !== 'bought') return; this.save = result.wallet; }
+      const persisted = writeSave(this.save); this.feedback.play('purchase'); this.lobby(); this.hud?.show(persisted ? this.ht.bought : this.ht.session);
+    };
+    controls.append(back, apply); root.append(title, controls); document.body.append(root); this.dismissDetails = () => root.remove();
   }
   private guestCard(guest: Guest) {
     const c = characters[this.locale][guest.kind];

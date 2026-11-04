@@ -4,22 +4,26 @@ import type { Locale } from '../i18n/catalog';
 import type { Preferences } from '../platform/preferences';
 import { icon, type IconName } from './icons';
 
-export function shopContent(locale: Locale, save: DecoratedWallet, action: (id: string, owned: boolean) => void): HTMLElement {
-  const content = document.createElement('div'); content.className = 'shop-items'; const t = hotelUI[locale];
+export function shopContent(locale: Locale, save: DecoratedWallet, action: (id: string, owned: boolean) => void, previewItem?: (id: string) => void): HTMLElement {
+  const wrapper = document.createElement('div'); wrapper.className = 'shop-studio';
+  const wallet = document.createElement('div'); wallet.className = 'shop-wallet'; wallet.append(icon('coin'), document.createTextNode(`${save.coins}`));
+  const intro = document.createElement('p'); intro.className = 'shop-explainer'; intro.textContent = locale === 'en' ? 'Earn coins in stories. Preview a decoration, then place it in your lobby.' : '玩住客故事賺金幣；先睇大廳效果，再買嚟擺放。';
+  const content = document.createElement('div'); content.className = 'shop-items'; const t = hotelUI[locale]; wrapper.append(wallet, intro, content);
   const artwork: IconName[] = ['moon', 'rug', 'star'];
   decorations.forEach((item, i) => {
     const copy = decorationCopy[locale][item.id]; const owned = save.decorations?.includes(item.id) ?? false; const equipped = save.equipped?.includes(item.id) ?? false;
     const card = document.createElement('article'); card.dataset.decoration = item.id;
     const preview = document.createElement('div'); preview.className = `decoration-preview decoration-preview--${i}`; preview.append(icon(artwork[i]));
     const name = document.createElement('h3'); name.textContent = copy.name;
-    const description = document.createElement('p'); description.className = 'visually-hidden'; description.textContent = copy.description;
+    const description = document.createElement('p'); description.className = 'decoration-description'; description.textContent = copy.description;
     const price = document.createElement('p'); price.className = 'shop-price'; price.textContent = owned ? `${t.owned} · ${equipped ? t.equipped : t.hide}` : `${item.price} ${t.coins}`;
-    const button = document.createElement('button'); button.className = 'game-primary-button'; button.textContent = owned ? (equipped ? t.hide : t.equip) : `${item.price}`;
+    const button = document.createElement('button'); button.className = 'game-primary-button'; button.dataset.action = 'buy'; button.textContent = owned ? (equipped ? t.hide : t.equip) : `${locale === 'en' ? 'Buy & place' : '買入並擺放'} ${item.price}`;
     button.prepend(icon(owned ? 'check' : 'coin')); button.disabled = !owned && save.coins < item.price;
     button.setAttribute('aria-label', `${copy.name} · ${owned ? button.textContent : `${t.buy} · ${item.price} ${t.coins}`}`);
-    button.onclick = () => action(item.id, owned); card.append(preview, name, description, price, button); content.append(card);
+    button.onclick = () => action(item.id, owned); const see = document.createElement('button'); see.className = 'game-secondary-button'; see.dataset.action = 'preview'; see.textContent = locale === 'en' ? 'Preview in lobby' : '睇大廳效果'; see.onclick = () => previewItem?.(item.id);
+    card.append(preview, name, description, price, see, button); content.append(card);
   });
-  return content;
+  return wrapper;
 }
 export function settingsContent(locale: Locale, preferences: Preferences, update: (prefs: Preferences) => boolean, preview: () => void, language: () => void): HTMLElement {
   const content = document.createElement('div'); content.className = 'settings-controls'; const t = hotelUI[locale]; let current = { ...preferences };

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-/** Render up to two device pixels per CSS pixel without changing pointer coordinates. */
-export function displayDensity() { return Math.max(1, Math.min(2, window.devicePixelRatio || 1)); }
+import { renderDensity } from './viewport';
+/** Render up to three device pixels per CSS pixel without changing pointer coordinates. */
+export function displayDensity() { return renderDensity(window.devicePixelRatio, window.innerWidth, window.innerHeight); }
 export function attachDisplay(game: Phaser.Game) {
   const parent = document.getElementById('game')!;
   let width = 0; let height = 0; let density = 0;

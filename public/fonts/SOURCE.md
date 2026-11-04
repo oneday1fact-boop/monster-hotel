@@ -15,3 +15,7 @@ Subset WOFF SHA-256: 40dabf2bf7259ea1c72c9f7235466387ae97111300612c5cec5231a6c36
 Huninn Regular, copyright 2025 The Huninn Project Authors (https://github.com/justfont/Huninn).
 Source: https://raw.githubusercontent.com/google/fonts/main/ofl/huninn/Huninn-Regular.ttf
 SIL OFL 1.1: OFL-Huninn.txt. Renamed to Monster Hotel UI and subset with scripts/subset-ui-font.py; all source Chinese glyphs verified. Bundled offline, no font CDN.
+
+# Playful numbers and Latin UI
+Fredoka (weight 600, width 100), copyright The Fredoka Project Authors. Source: https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf
+SIL OFL 1.1 in OFL-Fredoka.txt. Renamed Monster Hotel Play and subset to Latin with scripts/subset-numbers-font.py. Loaded offline before canvas text; Traditional Chinese continues to use the rounded UI glyphs.

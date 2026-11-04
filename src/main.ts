@@ -12,4 +12,4 @@ if (game.isBooted) attachDisplay(game); else game.events.once(Phaser.Core.Events
 }
 // Load bundled rounded glyphs before Phaser caches its text textures.
 const skinsReady = ['frame', 'gold-button', 'nameplate'].map(name => { const skin = new Image(); skin.src = `/art/ui/${name}.png`; return skin.decode().catch(() => undefined); });
-void Promise.all([document.fonts.load('16px GameRounded', '怪物旅館MONSTER HOTEL').catch(() => []), ...skinsReady]).then(boot);
+void Promise.all([document.fonts.load('18px GameNumbers', '0123456789').catch(() => []), document.fonts.load('16px GameRounded', '怪物旅館MONSTER HOTEL').catch(() => []), ...skinsReady]).then(boot);

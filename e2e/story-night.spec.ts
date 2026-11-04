@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { load, ready, saved } from './helpers';
-async function enterStory(page: Page) { await page.mouse.click(590, 330); await page.getByRole('button', { name: '故事夜：月光與繃帶', exact: true }).click(); await ready(page); }
+async function enterStory(page: Page) { await page.mouse.click(590, 330); await page.getByRole('button', { name: '住客故事簿', exact: true }).click(); await page.locator('[data-chapter="1"]').click(); await ready(page); }
 async function assignStory(page: Page, guest: string, room: string) { await page.locator(`[data-guest="${guest}"]`).click(); await page.locator(`[data-room="${room}"]`).click(); await ready(page); }
 async function natural(page: Page) { for (const [guest, room] of Object.entries({ luno: '101', dou: '102', ember: 'B02', rollo: 'B01' })) await assignStory(page, guest, room); }
 
@@ -58,7 +58,7 @@ test('retina canvas renders two device pixels per CSS pixel and keeps input accu
     await page.goto('http://127.0.0.1:5175'); await page.waitForFunction(() => document.documentElement.lang === 'zh-Hant'); await ready(page);
     await expect.poll(() => page.locator('canvas').evaluate(c => [c.width, c.height])).toEqual([1830, 824]);
     const b = (await page.locator('canvas').boundingBox())!; expect([Math.round(b.width), Math.round(b.height)]).toEqual([915, 412]);
-    await page.mouse.click(590 * 915 / 844, 330 * 412 / 480); await page.getByRole('button', { name: '故事夜：月光與繃帶' }).click(); await ready(page);
+    await page.mouse.click(590 * 915 / 844, 330 * 412 / 480); await page.getByRole('button', { name: '住客故事簿' }).click(); await page.locator('[data-chapter="1"]').click(); await ready(page);
     await assignStory(page, 'luno', '101'); await page.setViewportSize({ width: 844, height: 480 });
     await expect.poll(() => page.locator('canvas').evaluate(c => [c.width, c.height])).toEqual([1688, 960]);
     await assignStory(page, 'dou', '102');
@@ -73,6 +73,6 @@ test('retina canvas renders two device pixels per CSS pixel and keeps input accu
   await load(page); await enterStory(page); await natural(page); await page.locator('[data-tool="curtain"]').click(); await page.locator('[data-room="102"]').click();
   await page.getByRole('button', { name: '安頓好喇' }).click(); await ready(page); await page.getByRole('button', { name: '用玩具陪月毛玩' }).click(); await ready(page);
   await expect(page.getByRole('status')).toContainText('未能儲存'); expect(await saved(page)).toBeNull();
-  await page.getByRole('button', { name: '返回大廳', exact: true }).first().click(); await page.getByRole('button', { name: '故事夜：月光與繃帶' }).click(); await ready(page);
+  await page.getByRole('button', { name: '返回大廳', exact: true }).first().click(); await page.getByRole('button', { name: '住客故事簿' }).click(); await page.locator('[data-chapter="1"]').click(); await ready(page);
   await expect(page.locator('.story-hud')).toHaveAttribute('data-phase', 'settled');
  });

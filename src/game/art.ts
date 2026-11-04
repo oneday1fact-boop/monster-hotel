@@ -36,6 +36,18 @@ export function registerArt(scene: Phaser.Scene) {
       const frame = texture.add(name, 0, left, top, w, h); if (frame) frame.customData = { foot: (foot + 1) / h };
     }
   }
+  if (scene.textures.exists('decor-art')) {
+    const texture = scene.textures.get('decor-art'); const source = texture.source[0];
+    const canvas = document.createElement('canvas'); canvas.width = source.width; canvas.height = source.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true })!; context.drawImage(source.image as HTMLImageElement, 0, 0);
+    const pixels = context.getImageData(0, 0, source.width, source.height).data; const w = Math.floor(source.width / 3);
+    ['moon-lamps', 'velvet-rug', 'star-sign'].forEach((id, i) => {
+      if (texture.has(id)) return;
+      let x0 = w, y0 = source.height, x1 = 0, y1 = 0;
+      for (let y = 0; y < source.height; y++) for (let x = 0; x < w; x++) if (pixels[(y * source.width + i * w + x) * 4 + 3] > 128) { x0 = Math.min(x0,x); y0 = Math.min(y0,y); x1 = Math.max(x1,x); y1 = Math.max(y1,y); }
+      if (x1 > x0) texture.add(id, 0, i * w + x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+    });
+  }
   for (const style of ['elegant', 'linen', 'basement', 'hearth']) {
     const key = `room-${style}`; if (scene.textures.exists(key)) roomFrame(scene, key);
   }

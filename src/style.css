@@ -209,3 +209,33 @@ body { font-family: GameRounded,"Noto Sans TC",sans-serif; }
 .tutorial-coach, .night-badge { border: 0 solid transparent; border-radius: 0; border-image: url('/art/ui/frame.png') 190 fill / 16px / 0 stretch; background: none; box-shadow: none; }
 .tutorial-coach { padding: 10px 12px 10px 18px; }.tutorial-coach p { font-size: 14px; }.tutorial-skip { border: 0; background: none; color: #ffdc9c; font-family: GameRounded,sans-serif; }
 @media(max-width:600px) { .sheet-header h1,.sheet-header h2 { min-width: 0; padding: 13px 24px; font-size: 20px; }.setting-tile { border-image-width: 18px; padding: 18px; } }
+
+/* Edge-to-edge hotel, playful numerals and compact full-screen game menus. */
+@font-face { font-family: GameNumbers; src: url('/fonts/monster-numbers.woff') format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; unicode-range: U+0020-017E; }
+body { font-family: GameNumbers,GameRounded,"Noto Sans TC",sans-serif; }
+#game { inset: 0; } canvas { image-rendering: auto; }
+.game-primary-button,.game-secondary-button { font-weight: 600; letter-spacing: .025em; }
+.night-badge,.night-grid strong,.language-glyph,.story-room-label { font-family: GameNumbers,GameRounded,sans-serif; }
+.story-room-label { min-width: 65px; font-size: 22px; font-weight: 600; }
+.story-heading { min-width: 260px; padding: 13px 44px 11px; }.story-heading strong { letter-spacing: .06em; }.story-progress { display: none; }
+.story-goal { position: absolute; right: 2%; bottom: 72px; max-width: 37%; padding: 12px 18px; color: #fff2c9; background: #281c35dc; border-radius: 18px; font-size: 15px; line-height: 1.5; text-shadow: 0 2px #211429; }
+.story-ending { display: grid; grid-template-columns: 1fr 1fr; top: 14%; width: 47%; gap: 8px; max-height: 84%; overflow-y: auto; }
+.story-ending h2,.story-ending p,.story-ending small { grid-column: 1 / -1; }.story-ending button { width: 100%; font-size: 15px; padding: 9px 15px; }
+.game-sheet { background: linear-gradient(#21172bd9,#21172be8),url('/art/reception.png') center/cover; }
+.settings-tiles { margin-top: clamp(8px,7vh,58px); }.setting-tile { min-height: clamp(156px,40vh,320px); justify-content: center; }.setting-tile > .game-icon { width: clamp(42px,8vh,72px); height: clamp(42px,8vh,72px); }
+.story-book { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; min-height: calc(100dvh - 138px); padding: 8px 0; }
+.story-chapter { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 15px; padding: 22px; border: 0 solid transparent; border-image: url('/art/ui/frame.png') 190 fill / 23px; color: #ffefc6; cursor: pointer; text-shadow: 0 2px #25132d; overflow: hidden; }
+.story-chapter::before { content: ''; position: absolute; inset: 24px; z-index: 0; opacity: .36; background: url('/art/rooms/elegant.png') center/cover; border-radius: 15px; }.story-chapter--2::before { background-image: url('/art/rooms/hearth.png'); }.story-chapter--3::before { background-image: url('/art/rooms/linen.png'); }
+.story-chapter > * { position: relative; }.chapter-number { font: 600 clamp(40px,10vh,85px) GameNumbers,sans-serif; color: #ffd58a; text-shadow: 0 4px #6b3359; }.story-chapter > .game-icon { width: 40px; height: 40px; }.story-chapter strong { font-size: 20px; }.story-chapter > span:last-child { font-size: 14px; line-height: 1.5; }
+.shop-wallet { display: flex; align-items: center; justify-content: center; gap: 8px; color: #ffdb8b; font-size: 28px; }.shop-explainer { margin: 5px 0 12px; text-align: center; color: #fff1ce; font-size: 16px; }
+.shop-items { gap: 16px; }.shop-items article { padding: 20px; }.shop-items .decoration-description { display: block; font-size: 14px; line-height: 1.5; color: #ecd7bc; margin: 4px 0; }.shop-items .decoration-preview { width: 80px; height: 65px; }.shop-items button { width: 100%; min-height: 46px; margin-top: 5px; font-size: 16px; }.shop-items .shop-price { font-size: 15px!important; }
+.decoration-demo { position: fixed; inset: 0; pointer-events: none; z-index: 7; color: #ffe6b1; }.decoration-demo-title { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); padding: 20px 50px; text-align: center; background: url('/art/ui/nameplate.png') center/100% 100% no-repeat; white-space: nowrap; font-size: 20px; }.decoration-demo-actions { position: absolute; bottom: max(15px,env(safe-area-inset-bottom)); left: 10%; right: 10%; display: flex; justify-content: center; gap: 20px; pointer-events: auto; }.decoration-demo-actions button { min-width: 220px; }
+@media(max-height:450px) { .story-goal { font-size: 13px; padding: 8px 12px; bottom: 68px; }.story-ending { padding: 22px 25px; gap: 5px; }.story-ending h2 { font-size: 19px; }.story-ending .story-coins { font-size: 20px; }.story-ending .story-bond { font-size: 17px; padding: 0 5px; }.story-ending small { font-size: 11px; }.story-ending button { font-size: 13px; padding: 7px 10px; }.story-book { gap: 12px; min-height: calc(100dvh - 120px); }.story-chapter { padding: 18px; gap: 8px; }.story-chapter strong { font-size: 17px; }.story-chapter > span:last-child { font-size: 12px; }.settings-tiles { margin-top: 3px; }.shop-items article { padding: 17px; }.shop-items .decoration-preview { height: 45px; width: 65px; }.shop-items .decoration-preview .game-icon { width: 34px; height: 34px; }.shop-explainer { font-size: 14px; }.shop-wallet { font-size: 23px; } }
+@media(max-width:600px) { .story-book { grid-template-columns: 1fr; min-height: auto; }.story-chapter { min-height: 210px; }.story-goal { display: none; }.story-ending { width: 88%; }.decoration-demo-actions { flex-direction: column; gap: 8px; }.decoration-demo-title { font-size: 15px; padding: 16px 25px; }.setting-tile { min-height: 100px; } }
+/* Keep the fixed-size action buttons clear of the queue on short, wide phones. */
+.hud-bottom { justify-content: flex-end; padding-right: 66px; }.hud-bottom .game-primary-button { min-width: 150px; }
+@media(max-width:600px) { .hud-bottom { padding-right: 48px; }.hud-bottom .game-primary-button { min-width: 110px; } }
+
+.shop-items .decoration-preview { width: 70px; height: 70px; background: url('/art/decorations.png') left center/300% 100% no-repeat; border: 0; border-radius: 0; }
+.shop-items .decoration-preview--1 { background-position: center; }.shop-items .decoration-preview--2 { background-position: right center; }.decoration-preview > .game-icon { visibility: hidden; }
+@media(max-height:450px) { .shop-items .decoration-preview { width: 45px; height: 45px; } }

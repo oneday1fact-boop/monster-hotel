@@ -10,3 +10,8 @@ export function proportionalCrop(sourceWidth: number, sourceHeight: number, disp
   const width = Math.min(sourceWidth, sourceHeight * ratio); const height = width / ratio;
   return { x: (sourceWidth - width) / 2, y: (sourceHeight - height) * .6, width, height };
 }
+
+/** Preserve phone detail without allocating unbounded retina buffers on large displays. */
+export function renderDensity(deviceRatio: number, width: number, height: number) {
+  return Math.min(3, Math.max(1, deviceRatio || 1), Math.sqrt(8_400_000 / (Math.max(1, width) * Math.max(1, height))));
+}

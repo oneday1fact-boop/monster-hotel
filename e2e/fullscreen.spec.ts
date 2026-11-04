@@ -15,7 +15,7 @@ test('canvas fills wider phones and tablets, preserves placements and remains in
   await expect.poll(async () => Math.round((await page.locator('canvas').boundingBox())!.width)).toBe(915);
   const destinations = ['101', 'B01', 'B02', '102'];
   for (let i = 1; i < 4; i++) { await point(page, queueX[i], queueY); const p = roomPoint(firstLevel.rooms.find(room => room.id === destinations[i])!); await point(page, p.x, p.y); }
-  await point(page, 422, 448); expect((await saved(page))?.coins).toBe(50);
+  await page.locator('[data-action="check-in"]').click(); expect((await saved(page))?.coins).toBe(50);
 });
 test('a living room continues animating after check-in while reduced motion stays optional', async ({ page }) => {
   await load(page); await page.emulateMedia({ reducedMotion: 'no-preference' }); await enter(page); await assign(page, 2);

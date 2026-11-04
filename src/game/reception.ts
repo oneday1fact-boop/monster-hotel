@@ -22,26 +22,25 @@ export function drawReception(scene: Phaser.Scene, save: Save, menuPanel = true)
     panel.lineStyle(2, 0xb88b68, .7).strokeRoundedRect(425, 78, 331, 385, 27);
     panel.lineStyle(1, 0xe4ba7d, .25).strokeRoundedRect(431, 84, 319, 373, 23);
   }
-  if (save.equipped?.includes('velvet-rug')) {
-    const rug = scene.add.graphics(); rug.fillStyle(0x793250, .95).fillEllipse(244, 441, 360, 67);
-    rug.lineStyle(3, 0xedc483).strokeEllipse(244, 441, 340, 52);
-    rug.lineStyle(1, 0xcf849a).strokeEllipse(244, 441, 315, 41);
-    rug.fillStyle(0xedc483).fillTriangle(244, 426, 231, 441, 244, 456).fillTriangle(244, 426, 257, 441, 244, 456);
-  }
-  if (save.equipped?.includes('moon-lamps')) {
-    for (const x of [48, 406]) {
-      const lamp = scene.add.graphics();
-      lamp.lineStyle(4, 0xb88765).lineBetween(0, 12, 0, 83);
-      lamp.fillStyle(0x6e435d).fillEllipse(0, 86, 34, 9);
-      lamp.fillStyle(0xffd77c, .13).fillCircle(0, 0, 29);
-      lamp.fillStyle(0xffe2a0).fillCircle(0, 0, 16);
-      lamp.fillStyle(0x53384e).fillCircle(6, -5, 13);
-      scene.add.container(x, 298, [lamp]).setData('viewportAspect', true);
+  if (scene.textures.exists('decor-art')) {
+    if (save.equipped?.includes('velvet-rug')) scene.add.image(244, 440, 'decor-art', 'velvet-rug').setDisplaySize(330, 85);
+    if (save.equipped?.includes('moon-lamps')) {
+      const frame = scene.textures.get('decor-art').get('moon-lamps');
+      for (const x of [48, 406]) scene.add.image(x, 386, 'decor-art', 'moon-lamps').setOrigin(.5, 1).setDisplaySize(118 * frame.width / frame.height, 118).setData('viewportAspect', true);
+    }
+    if (save.equipped?.includes('star-sign')) {
+      const frame = scene.textures.get('decor-art').get('star-sign');
+      scene.add.image(325, 126, 'decor-art', 'star-sign').setDisplaySize(180, 180 * frame.height / frame.width).setData('viewportAspect', true);
     }
   }
-  if (save.equipped?.includes('star-sign')) {
-    const cord = scene.add.graphics(); cord.lineStyle(2, 0xe7ba79).lineBetween(242, 98, 400, 108);
-    for (let i = 0; i < 5; i++) scene.add.star(250 + i * 34, 113 + i * 2, 5, 3, i === 2 ? 12 : 7, 0xffdfa0).setStrokeStyle(1, 0x8f5c60).setData('viewportAspect', true);
+  if (save.stories?.[2]) {
+    for (let i = 0; i < 7; i++) {
+      const light = scene.add.star(125 + i * 55, 135 + Math.sin(i) * 24, 4, 2, 5, 0xffe39a).setData('viewportAspect', true);
+      if (!reducedMotion()) scene.tweens.add({ targets: light, y: light.y - 12, alpha: .35, duration: 1200 + i * 90, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+  }
+  if (save.stories?.[3]) {
+    for (let i = 0; i < 5; i++) scene.add.star(270 + i * 45, 410 + Math.sin(i) * 9, 5, 2, 7, 0xf1aaca, .8).setData('viewportAspect', true);
   }
   if (!reducedMotion()) {
     for (let i = 0; i < 5; i++) {

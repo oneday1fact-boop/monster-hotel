@@ -14,7 +14,9 @@
 4. 用手機檔案管理員解壓下載的 ZIP。
 5. 點 monster-hotel-midnight-check-in-debug.apk。
 6. 若 Android 要求，允許剛才使用的瀏覽器或檔案管理員「安裝未知應用程式」，再繼續安裝。
-7. 開啟 Monster Hotel，橫向試玩。首次進入第一晚會有互動教學。
+7. 開啟 Monster Hotel，橫向進入大廳，再按「住客故事簿」。故事依序解鎖；「20 晚解謎挑戰」第一關另有互動教學。
+
+已有測試版時，請以「更新」方式安裝，以保留本機進度。
 
 如果 GitHub 手機 App 沒顯示 Artifacts，改用 Chrome 開啟建置頁面，並切換「電腦版網站」。
 
