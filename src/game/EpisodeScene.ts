@@ -15,6 +15,8 @@ import { savePreferences } from '../platform/preferences';
 import { iconButton } from './icons';
 import { guestById } from '../domain/puzzle';
 import { liftBags, validLift, loadBag, unloadBag, liftWeight, liftSolved, initialMirrors, validMirrors, turnMirror, traceMoon, gifts, giftShape, giftCells, validGifts, placeGift, giftsSolved, type LiftState, type GiftPlacement } from '../domain/hotelPuzzles';
+import { freshCake, validCake, casePhase, initialTimeline, validTimeline, initialPipes, validPipes, validMail, type CakeState, type TimelineId, type MailState } from '../domain/mysteries';
+import { cakeWidget, timelineWidget, pipesWidget, mailWidget } from './mysteryWidgets';
 import { balanceWidget, mirrorsWidget, giftsWidget } from './puzzleWidgets';
 type Data = {
     episode: EpisodeId;
@@ -30,8 +32,12 @@ type Draft = {
     lift: LiftState;
     mirrors: number[];
     parcels: GiftPlacement[];
+    cake: CakeState;
+    timeline: TimelineId[];
+    pipes: number[];
+    mail: MailState;
 };
-const fresh = (): Draft => ({ clues: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [] });
+const fresh = (): Draft => ({ clues: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], cake: freshCake(), timeline: [...initialTimeline], pipes: [...initialPipes], mail: {} });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
@@ -60,9 +66,17 @@ export class EpisodeScene extends Phaser.Scene {
         this.storageFailed = false;
         this.dimensions = '';
         try {
-            const raw = localStorage.getItem(this.key) ?? (data.episode === 'cake-case' ? localStorage.getItem(`midnight-check-in.episode.${data.episode}.v1`) : null);
+            const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
             if (d) {
+                if (validCake(d.cake))
+                    this.state.cake = d.cake;
+                if (validTimeline(d.timeline))
+                    this.state.timeline = d.timeline;
+                if (validPipes(d.pipes))
+                    this.state.pipes = d.pipes;
+                if (validMail(d.mail))
+                    this.state.mail = d.mail;
                 if (validLift(d.lift))
                     this.state.lift = { ...d.lift };
                 if (validMirrors(d.mirrors))
@@ -80,7 +94,7 @@ export class EpisodeScene extends Phaser.Scene {
         }
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
     }
-    private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'cake-case' ? 2 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
+    private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'cake-case' ? 3 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
     private get en() { return this.dataIn.locale === 'en'; }
     private t(zh: string, en: string) { return this.en ? en : zh; }
     create() { this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.root?.remove(); this.modal?.(); this.time.removeAllEvents(); }); this.render(); }
@@ -119,10 +133,10 @@ export class EpisodeScene extends Phaser.Scene {
         const rect = this.root?.querySelector('.episode-stage')?.getBoundingClientRect();
         const box = rect && rect.width && rect.height ? { x: rect.x * 844 / window.innerWidth, y: rect.y * 480 / window.innerHeight, w: rect.width * 844 / window.innerWidth, h: rect.height * 480 / window.innerHeight } : { x: 12, y: 74, w: 510, h: 336 };
         const id = this.dataIn.episode;
-        const theme = id === 'moon-mirrors' ? 'night' : id === 'luggage-run' ? 'autumn' : 'morning';
+        const theme = id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
         drawReception(this, this.dataIn.save, false, theme);
         if (id === 'cake-case') {
-            const key = 'room-hearth';
+            const key = casePhase(this.state.cake) === 'reason' ? 'room-basement' : 'room-hearth';
             const texture = this.textures.get(key), source = texture.source[0], frame = `episode-${Math.round(box.w * m.x / (box.h * m.y) * 10000)}`;
             if (!texture.has(frame)) {
                 const crop = proportionalCrop(source.width, source.height, box.w * m.x, box.h * m.y);
@@ -130,9 +144,9 @@ export class EpisodeScene extends Phaser.Scene {
             }
             this.add.image(box.x + box.w / 2, box.y + box.h / 2, key, frame).setDisplaySize(box.w, box.h);
         }
-        const host = id === 'luggage-run' || id === 'gift-box' ? 'yuzu' : id === 'moon-mirrors' ? 'luno' : id === 'lift-balance' ? 'rollo' : 'nemu';
+        const host = id === 'luggage-run' || id === 'gift-box' || id === 'lost-letters' ? 'yuzu' : id === 'moon-mirrors' ? 'luno' : id === 'lift-balance' || id === 'midnight-knock' ? 'rollo' : id === 'spring-pipes' ? 'ember' : 'nemu';
         const guests = id === 'cake-case' ? [guestById('rollo'), guestById('ember')] : [guestById(host)];
-        if (id === 'cake-case' || this.won)
+        if (this.won)
             guests.forEach((g, i) => drawMonster(this, id === 'cake-case' ? box.x + box.w * (.18 + i * .35) : box.x + box.w * .5, id === 'cake-case' ? box.y + box.h * .8 : box.y + box.h * .75, g, 'room').setScale(.85).setData('viewportAspect', true));
         if (id === 'cake-case' && this.won)
             this.add.image(310, 250, 'episode-props', 'cake').setDisplaySize(110, 125);
@@ -176,7 +190,7 @@ export class EpisodeScene extends Phaser.Scene {
         top.append(iconButton('home', this.t('返回大廳', 'Lobby'), () => this.exit()), Object.assign(document.createElement('h1'), { textContent: copy.title }), iconButton('book', this.t('關卡地圖', 'Level map'), () => this.exit('map')), iconButton('globe', this.t('語言', 'Language'), () => this.language()), iconButton('gear', this.t('設定', 'Settings'), () => this.settings()));
         root.append(top);
         const layout = document.createElement('div');
-        layout.className = this.dataIn.episode === 'dream-door' && !this.won ? 'episode-layout episode-layout--differences' : 'episode-layout';
+        layout.className = !this.won && (this.dataIn.episode === 'dream-door' || this.dataIn.episode === 'lost-letters') ? 'episode-layout episode-layout--differences' : 'episode-layout';
         const stage = document.createElement('section');
         stage.className = 'episode-stage';
         stage.setAttribute('aria-label', this.t('解謎現場', 'Puzzle scene'));
@@ -216,70 +230,8 @@ export class EpisodeScene extends Phaser.Scene {
         this.paint();
     }
     private detective(stage: HTMLElement, panel: HTMLElement) {
-        const descriptions = this.en ? ['Bandage prints lead downstairs.', 'The cake was moved, not eaten.', 'Rollo’s bandage is on the ribbon.'] : ['腳印有繃帶紋，通向地下室。', '糖霜完整，蛋糕應該被搬走。', '茶車絲帶纏住卷卷嘅繃帶。'];
-        const names = this.en ? ['Bandage footprints', 'Cloth with pink icing', 'Ribbon caught on the trolley'] : ['繃帶腳印', '沾糖霜嘅布', '茶車絲帶'];
-        const trolley = document.createElement('span');
-        trolley.className = 'case-trolley';
-        trolley.setAttribute('aria-hidden', 'true');
-        stage.append(trolley);
-        const box = this.button('', () => { this.message = this.t('蛋糕盒已經空咗，附近有可疑痕跡。', 'The cake box is empty. Look for traces nearby.'); this.render(); });
-        box.className = 'empty-cake-box evidence-art';
-        box.setAttribute('aria-label', this.t('查看空蛋糕盒', 'Inspect the empty cake box'));
-        stage.append(box);
-        evidenceIds.forEach((id, i) => {
-            const b = this.button('', () => {
-                if (!this.state.clues.includes(id))
-                    this.state.clues.push(id);
-                this.message = names[i] + '：' + descriptions[i];
-                this.persist();
-                this.render();
-            });
-            b.className = `evidence-object evidence-art evidence-object--${id} ${this.state.clues.includes(id) ? 'is-collected' : ''}`;
-            b.dataset.evidence = id;
-            b.setAttribute('aria-label', this.t('調查', 'Inspect ') + names[i]);
-            if (this.state.clues.includes(id)) {
-                const tick = document.createElement('span');
-                tick.className = 'evidence-tick';
-                tick.textContent = '✓';
-                b.append(tick);
-            }
-            stage.append(b);
-        });
-        const title = document.createElement('strong');
-        title.className = 'evidence-count';
-        title.textContent = this.t('證據', 'Evidence') + ` ${this.state.clues.length} / ${evidenceIds.length} · ` + this.t('邊位搬走咗蛋糕？', 'Who moved it?');
-        panel.append(title);
-        const clues = document.createElement('div');
-        clues.className = 'evidence-list';
-        evidenceIds.forEach((id, i) => {
-            const p = document.createElement('p');
-            if (this.state.clues.includes(id)) {
-                const thumb = document.createElement('span');
-                thumb.className = `evidence-thumb evidence-art evidence-object--${id}`;
-                thumb.setAttribute('aria-hidden', 'true');
-                p.append(thumb, document.createTextNode(descriptions[i]));
-            }
-            else
-                p.textContent = this.t(`線索 ${i + 1}：未調查`, `Clue ${i + 1}: not inspected`);
-            clues.append(p);
-        });
-        panel.append(clues);
-        const suspects = document.createElement('div');
-        suspects.className = 'episode-suspects';
-        for (const [id, zh, en] of [['luno', '月毛', 'Luno'], ['rollo', '卷卷', 'Rollo'], ['yuzu', '小柚', 'Yuzu']]) {
-            const b = this.button(this.t(zh, en), () => {
-                if (accusation(this.state.clues, id))
-                    this.finish();
-                else {
-                    this.message = this.t('腳印同絲帶指向另一位住客，再比較證據。', 'The prints and ribbon point to another guest. Compare the evidence.');
-                    this.render();
-                }
-            });
-            b.dataset.suspect = id;
-            b.disabled = this.state.clues.length < evidenceIds.length;
-            suspects.append(b);
-        }
-        panel.append(suspects);
+        const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
+        cakeWidget(stage, panel, ui, this.state.cake, (state, message) => { this.state.cake = state; this.message = message ?? ''; this.persist(); this.render(); }, () => this.finish());
     }
     private routing(stage: HTMLElement, panel: HTMLElement) {
         const board = document.createElement('div');
@@ -371,8 +323,15 @@ export class EpisodeScene extends Phaser.Scene {
         count.className = 'difference-count';
         count.textContent = this.t('已找到', 'Found') + ` ${this.state.found.length} / ${differences.length}`;
         panel.append(count);
-        const hint = this.button(this.t('提示', 'Hint'), () => { const d = differences.find(d => !this.state.found.includes(d.id)); if (!d)
-            return; this.hintTarget = d.id; this.message = this.t('留意發光位置嘅細節，提示唔會代你答。', 'Compare the highlighted detail; the hint does not collect it.'); this.render(); this.time.delayedCall(1800, () => { this.hintTarget = undefined; this.root?.querySelectorAll('.is-hint').forEach(e => e.classList.remove('is-hint')); }); });
+        const hint = this.button(this.t('提示', 'Hint'), () => {
+            const d = differences.find(d => !this.state.found.includes(d.id));
+            if (!d)
+                return;
+            this.hintTarget = d.id;
+            this.message = this.t('留意發光位置嘅細節，提示唔會代你答。', 'Compare the highlighted detail; the hint does not collect it.');
+            this.render();
+            this.time.delayedCall(1800, () => { this.hintTarget = undefined; this.root?.querySelectorAll('.is-hint').forEach(e => e.classList.remove('is-hint')); });
+        });
         hint.dataset.action = 'difference-hint';
         panel.append(hint);
         for (const world of ['real', 'dream'] as const) {
@@ -446,46 +405,83 @@ export class EpisodeScene extends Phaser.Scene {
     private extraPuzzle(stage: HTMLElement, panel: HTMLElement) {
         const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
         const update = () => { this.persist(); this.render(); };
+        const pick = (id: string) => { this.selectedItem = id || undefined; this.render(); };
+        if (this.dataIn.episode === 'midnight-knock') {
+            timelineWidget(stage, panel, ui, this.state.timeline, this.selectedItem, pick, (state, message) => { this.state.timeline = state; this.message = message ?? ''; update(); }, () => this.finish());
+            return;
+        }
+        if (this.dataIn.episode === 'spring-pipes') {
+            pipesWidget(stage, panel, ui, this.state.pipes, (state, message) => { this.state.pipes = state; this.message = message ?? ''; update(); }, () => this.finish());
+            return;
+        }
+        if (this.dataIn.episode === 'lost-letters') {
+            mailWidget(stage, panel, ui, this.state.mail, this.selectedItem, pick, (state, message) => { this.state.mail = state; this.message = message ?? ''; update(); }, () => this.finish());
+            return;
+        }
         if (this.dataIn.episode === 'lift-balance') {
-            balanceWidget(stage, panel, ui, this.state.lift, this.selectedItem, id => { this.selectedItem = id; this.message = this.t('已選行李，再點左右台。', 'Bag selected. Choose a platform.'); this.render(); }, side => { if (!this.selectedItem) {
-                this.message = this.t('先揀一件行李。', 'Select a bag first.');
-                this.render();
-                return;
-            } const next = loadBag(this.state.lift, this.selectedItem, side); const changed = JSON.stringify(next) !== JSON.stringify(this.state.lift); this.state.lift = next; this.message = changed ? this.t('留意重量同每邊件數。', 'Check the weight and bag count on each side.') : this.t('每邊最多三件，先取回一件。', 'A platform holds three bags. Take one back first.'); if (changed)
-                this.selectedItem = undefined; update(); }, id => { this.state.lift = unloadBag(this.state.lift, id); this.selectedItem = id; update(); }, () => { if (liftSolved(this.state.lift))
-                this.finish();
-            else {
-                this.message = this.t('要六件全裝好、兩邊重量一樣，而且易碎箱在左台。', 'Load all six, balance the weights and put the fragile bag on the left.');
-                this.render();
-            } });
+            balanceWidget(stage, panel, ui, this.state.lift, this.selectedItem, id => { this.selectedItem = id; this.message = this.t('已選行李，再點左右台。', 'Bag selected. Choose a platform.'); this.render(); }, side => {
+                if (!this.selectedItem) {
+                    this.message = this.t('先揀一件行李。', 'Select a bag first.');
+                    this.render();
+                    return;
+                }
+                const next = loadBag(this.state.lift, this.selectedItem, side);
+                const changed = JSON.stringify(next) !== JSON.stringify(this.state.lift);
+                this.state.lift = next;
+                this.message = changed ? this.t('留意重量同每邊件數。', 'Check the weight and bag count on each side.') : this.t('每邊最多三件，先取回一件。', 'A platform holds three bags. Take one back first.');
+                if (changed)
+                    this.selectedItem = undefined;
+                update();
+            }, id => { this.state.lift = unloadBag(this.state.lift, id); this.selectedItem = id; update(); }, () => {
+                if (liftSolved(this.state.lift))
+                    this.finish();
+                else {
+                    this.message = this.t('要六件全裝好、兩邊重量一樣，而且易碎箱在左台。', 'Load all six, balance the weights and put the fragile bag on the left.');
+                    this.render();
+                }
+            });
             return;
         }
         if (this.dataIn.episode === 'moon-mirrors') {
-            mirrorsWidget(stage, panel, ui, this.state.mirrors, index => { this.state.mirrors = turnMirror(this.state.mirrors, index); this.message = this.t('光線已改變，跟住光路觀察。', 'The beam changed. Follow its path.'); update(); }, () => { if (traceMoon(this.state.mirrors).solved)
-                this.finish();
-            else {
-                this.message = this.t('三粒星石同月窗都要同時亮起。', 'All three stars and the window must shine together.');
-                this.render();
-            } });
+            mirrorsWidget(stage, panel, ui, this.state.mirrors, index => { this.state.mirrors = turnMirror(this.state.mirrors, index); this.message = this.t('光線已改變，跟住光路觀察。', 'The beam changed. Follow its path.'); update(); }, () => {
+                if (traceMoon(this.state.mirrors).solved)
+                    this.finish();
+                else {
+                    this.message = this.t('三粒星石同月窗都要同時亮起。', 'All three stars and the window must shine together.');
+                    this.render();
+                }
+            });
             return;
         }
-        giftsWidget(stage, panel, ui, this.state.parcels, this.selectedItem, this.rotation, id => { this.selectedItem = id; this.rotation = this.state.parcels.find(p => p.id === id)?.rotation ?? 0; this.render(); }, (x, y) => { const owner = this.state.parcels.find(p => giftCells(p).some(c => c.x === x && c.y === y)); if (owner && (!this.selectedItem || this.selectedItem === owner.id)) {
-            this.state.parcels = this.state.parcels.filter(p => p.id !== owner.id);
-            this.selectedItem = owner.id;
-            this.rotation = owner.rotation;
+        giftsWidget(stage, panel, ui, this.state.parcels, this.selectedItem, this.rotation, id => { this.selectedItem = id; this.rotation = this.state.parcels.find(p => p.id === id)?.rotation ?? 0; this.render(); }, (x, y) => {
+            const owner = this.state.parcels.find(p => giftCells(p).some(c => c.x === x && c.y === y));
+            if (owner && (!this.selectedItem || this.selectedItem === owner.id)) {
+                this.state.parcels = this.state.parcels.filter(p => p.id !== owner.id);
+                this.selectedItem = owner.id;
+                this.rotation = owner.rotation;
+                update();
+                return;
+            }
+            if (!this.selectedItem) {
+                this.message = this.t('先揀下面嘅手信。', 'Choose a gift first.');
+                this.render();
+                return;
+            }
+            const next = placeGift(this.state.parcels, { id: this.selectedItem, x, y, rotation: this.rotation });
+            const changed = JSON.stringify(next) !== JSON.stringify(this.state.parcels);
+            this.state.parcels = next;
+            this.message = changed ? this.t('放好一份，留意剩餘空間。', 'Gift placed. Plan the remaining space.') : this.t('放唔落，試吓旋轉或者換位置。', 'It does not fit. Rotate it or try another spot.');
+            if (changed)
+                this.selectedItem = undefined;
             update();
-            return;
-        } if (!this.selectedItem) {
-            this.message = this.t('先揀下面嘅手信。', 'Choose a gift first.');
-            this.render();
-            return;
-        } const next = placeGift(this.state.parcels, { id: this.selectedItem, x, y, rotation: this.rotation }); const changed = JSON.stringify(next) !== JSON.stringify(this.state.parcels); this.state.parcels = next; this.message = changed ? this.t('放好一份，留意剩餘空間。', 'Gift placed. Plan the remaining space.') : this.t('放唔落，試吓旋轉或者換位置。', 'It does not fit. Rotate it or try another spot.'); if (changed)
-            this.selectedItem = undefined; update(); }, () => { this.rotation = (this.rotation + 1) % 4; this.render(); }, () => { if (giftsSolved(this.state.parcels))
-            this.finish();
-        else {
-            this.message = this.t('五份都要放入去，唔可以重疊。', 'Fit all five gifts without overlap.');
-            this.render();
-        } });
+        }, () => { this.rotation = (this.rotation + 1) % 4; this.render(); }, () => {
+            if (giftsSolved(this.state.parcels))
+                this.finish();
+            else {
+                this.message = this.t('五份都要放入去，唔可以重疊。', 'Fit all five gifts without overlap.');
+                this.render();
+            }
+        });
     }
     private finish() { const result = completeEpisode(this.dataIn.save, this.dataIn.episode); this.dataIn.save = result.save; this.reward = result.reward; this.storageFailed = !writeSave(result.save) || this.storageFailed; this.won = true; this.moving = false; this.message = this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('首次完成獎勵已儲存；重玩唔會重複派獎。', 'First-completion reward saved. Replays do not award coins again.'); this.dataIn.feedback.play('purchase'); this.persist(); this.render(); }
     private language() { this.modal?.(); this.modal = showDetails({ kind: 'language', title: this.t('語言', 'Language'), eyebrow: '', close: this.t('返回', 'Back'), sections: [], content: languageContent(this.dataIn.locale, locale => { this.modal?.(); this.modal = undefined; this.dataIn.locale = locale; saveLocale(locale); this.render(); }) }, () => { this.modal = undefined; }); }
