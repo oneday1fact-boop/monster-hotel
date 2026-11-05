@@ -5,9 +5,9 @@ import type { Guest } from '../domain/puzzle';
 
 /** Original local cartoon sprites with procedural activity loops and a vector fallback. */
 export function drawMonster(scene: Phaser.Scene, x: number, y: number, guest: Guest, activity: 'queue' | 'room' = 'queue') {
-  if (scene.textures.exists('guests-art') && scene.textures.get('guests-art').has(guest.kind)) {
+  if ((scene.textures.exists('guests-art') && scene.textures.get('guests-art').has(guest.kind)) || scene.textures.exists(`pose-${guest.kind}`)) {
     const frame = scene.textures.get('guests-art').has(`${guest.kind}-tight`) ? `${guest.kind}-tight` : guest.kind;
-    const image = scene.add.image(0, 0, 'guests-art', frame).setOrigin(.5, .64);
+    const image = scene.add.image(0, 0, scene.textures.get('guests-art').has(guest.kind) ? 'guests-art' : `pose-${guest.kind}`, scene.textures.get('guests-art').has(guest.kind) ? frame : '0').setOrigin(.5, .64);
     const setPose = (pose = 0) => {
       if (scene.textures.exists(`pose-${guest.kind}`)) {
         image.setTexture(`pose-${guest.kind}`, String(pose)).setDisplaySize(168, 168);

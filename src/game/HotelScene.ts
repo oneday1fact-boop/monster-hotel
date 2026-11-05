@@ -4,6 +4,8 @@ import { drawToyBasket } from './storyProps';
 import { showStoryBook } from './storyBook';
 import type { ChapterId } from '../domain/storyChapters';
 import { storyBonds } from '../domain/storyNight';
+import { showAmbiencePicker } from './ambiencePicker';
+import { chapterIds, chapterLevels } from '../domain/storyChapters';
 import { drawReception, receptionFrame } from './reception';
 import { tutorialView } from '../domain/tutorial';
 import { readTutorialDone, saveTutorialDone } from '../platform/tutorial';
@@ -62,7 +64,9 @@ export class HotelScene extends Phaser.Scene {
     this.load.image('decor-art', '/art/decorations.png');
     this.load.image('ui-gold-button', '/art/ui/gold-button.png');
     this.load.image('guests-art', '/art/guests-cartoon.png');
-    for (const kind of ['werewolf', 'jiangshi', 'lantern', 'mummy']) this.load.image(`pose-${kind}`, `/art/${kind}-poses.png`);
+    for (const kind of ['werewolf', 'jiangshi', 'lantern', 'mummy', 'fox', 'baku']) this.load.image(`pose-${kind}`, `/art/${kind}-poses.png`);
+    for (const theme of ['autumn','morning','winter']) { this.load.image(`reception-${theme}`, `/art/seasons/reception-${theme}.png`); this.load.image(`room-elegant-${theme}`, `/art/seasons/elegant-${theme}.png`); }
+    for (const theme of ['autumn','winter']) this.load.image(`room-linen-${theme}`, `/art/seasons/linen-${theme}.png`);
     this.load.image('reception-art', '/art/reception.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
@@ -85,7 +89,7 @@ export class HotelScene extends Phaser.Scene {
     const m = viewportMetrics(width, height);
     this.cameras.main.setViewport(0, 0, width, height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
     for (const object of this.children.list) {
-      if (object.getData('receptionPanel') && object instanceof Phaser.GameObjects.Image) object.setFrame(receptionFrame(this)).setDisplaySize(844, 480);
+      if (object.getData('receptionPanel') && object instanceof Phaser.GameObjects.Image) object.setFrame(receptionFrame(this, object.getData('receptionKey'))).setDisplaySize(844, 480);
       const key = object.getData('roomPanel') as string | undefined;
       if (key && object instanceof Phaser.GameObjects.Image) object.setFrame(roomFrame(this, key)).setDisplaySize(roomWidth, roomHeight);
     }
@@ -122,7 +126,9 @@ export class HotelScene extends Phaser.Scene {
   private reception() {
     drawReception(this, this.save, this.screen === 'lobby');
     if (this.save.storyNight) drawToyBasket(this, 258, 436, .85);
-    this.level.guests.forEach((guest, index) => {
+    const latest = [...chapterIds].reverse().find(id => id >= 4 && this.save.stories?.[id as 4|5|6]);
+    const arrivals = this.screen === 'lobby' && latest ? chapterLevels[latest].guests : this.level.guests;
+    arrivals.forEach((guest, index) => {
       const x = [100, 201, 303, 390][index]; const y = [386, 396, 382, 402][index];
       const actor = this.monster(x, y, guest).setScale(index === 2 ? .69 : .78);
       if (this.save.storyNight && guest.kind === 'werewolf' && !reducedMotion()) {
@@ -162,6 +168,10 @@ export class HotelScene extends Phaser.Scene {
     this.button(325, this.locale === 'en' ? '20-night puzzle challenge →' : '20 晚解謎挑戰 →', () => this.selection(), 294, 590);
     this.button(390, this.ht.shop, () => this.shop(), 294, 590);
     this.button(450, this.t.titleBack, () => this.title(), 180, 590);
+    const ambience = document.createElement('button'); ambience.className = 'game-secondary-button ambience-entry'; ambience.textContent = this.locale === 'en' ? 'Scenery' : '景色'; ambience.onclick = () => {
+      this.input.enabled = false; this.hud?.visible(false);
+      this.dismissDetails = showAmbiencePicker(this.locale, this.save, theme => { this.save = { ...this.save, ambience: theme }; const stored = writeSave(this.save); this.lobby(); if (!stored) this.hud?.show(this.ht.session); }, () => this.lobby());
+    }; this.hud?.append(ambience);
   }
   private openStory(chapter?: ChapterId) {
     this.hud?.visible(false);

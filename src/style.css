@@ -239,3 +239,21 @@ body { font-family: GameNumbers,GameRounded,"Noto Sans TC",sans-serif; }
 .shop-items .decoration-preview { width: 70px; height: 70px; background: url('/art/decorations.png') left center/300% 100% no-repeat; border: 0; border-radius: 0; }
 .shop-items .decoration-preview--1 { background-position: center; }.shop-items .decoration-preview--2 { background-position: right center; }.decoration-preview > .game-icon { visibility: hidden; }
 @media(max-height:450px) { .shop-items .decoration-preview { width: 45px; height: 45px; } }
+/* Original seasonal paintings and new guest portraits, never a tint-only background. */
+.game-sheet { background: linear-gradient(#21172bd4,#21172bea),var(--hotel-backdrop,url('/art/reception.png')) center/cover; }
+.ambience-entry { pointer-events: auto; position:absolute; left:14px; bottom:16px; font-size:17px; min-height:48px; }
+.ambience-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;height:calc(100dvh - 120px); }
+.ambience-tile { display:flex;align-items:flex-end;justify-content:center;border:3px solid #d6af78;border-radius:20px;padding:15px;background:url('/art/reception.png') center/cover;color:#fff1c9;text-shadow:0 2px #30172e;cursor:pointer;min-height:125px; }
+.ambience-tile strong { padding:8px 24px;background:#251a37dd;border-radius:20px;font-size:19px; }.ambience-tile[aria-pressed=true] { outline:3px solid #fff0ad;outline-offset:-6px; }
+.ambience-tile--autumn { background-image:url('/art/seasons/reception-autumn.png'); }.ambience-tile--morning { background-image:url('/art/seasons/reception-morning.png'); }.ambience-tile--winter { background-image:url('/art/seasons/reception-winter.png'); }
+.story-face--fox { background-image:url('/art/fox-poses.png');background-size:300% 300%;background-position:12.5% 12.5%; }.story-face--baku { background-image:url('/art/baku-poses.png');background-size:300% 300%;background-position:12.5% 12.5%; }
+.story-book { grid-template-columns:none;grid-template-rows:1fr;grid-auto-flow:column;grid-auto-columns:minmax(240px,calc((100% - 36px)/3));height:calc(100dvh - 138px);min-height:0;overflow-x:auto;scroll-snap-type:x proximity; padding-bottom:16px; }
+.story-chapter { scroll-snap-align:start;min-height:0; }.story-chapter--4::before { background-image:url('/art/seasons/reception-autumn.png'); }.story-chapter--5::before { background-image:url('/art/seasons/reception-morning.png'); }.story-chapter--6::before { background-image:url('/art/seasons/reception-winter.png'); }
+.story-chapter .chapter-newcomer { position:absolute;top:20px;right:20px;width:65px;height:65px; }.story-chapter strong { text-align:center; }
+@media(max-height:450px) { .story-book { height:calc(100dvh - 116px); }.ambience-grid { gap:12px; height:calc(100dvh - 110px); }.ambience-tile { min-height:100px;padding:8px; }.ambience-tile strong { font-size:16px;padding:5px 18px; } }
+@media(max-width:600px) { .story-book { grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row;grid-auto-columns:auto;height:auto;overflow:visible; }.story-chapter { min-height:230px; }.ambience-grid { height:auto;grid-template-columns:1fr; }.ambience-tile { min-height:170px; } }
+
+.story-book { height:calc(100dvh - 174px);scrollbar-width:none; }.story-book::-webkit-scrollbar { display:none; }
+.story-book-nav { display:flex;justify-content:center;gap:18px;padding-top:6px; }.story-book-nav button { min-height:44px;padding:9px 28px; }
+@media(max-height:450px) { .story-book {height:calc(100dvh - 160px);}.story-book-nav button {font-size:15px;} }
+@media(max-width:600px) { .story-book {height:auto;}.story-book-nav {display:none;} }

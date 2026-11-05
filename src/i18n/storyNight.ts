@@ -38,5 +38,18 @@ export function chapterUI(locale: Locale, chapter: ChapterId) {
     joining: chapter === 1 ? base.joining : chapter === 2 ? '每位住客都點亮一粒星，走廊暖返晒！' : '卷卷揮動絲帶，四位熟客都一齊跳起嚟！',
     done: chapter === 1 ? base.done : chapter === 2 ? '大廳多咗螢火迎賓燈' : '午夜舞蹈小隊成立喇！',
   };
-  return { ...base, ...extra };
+  return { ...base, ...extra, ...(chapter >= 4 ? seasonalCopy[locale][chapter as 4 | 5 | 6] : {}) };
 }
+
+const seasonalCopy = {
+  'zh-Hant': {
+    4: { title:'秋雨裡的新住客', goal:'小柚同燈燈要住同一層，方便晾乾頸巾。', rule:'小柚想同燈燈住同一層。記得豆豆怕嘈！', event:'秋雨停喇，小柚第一次行入旅館，濕咗嘅頸巾一直滴水。燈燈輕輕亮起暖光。', play:'陪小柚晾乾頸巾', together:'大家一齊飲暖茶', playing:'頸巾暖返，小柚個小鈴噹開心響起。', joining:'一杯暖茶、一個新朋友，秋夜都唔凍喇。', done:'小柚成為旅館新熟客！' },
+    5: { title:'清晨的夢袋', goal:'夢夢同卷卷要住同一層；日頭記得幫月毛搬月燈。', rule:'夢夢想同卷卷住同一層，慢慢整理夢袋。', event:'陽光照入大廳，夢夢抱住裝滿打結夢境嘅披肩。卷卷認真地遞上軟絲帶。', play:'幫夢夢解開夢結', together:'放走夢裡的小星星', playing:'卷卷輕輕拉開絲帶，夢夢終於可以安心瞓喇。', joining:'小星星飛入晨光，夢夢送咗個好夢俾大家。', done:'夢夢帶住好夢留下來！' },
+    6: { title:'雪日的第一張合照', goal:'小柚同夢夢要住同一層，準備第一次雪日聚會。', rule:'兩位新朋友想住同一層，一齊準備雪日聚會。', event:'窗外落雪喇！小柚想留低第一張旅館合照，夢夢就帶嚟一個圓碌碌嘅雪朋友。', play:'排好隊影合照', together:'一齊砌雪朋友', playing:'一、二、三！新舊朋友一齊笑，留下第一張合照。', joining:'小柚加條頸巾，夢夢加粒星，雪朋友都似有好夢。', done:'新舊朋友的雪日回憶！' },
+  },
+  en: {
+    4: { title:'A guest in the autumn rain', goal:'Yuzu and Ember need the same floor to dry her scarf.', rule:'Yuzu wants Ember on the same floor. Dou still needs quiet!', event:'The rain stops as Yuzu steps inside for the first time, her scarf dripping. Ember offers a gentle glow.', play:'Help dry Yuzu’s scarf', together:'Welcome her with warm tea', playing:'The scarf is warm again, and Yuzu’s little bell rings happily.', joining:'Warm tea and a new friend make the autumn evening cozy.', done:'Yuzu becomes a hotel regular!' },
+    5: { title:'The morning dream bag', goal:'Nemu and Rollo share a floor. Luno needs a moon lamp by day.', rule:'Nemu wants Rollo on the same floor to untangle the dreams.', event:'Sunlight fills the lobby. Nemu arrives with tangled dreams in a quilt cape; Rollo offers a soft ribbon.', play:'Untangle Nemu’s dreams', together:'Release the dream stars', playing:'Rollo loosens the ribbon. Nemu can finally rest.', joining:'Little stars drift into the sunrise, carrying gentle dreams.', done:'Nemu brings sweet dreams to the hotel!' },
+    6: { title:'Our first snowy-day photo', goal:'Yuzu and Nemu need the same floor for their snowy gathering.', rule:'The two new friends want rooms on the same floor.', event:'Snow is falling! Yuzu wants a first hotel photo, while Nemu has brought a round little snow friend.', play:'Pose for a group photo', together:'Build a snow friend', playing:'One, two, three! Old and new friends share a happy photograph.', joining:'A scarf from Yuzu and a star from Nemu bring their snow friend to life.', done:'A snowy memory for all the guests!' },
+  },
+};

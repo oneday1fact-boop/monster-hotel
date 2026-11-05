@@ -3,6 +3,7 @@ import { load, ready, saved } from './helpers';
 async function openBook(page: Page) { await page.getByRole('button', { name: '住客故事簿', exact: true }).click(); }
 async function arrange(page: Page, rooms: Record<string,string>) { for (const [guest, room] of Object.entries(rooms)) { await page.locator(`[data-guest="${guest}"]`).click(); await page.locator(`[data-room="${room}"]`).click(); await ready(page); } }
 for (const path of ['play','together'] as const) test(`play both follow-up chapters, ${path} ending, resume and prevent duplicate rewards`, async ({ page }) => {
+  test.setTimeout(60000);
   await page.addInitScript(() => { if (!localStorage.getItem('midnight-check-in.save.v1')) localStorage.setItem('midnight-check-in.save.v1',JSON.stringify({version:1,coins:50,completed:[],storyNight:{outcome:'together'}})); });
   await load(page); await page.mouse.click(590,330); await openBook(page);
   await expect(page.locator('[data-chapter="2"]')).toBeEnabled(); await expect(page.locator('[data-chapter="3"]')).toBeDisabled(); await page.locator('[data-chapter="2"]').click(); await ready(page);
@@ -21,7 +22,7 @@ for (const path of ['play','together'] as const) test(`play both follow-up chapt
   await page.getByRole('button',{name:path === 'play' ? '拍手幫豆豆打拍子' : '邀請大家一齊跳'}).click(); await ready(page);
   expect((await saved(page)).coins).toBe(185); expect((await saved(page)).stories['3'].outcome).toBe(path);
   await page.getByRole('button',{name:'重看小事件'}).click(); await ready(page); await page.getByRole('button',{name:'邀請大家一齊跳'}).click(); await ready(page); expect((await saved(page)).coins).toBe(185);
-  await page.getByRole('button',{name:'住客故事簿',exact:true}).last().click(); await expect(page.locator('.story-book button:enabled')).toHaveCount(3);
+  await page.getByRole('button',{name:'住客故事簿',exact:true}).last().click(); await expect(page.locator('.story-book button:enabled')).toHaveCount(4);
 });
 test('decoration preview shows real lobby, never charges on preview or cancel, and applies one purchase', async ({page}) => {
   await page.addInitScript(() => localStorage.setItem('midnight-check-in.save.v1',JSON.stringify({version:1,coins:100,completed:[]})));

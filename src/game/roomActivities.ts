@@ -54,6 +54,14 @@ export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Imag
         layer.fillStyle(0xffe5a0).fillEllipse(x, y, 7, 11).fillStyle(0xfffbda).fillCircle(x, y - 2, 2);
         layer.lineStyle(2, 0xffc16f, .45).lineBetween(x - Math.cos(a - .3) * 8, y - Math.sin(a - .3) * 8, x, y);
       }
+    } else if (guest.kind === 'fox') {
+      setPose(t < .25 ? 0 : t < .5 ? 1 : t < .75 ? 2 : 3);
+      image.setPosition(wave * 10, -Math.max(0, wave) * 16).setAngle(wave * 3);
+      for (let i = 0; i < 3; i++) star(front, -45 + i * 27, 8 - Math.sin(t * TAU + i) * 22, 3, 0xffce86);
+    } else if (guest.kind === 'baku') {
+      setPose(t < .65 ? 3 : 1); image.setPosition(0, Math.sin(t * TAU) * 3).setAngle(wave * 2);
+      const rise = (t * 2) % 1; front.lineStyle(2, 0xb4e4ec, 1 - rise).strokeCircle(27 + rise * 12, -20 - rise * 38, 3 + rise * 9);
+      star(front, -38, -20 - rise * 30, 4, 0xded0ff);
     } else {
       // Pull a loose linen strip from a spool, wind it up, and admire the neat bow.
       const pull = (1 - Math.cos(t * TAU)) / 2;
@@ -68,7 +76,7 @@ export function roomActivity(scene: Phaser.Scene, image: Phaser.GameObjects.Imag
     }
   };
   render();
-  const tween = scene.tweens.add({ targets: clock, phase: 1, duration: { werewolf: 5600, jiangshi: 4400, lantern: 6200, mummy: 5800 }[guest.kind], repeat: -1, onUpdate: render });
+  const tween = scene.tweens.add({ targets: clock, phase: 1, duration: { werewolf: 5600, jiangshi: 4400, lantern: 6200, mummy: 5800, fox: 5000, baku: 6200 }[guest.kind], repeat: -1, onUpdate: render });
   // Scene redraws and dragging destroy the actor; never retain its graphics in a timer.
   image.once(Phaser.GameObjects.Events.DESTROY, () => tween.remove());
   return { children: [shadow, behind, image, front], pause(value: boolean) {

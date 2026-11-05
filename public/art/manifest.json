@@ -1,6 +1,6 @@
 {
-  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review. Original reception illustration generated from the approved character and moon-bedroom style references; no baked-in characters or UI. Four independent original action-pose atlases were generated from the approved guest designs for the story-night update. Original hand-inked purple/gold UI frame, primary button and bat-wing nameplate generated using the reception illustration as style reference; blank centres allow real localized text. Original three-column transparent decoration atlas generated from the approved reception style: crescent floor lamp, velvet rug and star garland. Runtime alpha bounds select each sprite without resampling source artwork.",
-  "frames": "Guests: 2x2 transparent atlas. Rooms: separate 3:1 panoramic images, framed proportionally at runtime. Reception: separate 2:1 full-screen panorama, cropped proportionally at runtime. Action poses: four separate 1254x1254 transparent 2x2 atlases, four poses per guest. Runtime alpha bounds align feet and remove unused padding without resampling source artwork.",
+  "creation": "Original cartoon character atlas and four separately generated panoramic room illustrations, using the approved characters as the style reference. Simplified geometric SVG rooms were replaced after user review. Original reception illustration generated from the approved character and moon-bedroom style references; no baked-in characters or UI. Four independent original action-pose atlases were generated from the approved guest designs for the story-night update. Original hand-inked purple/gold UI frame, primary button and bat-wing nameplate generated using the reception illustration as style reference; blank centres allow real localized text. Original three-column transparent decoration atlas generated from the approved reception style: crescent floor lamp, velvet rug and star garland. Runtime alpha bounds select each sprite without resampling source artwork. Original Yuzu fox-spirit and Nemu folklore baku action atlases, plus eight new seasonal environment paintings, generated using this project\u2019s own approved hotel/room and chibi references. No licensed character or film assets.",
+  "frames": "Guests: 2x2 transparent atlas. Rooms: separate 3:1 panoramic images, framed proportionally at runtime. Reception: separate 2:1 full-screen panorama, cropped proportionally at runtime. Action poses: four separate 1254x1254 transparent 2x2 atlases, four poses per guest. Runtime alpha bounds align feet and remove unused padding without resampling source artwork. New guest atlases: 2x2 transparent grids. Seasonal lobbies: 1774x887; seasonal bedrooms: 2172x724, cropped proportionally at runtime.",
   "sha256": {
     "guests-cartoon.png": "54d44ed6c130c74a3d91845f1de6dda94d257440e54acc1dcf855e5a0412deb4",
     "rooms/basement.png": "50bf7863472bd98cda8fce0fd3a4dc1b763eb5c0ab75ed55f82c1bb8c2cd2859",
@@ -15,6 +15,16 @@
     "ui/nameplate.png": "95f3e6d37d3ef55955c03e2fc6d31a70f93669942d2c510b8878a1c07f1b59e4",
     "ui/frame.png": "16ebe79fc86a02038ce7c0e9d0023b4920b7d7ddd1aa06d5789f2ea934f3a848",
     "ui/gold-button.png": "343e6ff55ed636a42de7b17da763dd5df2e63c48a0f2b4b211d74cbbe6eb8fdb",
-    "decorations.png": "3fed150613b3b1ed441a5293ba53e05bc402ccf1c6d59b53a37d2c5ebcc52b4b"
+    "decorations.png": "3fed150613b3b1ed441a5293ba53e05bc402ccf1c6d59b53a37d2c5ebcc52b4b",
+    "fox-poses.png": "654f12fd3fb884ee2c2758f101d498cf15967ad3c854c500f3b3778c060141d3",
+    "baku-poses.png": "b0af6280da1f44edf6affd7eeb8ef176401873abe6c8fb2d05cc908df7c81b42",
+    "seasons/reception-morning.png": "8ca765e5a79b6e79a0f43e73fed17b0fa343fa4add0ac217fa93671b3249193b",
+    "seasons/reception-winter.png": "06d00d50d3bedc38b4b03088fb22edde207e4d630f357ffd3b866b24caea7456",
+    "seasons/linen-winter.png": "d4baef5bb1c61e401e301bf6bc7b94467316149a61dc8fd0f6882c88317fbcd1",
+    "seasons/elegant-winter.png": "aa8bdd96cadfeda76e9c7416b454b18f829f03261a5869c400098b8ff71c2e3e",
+    "seasons/elegant-morning.png": "ffac6486f674a9a9f07268fa0d08942c4150d517120a79ffc4d973755851ce2d",
+    "seasons/reception-autumn.png": "591207d50797dedb2f0821765de50cd51850bc2f59ae4db225bf9fc71883009e",
+    "seasons/elegant-autumn.png": "c3ba8cd6db1ec58c0142c7bfe12c99a3b69567edc6b13013bad38acf1f79a97f",
+    "seasons/linen-autumn.png": "bd5595e122350c2d1c6dd8ae6a280292ce2efe24c93b9c8cfd42e96261914489"
   }
 }

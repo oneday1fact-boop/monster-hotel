@@ -23,7 +23,7 @@ export function registerArt(scene: Phaser.Scene) {
       if (!texture.has(`${name}-tight`) && x1 > x0) texture.add(`${name}-tight`, 0, left + x0, top + y0, x1 - x0 + 1, y1 - y0 + 1);
     });
   }
-  for (const kind of guestFrames) {
+  for (const kind of [...guestFrames, 'fox', 'baku']) {
     const key = `pose-${kind}`; if (!scene.textures.exists(key)) continue;
     const texture = scene.textures.get(key); const source = texture.source[0]; const w = source.width / 2; const h = source.height / 2;
     const canvas = document.createElement('canvas'); canvas.width = source.width; canvas.height = source.height;
@@ -67,6 +67,7 @@ export function reducedMotion(): boolean { return window.matchMedia?.('(prefers-
 export function portrait(kind: Guest['kind']): HTMLElement {
   const index = guestFrames.indexOf(kind); const image = document.createElement('div'); image.className = 'guest-portrait';
   image.setAttribute('role', 'img'); image.setAttribute('aria-label', kind);
+  if (kind === 'fox' || kind === 'baku') { image.style.backgroundImage = `url('/art/${kind}-poses.png')`; image.style.backgroundSize = '200% 200%'; image.style.backgroundPosition = 'left top'; return image; }
   image.style.backgroundPosition = `${index % 2 ? 87.5 : 12.5}% ${index >= 2 ? 87.5 : 12.5}%`;
   return image;
 }

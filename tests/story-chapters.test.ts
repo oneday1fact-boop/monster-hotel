@@ -18,6 +18,9 @@ it('follow-up room puzzles have real solutions and every accepted arrangement ob
         const floor = (guest: string) => chapterLevels[id].rooms.find(r => r.id === a[guest])!.floor;
         if (id === 2) expect(floor('ember')).toBe(floor('luno'));
         if (id === 3) expect(floor('dou')).toBe(floor('rollo'));
+        if (id === 4) expect(floor('yuzu')).toBe(floor('ember'));
+        if (id === 5) expect(floor('nemu')).toBe(floor('rollo'));
+        if (id === 6) expect(floor('yuzu')).toBe(floor('nemu'));
       }
     }
     expect(count).toBeGreaterThan(0);
@@ -40,7 +43,7 @@ it('unlocks in order and pays exactly once per chapter even across both endings'
     expect(storyOutcome(save, chapter)).toBe('together');
     expect(settleStory(save, 'play', chapter)).toEqual({ save, reward: 0 });
   }
-  expect(save.coins).toBe(185); expect(save.completed).toEqual([]);
+  expect(save.coins).toBe(455); expect(save.completed).toEqual([]);
   expect(chapterBonds(save, 2)).toEqual({ ember: 1, luno: 2 });
   expect(chapterBonds(save, 3)).toEqual({ dou: 1, rollo: 2 });
 });

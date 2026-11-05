@@ -38,12 +38,16 @@ export const conditions: Record<Locale, Record<Condition, { name: string; room: 
 };
 export const characters: Record<Locale, Record<Guest['kind'], { name: string; species: string; personality: string; wish: string; quote: string }>> = {
   en: {
+    fox: { name:'Yuzu', species:'Fox spirit', personality:'A shy autumn traveler whose scarf bell rings when she is excited.', wish:'A warm room to dry my scarf, please.', quote:'Is there room for one more friend?' },
+    baku: { name:'Nemu', species:'Dream-eating baku', personality:'Collects tangled dreams in a soft cape and naps through noisy mornings.', wish:'Somewhere quiet to sort my dreams.', quote:'Your bad dream can become a little star.' },
     werewolf: { name: 'Luno', species: 'Werewolf', personality: 'Looks brave, but is a cuddly little traveler who is secretly afraid of the dark.', wish: 'A moonlit window helps me sleep peacefully.', quote: 'I am not afraid of the dark. I am waiting for the moon!' },
     jiangshi: { name: 'Dou', species: 'Jiangshi', personality: 'A careful rule-follower who keeps nodding off while checking in.', wish: 'Please keep my room quiet so I do not wake with a startled hop.', quote: 'Just one little hop… I promise.' },
     lantern: { name: 'Ember', species: 'Lantern spirit', personality: 'An enthusiastic old lantern full of hotel stories and a little mischief.', wish: 'A warm room keeps my little light glowing steadily.', quote: 'Tonight’s story will make you glow!' },
     mummy: { name: 'Rollo', species: 'Mummy', personality: 'A sweet, slow-paced traveler who steps on a loose bandage when nervous.', wish: 'A dry room, please. I do not want damp bandages.', quote: 'One moment… my bandage is tangled again.' },
   },
   'zh-Hant': {
+    fox: { name:'小柚', species:'狐靈', personality:'踏住秋葉嚟旅行，怕醜但好想交朋友；一開心，頸巾個鈴就會響。', wish:'想要暖笠笠嘅房間，晾乾淋濕咗嘅頸巾。', quote:'「仲有冇位……俾多個朋友呀？」' },
+    baku: { name:'夢夢', species:'食夢貘', personality:'用小披肩收藏打結嘅夢，最擅長將噩夢變成溫柔小星星。', wish:'想有間安靜房，慢慢整理收集到嘅夢。', quote:'「唔使怕，你個夢可以變粒星。」' },
     werewolf: { name: '月毛', species: '狼人', personality: '看起來威風，其實怕黑又愛撒嬌；只要看見月亮，就能安心入睡。', wish: '想住看得到月光的房間。', quote: '「我不是怕黑，我是在等月亮！」' },
     jiangshi: { name: '豆豆', species: '殭屍', personality: '認真守規矩，卻總在登記時打瞌睡；被吵醒時會嚇得跳一下。', wish: '需要安靜的房間，好好睡一覺。', quote: '「我只跳一下……真的一下。」' },
     lantern: { name: '燈燈', species: '提燈妖', personality: '熱情的老燈籠，喜歡講旅館往事，偶爾也會開個小玩笑。', wish: '想住溫暖的房間，讓燈光穩穩亮著。', quote: '「今晚的故事，包你聽到發光。」' },

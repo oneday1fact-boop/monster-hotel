@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import type { Save } from '../platform/save';
 import { proportionalCrop } from './viewport';
+import { lobbyAmbience, receptionKey, type Ambience } from '../domain/ambience';
 import { reducedMotion } from './art';
 
 /** Cover the physical viewport, so the illustrated furniture is never stretched. */
-export function receptionFrame(scene: Phaser.Scene) {
-  const texture = scene.textures.get('reception-art'); const source = texture.source[0];
+export function receptionFrame(scene: Phaser.Scene, key = 'reception-art') {
+  const texture = scene.textures.get(key); const source = texture.source[0];
   const name = `reception-${Math.round(scene.scale.width / scene.scale.height * 10000)}`;
   if (!texture.has(name)) {
     const crop = proportionalCrop(source.width, source.height, scene.scale.width, scene.scale.height);
@@ -13,8 +14,17 @@ export function receptionFrame(scene: Phaser.Scene) {
   }
   return name;
 }
-export function drawReception(scene: Phaser.Scene, save: Save, menuPanel = true) {
-  scene.add.image(422, 240, 'reception-art', receptionFrame(scene)).setDisplaySize(844, 480).setData('receptionPanel', true);
+export function drawReception(scene: Phaser.Scene, save: Save, menuPanel = true, theme: Ambience = lobbyAmbience(save)) {
+  const key = receptionKey(theme);
+  scene.add.image(422, 240, key, receptionFrame(scene, key)).setDisplaySize(844, 480).setData('receptionPanel', true).setData('receptionKey', key);
+  scene.game.canvas.dataset.ambience = theme;
+  document.documentElement.style.setProperty('--hotel-backdrop', `url('/art/${theme === 'night' ? 'reception.png' : `seasons/reception-${theme}.png`}')`);
+  if (theme !== 'night') for (let i=0;i<12;i++) {
+    const x=22+(i*31)%100;const y=88+(i*47)%235;
+    const particle = theme === 'autumn' ? scene.add.ellipse(x,y,4,7,0xe5a05d,.7) : theme === 'winter' ? scene.add.star(x,y,6,1,3,0xeafaff,.8) : scene.add.ellipse(x,y,5,3,0xffd6e3,.6);
+    particle.setData('viewportAspect',true);
+    if (!reducedMotion()) scene.tweens.add({targets:particle,x:x+9,y:Math.min(328,y+40),angle:theme==='winter'?90:35,alpha:0,duration:2400+i*90,delay:i*100,repeat:-1,ease:'Sine.easeInOut'});
+  }
   if (menuPanel) {
     // The menu is part of the hotel wall; the artwork remains full bleed behind it.
     const panel = scene.add.graphics();

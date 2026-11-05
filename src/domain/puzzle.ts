@@ -1,6 +1,6 @@
 export type Condition = 'moonlight' | 'quiet' | 'warm' | 'dry';
 export interface Room { id: string; condition: Condition; features?: readonly Condition[]; floor?: number; position?: number }
-export interface Guest { id: string; requirement: Condition; color: number; kind: 'werewolf' | 'jiangshi' | 'lantern' | 'mummy' }
+export interface Guest { id: string; requirement: Condition; color: number; kind: 'werewolf' | 'jiangshi' | 'lantern' | 'mummy' | 'fox' | 'baku' }
 export type Rule =
   | { type: 'floor'; guest: string; floor: number }
   | { type: 'avoid'; guest: string; condition: Condition }
@@ -13,6 +13,12 @@ export const guests: readonly Guest[] = [
   { id: 'ember', requirement: 'warm', color: 0xf4a265, kind: 'lantern' },
   { id: 'rollo', requirement: 'dry', color: 0xf3e6c9, kind: 'mummy' },
 ];
+export const newcomers: readonly Guest[] = [
+  { id: 'yuzu', requirement: 'warm', color: 0xf5cfad, kind: 'fox' },
+  { id: 'nemu', requirement: 'quiet', color: 0xc3acde, kind: 'baku' },
+];
+export const allGuests: readonly Guest[] = [...guests, ...newcomers];
+export function guestById(id: string): Guest { const guest = allGuests.find(g => g.id === id); if (!guest) throw new Error(`Unknown guest: ${id}`); return guest; }
 export const firstLevel: Level = {
   id: 1, guests,
   rooms: [

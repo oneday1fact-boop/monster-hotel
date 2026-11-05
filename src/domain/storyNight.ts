@@ -1,5 +1,5 @@
 import { guests, place, validate, type Assignment, type Level } from './puzzle';
-import { chapterLevels, chapterRewards, type ChapterId } from './storyChapters';
+import { chapterLevels, chapterRewards, chapterPairs, type ChapterId } from './storyChapters';
 import type { Save } from '../platform/save';
 export type StoryChoice = 'play' | 'together';
 export type Tool = 'curtain' | 'moonLamp';
@@ -16,7 +16,7 @@ export function storyValidation(assignment: Assignment, equipment: Equipment, ch
   const rooms = chapterLevels[chapter].rooms;
   const sameFloor = (a: string, b: string) => rooms.find(r => r.id === assignment[a])?.floor === rooms.find(r => r.id === assignment[b])?.floor;
   if (chapter === 2 && !sameFloor('ember', 'luno')) return { valid: false, reason: 'path' as const };
-  if (chapter === 3 && !sameFloor('dou', 'rollo')) return { valid: false, reason: 'buddy' as const };
+  if ((chapter === 3 && !sameFloor('dou', 'rollo')) || (chapter === 4 && !sameFloor('yuzu','ember')) || (chapter === 5 && !sameFloor('nemu','rollo')) || (chapter === 6 && !sameFloor('yuzu','nemu'))) return { valid: false, reason: 'buddy' as const };
   return basic;
 }
 export function hasNoiseConflict(assignment: Assignment, equipment: Equipment) {
@@ -30,7 +30,7 @@ export function putTool(equipment: Equipment, tool: Tool, room: string): Equipme
 export function readDraftValue(raw: unknown, chapter: ChapterId = 1): StoryDraft {
   if (!raw || typeof raw !== 'object') return emptyStory();
   const value = raw as Partial<StoryDraft>; let assignment: Assignment = {};
-  for (const guest of guests) {
+  for (const guest of chapterLevels[chapter].guests) {
     const room = value.assignment?.[guest.id];
     if (storyLevel.rooms.some(r => r.id === room)) assignment = place(assignment, guest.id, room!);
   }
@@ -47,9 +47,9 @@ export function settleStory(save: Save, outcome: StoryChoice, chapter: ChapterId
   return { save: { ...save, coins: save.coins + reward, ...(chapter === 1 ? { storyNight: { outcome } } : { stories: { ...save.stories, [chapter]: { outcome } } }) }, reward };
 }
 export function storyOutcome(save: Save, chapter: ChapterId) { return chapter === 1 ? save.storyNight?.outcome : save.stories?.[chapter]?.outcome; }
-export function storyUnlocked(save: Save, chapter: ChapterId) { return chapter === 1 || (chapter === 2 ? !!save.storyNight : !!save.storyNight && !!save.stories?.[2]); }
+export function storyUnlocked(save: Save, chapter: ChapterId) { return chapter === 1 || (!!save.storyNight && Array.from({ length: chapter - 2 }, (_, i) => (i + 2) as Exclude<ChapterId,1>).every(id => !!save.stories?.[id])); }
 export function chapterBonds(save: Save, chapter: ChapterId): Record<string, number> {
-  const outcome = storyOutcome(save, chapter); const pair = chapter === 1 ? ['luno', 'rollo'] : chapter === 2 ? ['ember', 'luno'] : ['dou', 'rollo'];
+  const outcome = storyOutcome(save, chapter); const pair = chapterPairs[chapter];
   return { [pair[0]]: outcome ? outcome === 'play' ? 2 : 1 : 0, [pair[1]]: outcome ? outcome === 'together' ? 2 : 1 : 0 };
 }
 export function storyBonds(save: Save) {

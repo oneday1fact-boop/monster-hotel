@@ -113,3 +113,7 @@ The lobby storybook now contains three playable stories with separate drafts, se
 ## Google Play internal testing preparation
 
 Internal testing is now authorized. `npm run android:bundle:check` verifies an explicitly unsigned release AAB; `npm run android:aab` requires owner-managed signing configuration and verifies the signed bundle. No Play upload has occurred: the owner still needs to create the Play app and establish a secure upload key and authorized account access. See [Google Play 內部測試準備](docs/play-internal/README.zh-Hant.md).
+
+## Seasonal guest update (1.2)
+
+Six playable story chapters now introduce two original guests, Yuzu the fox spirit and Nemu the baku. Chapters 4–6 use autumn dusk, spring morning and snowy-afternoon paintings with seasonal room interiors. The lobby scenery selector is free and saved offline; the storybook opens on the next available story with page controls. Existing guests, twenty unique-solution challenges and older saves are retained. See [新住客與季節故事](docs/seasons-new-guests.zh-Hant.md) for design, implemented scope, solutions and real gameplay previews.

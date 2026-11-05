@@ -9,11 +9,13 @@ import { characters, conditions, saveLocale, type Locale } from '../i18n/catalog
 import { hotelUI } from '../i18n/hotel';
 import { chapterLevels, chapterPairs, type ChapterId } from '../domain/storyChapters';
 import { showStoryBook } from './storyBook';
+import { seasonCinema } from './seasonCinema';
 import { chapterCinema } from './chapterCinema';
 import { chapterUI } from '../i18n/storyNight';
 import { reducedMotion } from './art';
 import { drawMonster } from './drawMonster';
-import { drawReception } from './reception';
+import { chapterAmbience } from '../domain/ambience';
+import { drawReception, receptionFrame } from './reception';
 import { proportionalCrop, viewportMetrics } from './viewport';
 import { displayDensity } from './display';
 import { roomStyle } from './layout';
@@ -56,6 +58,7 @@ export class StoryScene extends Phaser.Scene {
       for (const obj of this.children.list) {
         const data = obj.getData('storyPanel') as { key: string; width: number; height: number } | undefined;
         if (data && obj instanceof Phaser.GameObjects.Image) obj.setFrame(this.frame(data.key, data.width, data.height));
+        else if (obj instanceof Phaser.GameObjects.Image && obj.getData('receptionPanel')) obj.setFrame(receptionFrame(this, obj.getData('receptionKey')));
       }
     }
     for (const object of this.children.list) {
@@ -94,7 +97,7 @@ export class StoryScene extends Phaser.Scene {
     }, this.chapter);
     this.setBusy(false);
     if (this.state.phase === 'arranging') this.drawHotel(arriving);
-    else if (this.state.phase === 'event') { drawReception(this, this.save, false); this.setBusy(true); this.cinema = this.chapter === 1 ? storyCinema(this, () => this.setBusy(false)) : chapterCinema(this, this.chapter, () => this.setBusy(false)); }
+    else if (this.state.phase === 'event') { drawReception(this, this.save, false, chapterAmbience(this.chapter)); this.setBusy(true); this.cinema = this.chapter === 1 ? storyCinema(this, () => this.setBusy(false)) : this.chapter <= 3 ? chapterCinema(this, this.chapter as 2|3, () => this.setBusy(false)) : seasonCinema(this, this.chapter as 4|5|6, () => this.setBusy(false)); }
     else this.drawEnding();
     if (this.storageFailed) this.ui.show(this.t.session);
     this.update();
@@ -123,7 +126,7 @@ export class StoryScene extends Phaser.Scene {
     const waiting = level.guests.filter(g => !this.state.assignment[g.id]);
     const entering = !this.state.introduced && !reducedMotion() && !this.focus && waiting.length > 0;
     if (entering) this.setBusy(true);
-    drawReception(this, this.save, false);
+    drawReception(this, this.save, false, chapterAmbience(this.chapter));
     this.add.rectangle(422, 218, 32, 324, 0x36263e);
     const selection = this.add.ellipse(0, 0, 100, 96).setStrokeStyle(3, 0xffe1a0).setVisible(false).setData('viewportAspect', true).setDepth(20);
     const bind = (actor: Phaser.GameObjects.Container, guest: Guest) => {
@@ -132,7 +135,7 @@ export class StoryScene extends Phaser.Scene {
       if (guest.id === this.selected) selection.setPosition(actor.x, actor.y).setVisible(true);
     };
     for (const room of level.rooms.filter(r => !this.focus || r.id === this.focus)) {
-      const p = this.panel(room); const key = `room-${roomStyle(room)}`;
+      const p = this.panel(room); const style = roomStyle(room); const theme = chapterAmbience(this.chapter); const key = style === 'elegant' && theme !== 'night' ? `room-elegant-${theme}` : style === 'linen' && (theme === 'autumn' || theme === 'winter') ? `room-linen-${theme}` : `room-${style}`;
       this.add.image(p.x, p.y, key, this.frame(key, p.width, p.height)).setDisplaySize(p.width, p.height).setData('storyPanel', { key, width: p.width, height: p.height });
       this.add.zone(p.x, p.y, p.width, p.height).setRectangleDropZone(p.width, p.height).setData('room', room.id).on('pointerdown', () => this.roomAction(room.id));
       const icons = roomConditions(room); icons.forEach((condition, i) => {
@@ -179,7 +182,7 @@ export class StoryScene extends Phaser.Scene {
   }
   private selectGuest(id: string) {
     if (this.busy) return; this.selected = id; this.tool = undefined; this.feedback.play('tap'); this.render();
-    const g = storyLevel.guests.find(g => g.id === id)!; this.ui?.show(`${characters[this.locale][g.kind].name}：${this.t.need[g.requirement]}`);
+    const g = chapterLevels[this.chapter].guests.find(g => g.id === id)!; this.ui?.show(`${characters[this.locale][g.kind].name}：${this.t.need[g.requirement]}`);
   }
   private assign(id: string, room: string) {
     if (this.busy) return; this.state.assignment = place(this.state.assignment, id, room); this.selected = undefined; this.feedback.play('place'); void this.feedback.pulse('place'); this.persist(); this.render(id);
@@ -192,7 +195,7 @@ export class StoryScene extends Phaser.Scene {
   }
   private dropTool(tool: Tool, clientX: number, clientY: number) {
     if (this.busy) return; const box = this.game.canvas.getBoundingClientRect(); const x = (clientX - box.x) / box.width * 844; const y = (clientY - box.y) / box.height * 480;
-    const room = storyLevel.rooms.filter(r => !this.focus || r.id === this.focus).find(r => { const p = this.panel(r); return Math.abs(x - p.x) <= p.width / 2 && Math.abs(y - p.y) <= p.height / 2; });
+    const room = chapterLevels[this.chapter].rooms.filter(r => !this.focus || r.id === this.focus).find(r => { const p = this.panel(r); return Math.abs(x - p.x) <= p.width / 2 && Math.abs(y - p.y) <= p.height / 2; });
     if (room) { this.tool = tool; this.selected = undefined; this.roomAction(room.id); }
   }
   private ready() {
@@ -211,9 +214,9 @@ export class StoryScene extends Phaser.Scene {
     this.state.phase = 'settled'; this.persist(); this.feedback.play('success'); void this.feedback.pulse('success'); this.render();
   }
   private drawEnding() {
-    drawReception(this, this.save, false); drawToyBasket(this, 246, 400, 1.2);
-    const wolf = drawMonster(this, 150, 342, storyLevel.guests.find(g => g.id === chapterPairs[this.chapter][0])!).setScale(1.05).setData('viewportAspect', true); (wolf.getData('setPose') as (p: number) => void)?.(3);
-    const mummy = drawMonster(this, 345, 350, storyLevel.guests.find(g => g.id === chapterPairs[this.chapter][1])!).setScale(1.05).setData('viewportAspect', true); (mummy.getData('setPose') as (p: number) => void)?.(3);
+    drawReception(this, this.save, false, chapterAmbience(this.chapter)); drawToyBasket(this, 246, 400, 1.2);
+    const wolf = drawMonster(this, 150, 342, chapterLevels[this.chapter].guests.find(g => g.id === chapterPairs[this.chapter][0])!).setScale(1.05).setData('viewportAspect', true); (wolf.getData('setPose') as (p: number) => void)?.(3);
+    const mummy = drawMonster(this, 345, 350, chapterLevels[this.chapter].guests.find(g => g.id === chapterPairs[this.chapter][1])!).setScale(1.05).setData('viewportAspect', true); (mummy.getData('setPose') as (p: number) => void)?.(3);
     this.ui?.ending(this.reward, chapterBonds(this.save, this.chapter), this.reward === 0); this.setBusy(false);
   }
   private exit() {

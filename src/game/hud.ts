@@ -26,6 +26,7 @@ export function createHUD(options: { locale: Locale; playing: boolean; night: nu
   document.body.append(root); let timeout: ReturnType<typeof setTimeout> | undefined;
   return {
     tutorial,
+    append(element: HTMLElement) { root.append(element); },
     storyEntry(label: string, action: () => void) {
       const button = document.createElement('button'); button.className = 'game-primary-button story-entry'; button.textContent = label; button.onclick = action; root.append(button);
     },
