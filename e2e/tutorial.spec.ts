@@ -17,7 +17,10 @@ test('guide follows selection, wrong placement, drag correction and independent 
   for (let i = 1; i < 4; i++) await assign(page, i);
   await expect(coach).toContainText('撳「入住」'); await page.getByRole('button', { name: '安排全部入住  ✦' }).click();
   expect((await saved(page)).coins).toBe(50); await expect(coach).toBeHidden();
-  await page.mouse.click(422, 450); await page.locator('[data-puzzle="1"]').click(); await ready(page); await expect(coach).toBeHidden();
+  await page.mouse.click(422, 450);
+  // The growing route opens at the next incomplete stage on page two.
+  if (!await page.locator('[data-puzzle="1"]').count()) await page.getByRole('button', { name: '上一頁', exact: true }).click();
+  await page.locator('[data-puzzle="1"]').click(); await ready(page); await expect(coach).toBeHidden();
 });
 
 test('skipping is saved and does not award coins or alter the puzzle', async ({ page }) => {
