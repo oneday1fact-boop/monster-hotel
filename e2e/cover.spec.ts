@@ -21,5 +21,5 @@ test('bilingual rounded cover logo stays upper-centred and loads offline', async
   await expect(page.locator('.cover-logo')).toHaveCount(1);
   await page.mouse.click(590, 330); await expect(page.locator('canvas')).toHaveAttribute('aria-label', 'Welcome, keeper');
   await expect(logo).toHaveCount(0);
-  await page.mouse.click(590, 450); await expect(logo).toHaveCount(1);
+  await page.locator('[data-action=cover]').click(); await expect(logo).toHaveCount(1);
 });

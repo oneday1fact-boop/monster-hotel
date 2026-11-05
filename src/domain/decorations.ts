@@ -2,6 +2,9 @@ export const decorations = [
   { id: 'moon-lamps', price: 100 },
   { id: 'velvet-rug', price: 200 },
   { id: 'star-sign', price: 300 },
+  { id: 'flower-box', price: 80 },
+  { id: 'rose-curtains', price: 120 },
+  { id: 'tea-corner', price: 150 },
 ] as const;
 export type DecorationId = typeof decorations[number]['id'];
 export interface DecoratedWallet { coins: number; decorations?: DecorationId[]; equipped?: DecorationId[] }

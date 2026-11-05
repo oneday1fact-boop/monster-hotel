@@ -2,7 +2,7 @@
 
 用戶已授權上傳至內部測試；未授權公開上架。現時尚未上傳：此工作階段沒有 Play Console 工具、已就緒的 Play 發佈身分或上傳金鑰。
 
-目前 applicationId 為 `com.midnightcheckin.monsterhotel`，版本名稱 1.1，預設 versionCode 2。必須先核對擁有者的 Play 應用及最高已用 versionCode；既有應用不可任意更換 applicationId 或 upload key。
+目前 applicationId 為 `com.midnightcheckin.monsterhotel`，版本名稱 1.3，預設 versionCode 4。必須先核對擁有者的 Play 應用及最高已用 versionCode；既有應用不可任意更換 applicationId 或 upload key。
 
 ## 已準備
 
@@ -20,7 +20,7 @@
 - `MONSTER_UPLOAD_KEY_ALIAS`
 - `MONSTER_UPLOAD_KEY_PASSWORD`
 - `MONSTER_VERSION_CODE`：可選，必須高於 Play 已用版本碼。
-- `MONSTER_VERSION_NAME`：可選，預設 1.1。
+- `MONSTER_VERSION_NAME`：可選，預設 1.3。
 
 執行 `npm run android:aab`，取得 `artifacts/monster-hotel-internal-release.aab` 及校驗碼。上傳前須確認憑證符合該 Play 應用登記的 upload certificate。
 
@@ -33,4 +33,4 @@
 
 首次建立應用與其設定通常需要 Play Console 操作。本環境目前也沒有已就緒的 Android Publisher API 身分，因此未執行上傳或發佈。連線與簽署到位後，才可將已驗證 AAB 上傳到該應用的 **Internal testing**，選取測試者並取得 opt-in 連結。這裡未產生任何 Play 安裝連結。
 
-驗證：unsigned release AAB 已成功編譯（23,337,853 bytes），已核對 bundle 結構及遊戲資源，確認未帶簽署；缺少金鑰時的拒絕建置檢查通過，原有 debug APK 亦成功重新編譯。未驗證 owner-signed AAB，因擁有者尚未建立 upload key。當前 targetSdk 為 35；首次實際上傳前仍需按 Console 當時要求核對目標 API 等條件。
+歷史驗證（1.1 準備版本，非本次 1.3）：unsigned release AAB 已成功編譯（23,337,853 bytes），已核對 bundle 結構及遊戲資源，確認未帶簽署；缺少金鑰時的拒絕建置檢查通過，原有 debug APK 亦成功重新編譯。未驗證 owner-signed AAB，因擁有者尚未建立 upload key。當前 targetSdk 為 35；首次實際上傳前仍需按 Console 當時要求核對目標 API 等條件。

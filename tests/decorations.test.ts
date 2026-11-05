@@ -23,7 +23,7 @@ describe('cosmetic economy', () => {
   it('makes the entire collection affordable within the campaign', () => {
     let save: { coins: number; decorations?: ('moon-lamps' | 'velvet-rug' | 'star-sign')[] } = { coins: 1000 };
     for (const item of decorations) save = purchase(save, item.id).wallet;
-    expect(save.coins).toBe(400); expect(save.decorations).toHaveLength(3);
+    expect(save.coins).toBe(50); expect(save.decorations).toHaveLength(6);
     for (const locale of ['en', 'zh-Hant'] as const) for (const item of decorations) expect(decorationCopy[locale][item.id].name).not.toBe('');
   });
 });

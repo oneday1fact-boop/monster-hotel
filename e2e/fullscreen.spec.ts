@@ -21,5 +21,5 @@ test('a living room continues animating after check-in while reduced motion stay
   await load(page); await page.emulateMedia({ reducedMotion: 'no-preference' }); await enter(page); await assign(page, 2);
   const canvas = page.locator('canvas'); const first = await canvas.screenshot(); await page.waitForTimeout(450); const next = await canvas.screenshot();
   expect(first.equals(next)).toBe(false);
-  expect(await saved(page)).toBeNull();
+  expect((await saved(page)).coins).toBe(0);
 });

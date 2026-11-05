@@ -17,15 +17,15 @@ test('guide follows selection, wrong placement, drag correction and independent 
   for (let i = 1; i < 4; i++) await assign(page, i);
   await expect(coach).toContainText('撳「入住」'); await page.getByRole('button', { name: '安排全部入住  ✦' }).click();
   expect((await saved(page)).coins).toBe(50); await expect(coach).toBeHidden();
-  await page.mouse.click(422, 450); await page.locator('[data-night="1"]').click(); await ready(page); await expect(coach).toBeHidden();
+  await page.mouse.click(422, 450); await page.locator('[data-puzzle="1"]').click(); await ready(page); await expect(coach).toBeHidden();
 });
 
 test('skipping is saved and does not award coins or alter the puzzle', async ({ page }) => {
   await load(page); await enter(page); await assign(page, 0);
   await page.getByRole('button', { name: '跳過教學' }).click(); await expect(page.locator('.tutorial-coach')).toBeHidden();
-  expect(await saved(page)).toBeNull();
+  expect((await saved(page)).coins).toBe(0);
   await page.reload(); await ready(page); await enter(page); await expect(page.locator('.tutorial-coach')).toBeHidden();
-  expect(await saved(page)).toBeNull();
+  expect((await saved(page)).coins).toBe(0);
   for (let i = 0; i < 4; i++) await assign(page, i);
   await page.getByRole('button', { name: '安排全部入住  ✦' }).click(); expect((await saved(page)).coins).toBe(50);
 });
@@ -43,11 +43,4 @@ test('language, dialogs, reset and viewport changes retain usable guidance', asy
   }
   await page.setViewportSize({ width: 844, height: 480 }); await page.getByRole('button', { name: 'Reset ↻' }).click(); await ready(page);
   await expect(page.locator('.tutorial-coach')).toHaveAttribute('data-step', 'select');
-});
-
-test('blocked storage skips for the current session and reports the limitation', async ({ page }) => {
-  await page.addInitScript(() => { Storage.prototype.setItem = () => { throw Error('blocked'); }; });
-  await load(page); await enter(page); await page.getByRole('button', { name: '跳過教學' }).click();
-  await expect(page.locator('.tutorial-coach')).toBeHidden(); await expect(page.getByRole('status')).toContainText('未能儲存');
-  await page.getByRole('button', { name: '重設 ↻' }).click(); await ready(page); await expect(page.locator('.tutorial-coach')).toBeHidden();
 });

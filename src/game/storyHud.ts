@@ -26,7 +26,7 @@ export function createStoryHUD(locale: Locale, draft: StoryDraft, selected: stri
     for (const room of chapterLevels[chapter].rooms.filter(r => !focus || r.id === focus)) {
       const left = focus ? 20 : room.position === 1 ? 8 : 446; const top = focus ? 86 : room.floor === 1 ? 58 : 222;
       const target = button(room.id, () => actions.room(room.id)); target.className = 'story-room-label'; target.dataset.room = room.id; target.setAttribute('aria-label', locale === 'en' ? `Room ${room.id}` : `房間 ${room.id}`); target.style.left = `${left / 844 * 100}%`; target.style.top = `${top / 480 * 100}%`; root.append(target);
-      if (!focus) { const zoom = iconButton('zoom', `${t.look} ${room.id}`, () => actions.focus(room.id)); zoom.classList.add('story-room-focus'); zoom.dataset.focus = room.id; zoom.style.left = `${(left + 342) / 844 * 100}%`; zoom.style.top = `${top / 480 * 100}%`; root.append(zoom); }
+      if (!focus) { const zoom = iconButton('zoom', `${t.look} ${room.id}`, () => actions.focus(room.id)); zoom.classList.add('story-room-focus'); zoom.dataset.focus = room.id; zoom.style.left = `min(${(left + 342) / 844 * 100}%, calc(100% - 52px))`;  zoom.style.top = `${top / 480 * 100}%`; root.append(zoom); }
     }
     if (focus) { const back = button(t.back, () => actions.focus()); back.classList.add('story-focus-back'); root.append(back); }
     const dock = document.createElement('div'); dock.className = 'story-dock';
@@ -52,7 +52,7 @@ export function createStoryHUD(locale: Locale, draft: StoryDraft, selected: stri
     const speaker = document.createElement('strong'); speaker.className = 'story-speaker'; speaker.textContent = chapterPairs[chapter].map(id => characters[locale][chapterLevels[chapter].guests.find(g => g.id === id)!.kind].name).join(' & ');
     const message = document.createElement('p'); message.className = 'story-message'; message.textContent = t.event;
     content.append(speaker, message); caption.append(face, content); root.append(caption);
-    const choices = document.createElement('div'); choices.className = 'story-choices'; choices.append(button(t.play, () => actions.choice('play'), true), button(t.together, () => actions.choice('together'), true)); root.append(choices);
+    const choices = document.createElement('div'); choices.className = 'story-choices'; const first=button(t.play,()=>actions.choice('play'),true);first.dataset.choice='play';const second=button(t.together,()=>actions.choice('together'),true);second.dataset.choice='together';choices.append(first,second); root.append(choices);
     const skip = button(locale === 'en' ? 'Skip scene' : '跳過演出', actions.skip); skip.classList.add('story-skip'); skip.dataset.escape = 'true'; root.append(skip);
   }
   document.body.append(root);
@@ -65,7 +65,7 @@ export function createStoryHUD(locale: Locale, draft: StoryDraft, selected: stri
       const panel = document.createElement('section'); panel.className = 'story-ending'; panel.setAttribute('aria-label', t.done);
       const title = document.createElement('h2'); title.textContent = t.done; const coins = document.createElement('p'); coins.className = 'story-coins'; coins.textContent = `${t.reward} +${reward}`; coins.prepend(icon('coin')); panel.append(title, coins);
       for (const id of chapterPairs[chapter]) { const row = document.createElement('p'); row.className = 'story-bond'; row.dataset.bond = id; row.textContent = `${characters[locale][chapterLevels[chapter].guests.find(g => g.id === id)!.kind].name}  ${'♥'.repeat(bonds[id])}${'♡'.repeat(5 - bonds[id])}`; panel.append(row); }
-      const note = document.createElement('small'); note.textContent = t.replayNote; panel.append(note, button(t.home, actions.home, true), button(t.replay, actions.replay)); if (chapter < 6) panel.append(button(t.next, actions.next, true)); panel.append(button(t.chapters, actions.chapters)); root.append(panel);
+      const note = document.createElement('small'); note.textContent = t.replayNote; panel.append(note, button(t.home, actions.home, true), button(t.replay, actions.replay)); panel.append(button(t.next, actions.next, true)); panel.append(button(t.chapters, actions.chapters)); root.append(panel);
     },
     destroy() { clearTimeout(noticeTimer); disposeDrag?.(); root.remove(); },
   };

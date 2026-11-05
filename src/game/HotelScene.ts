@@ -1,10 +1,14 @@
 import Phaser from 'phaser';
 import { displayDensity } from './display';
 import { drawToyBasket } from './storyProps';
-import { showStoryBook } from './storyBook';
+
 import type { ChapterId } from '../domain/storyChapters';
 import { storyBonds } from '../domain/storyNight';
-import { showAmbiencePicker } from './ambiencePicker';
+import { showChallengeSelection } from './challengeSelection';
+import { challenges, challengeUnlocked, challengeProgress, afterChallenge, type Challenge } from '../domain/campaign';
+import { buyScene, ownedScenes, scenePrices } from '../domain/sceneryShop';
+import { lobbyAmbience, type Ambience } from '../domain/ambience';
+import { drawRoomDecorations } from './roomDecor';
 import { chapterIds, chapterLevels } from '../domain/storyChapters';
 import { drawReception, receptionFrame } from './reception';
 import { tutorialView } from '../domain/tutorial';
@@ -13,10 +17,10 @@ import { tutorialUI } from '../i18n/tutorial';
 import { firstLevel, place, validate, type Assignment, type Guest, type Room, type Level } from '../domain/puzzle';
 import { levels, levelTitle, isUnlocked } from '../domain/levels';
 import { campaignUI, roomLabel, ruleText } from '../i18n/rules';
-import { showNightSelection } from './nightSelection';
+
 import { isDecoration, decorations, purchase, toggleDecoration } from '../domain/decorations';
 import { hotelUI } from '../i18n/hotel';
-import { shopContent, settingsContent, languageContent } from './hotelMenus';
+import { shopContent, settingsContent, languageContent, type ShopTab } from './hotelMenus';
 import { Feedback } from '../platform/feedback';
 import { savePreferences } from '../platform/preferences';
 import { createHUD } from './hud';
@@ -61,6 +65,7 @@ export class HotelScene extends Phaser.Scene {
     for (const [condition, symbol] of Object.entries({ moonlight: 'moon', quiet: 'quiet', warm: 'flame', dry: 'sun' } as const)) {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
+    this.load.image('decor-more','/art/decor-more.png');
     this.load.image('decor-art', '/art/decorations.png');
     this.load.image('ui-gold-button', '/art/ui/gold-button.png');
     this.load.image('guests-art', '/art/guests-cartoon.png');
@@ -110,7 +115,7 @@ export class HotelScene extends Phaser.Scene {
     for (let i = 0; i < 32; i++) { g.fillStyle(C.gold, .15 + (i % 3) * .12).fillCircle(25 + (i * 67) % 790, 35 + (i * 113) % 420, i % 2 + 1); }
     if (this.screen !== 'play' && this.screen !== 'title' && this.screen !== 'lobby') { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
     document.documentElement.lang = this.locale;
-    this.hud = createHUD({ locale: this.locale, playing: this.screen === 'play', night: this.level.id,
+    this.hud = createHUD({ locale: this.locale, playing: this.screen === 'play', night: challenges.findIndex(n=>n.id===`puzzle-${this.level.id}`)+1,
       settings: () => this.settings(), language: () => this.language(), home: () => this.selection(), hint: () => this.hint(), clues: () => this.clues(),
       skipTutorial: () => this.finishTutorial(),
       check: () => this.checkGuests(), reset: () => { this.assignment = {}; this.selected = undefined; this.message = ''; this.hintStage = 0; this.queueArrival = true; this.play(); },
@@ -124,7 +129,7 @@ export class HotelScene extends Phaser.Scene {
   }
 
   private reception() {
-    drawReception(this, this.save, this.screen === 'lobby');
+    drawReception(this, this.screen==='title'?{...this.save,equipped:[]}:this.save, false, this.screen==='title'?'morning':lobbyAmbience(this.save));
     if (this.save.storyNight) drawToyBasket(this, 258, 436, .85);
     const latest = [...chapterIds].reverse().find(id => id >= 4 && this.save.stories?.[id as 4|5|6]);
     const arrivals = this.screen === 'lobby' && latest ? chapterLevels[latest].guests : this.level.guests;
@@ -158,40 +163,28 @@ export class HotelScene extends Phaser.Scene {
     this.button(330, this.t.open, () => this.lobby(), 294, 590);
   }
   private lobby() {
-    this.screen = 'lobby'; this.base(this.t.welcome); this.reception();
-    this.text(590, 124, this.t.welcome, 26, '#ffe0a5');
-    const badge = this.add.graphics(); badge.fillStyle(0x191323, .75).fillRoundedRect(460, 158, 260, 36, 18);
-    badge.lineStyle(1, 0xbc8f6c, .6).strokeRoundedRect(460, 158, 260, 36, 18);
-    this.text(590, 176, `${this.save.coins} ${this.t.coins}  ·  ${this.save.completed.length}/20`, 15, '#f2cc83');
-    this.text(590, 211, this.t.arrivals, 17, '#ead4c4');
-    this.hud?.storyEntry(this.locale === 'en' ? 'Guest storybook' : '住客故事簿', () => this.openStory());
-    this.button(325, this.locale === 'en' ? '20-night puzzle challenge →' : '20 晚解謎挑戰 →', () => this.selection(), 294, 590);
-    this.button(390, this.ht.shop, () => this.shop(), 294, 590);
-    this.button(450, this.t.titleBack, () => this.title(), 180, 590);
-    const ambience = document.createElement('button'); ambience.className = 'game-secondary-button ambience-entry'; ambience.textContent = this.locale === 'en' ? 'Scenery' : '景色'; ambience.onclick = () => {
-      this.input.enabled = false; this.hud?.visible(false);
-      this.dismissDetails = showAmbiencePicker(this.locale, this.save, theme => { this.save = { ...this.save, ambience: theme }; const stored = writeSave(this.save); this.lobby(); if (!stored) this.hud?.show(this.ht.session); }, () => this.lobby());
-    }; this.hud?.append(ambience);
+    this.screen='lobby';this.base(this.t.welcome);this.reception();
+    this.text(590,133,this.t.welcome,27,'#fff0c6');this.text(590,181,`${this.save.coins} ${this.t.coins}  ·  ${this.locale==='en'?'Cleared':'已完成'} ${challengeProgress(this.save)}`,18,'#fff0c6');
+    const menu=document.createElement('nav');menu.className='lobby-menu';
+    const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=callback;menu.append(b);};
+    add(this.locale==='en'?'Puzzle challenges':'解謎挑戰','challenges',()=>this.selection(),true);
+    add(this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());this.hud?.append(menu);
   }
-  private openStory(chapter?: ChapterId) {
-    this.hud?.visible(false);
-    if (!chapter) {
-      this.input.enabled = false;
-      this.dismissDetails = showStoryBook(this.locale, this.save, id => { this.dismissDetails?.(); this.dismissDetails = undefined; this.openStory(id); }, () => this.lobby());
-      return;
-    }
-    this.scene.launch('story', { chapter, locale: this.locale, feedback: this.feedback, save: this.save, onExit: (save: Save, locale: Locale) => {
-      this.scene.wake('hotel'); this.save = save; this.locale = locale; this.lobby();
-    } }); this.scene.sleep('hotel');
+  private launchChallenge(node:Challenge) {
+    if(!challengeUnlocked(this.save,node.id))return;this.game.canvas.dataset.challenge=node.id;this.dismissDetails?.();this.dismissDetails=undefined;
+    if(node.kind==='puzzle'){this.startNight(node.puzzle);return;}
+    this.hud?.visible(false);this.scene.launch('story',{chapter:node.chapter,locale:this.locale,feedback:this.feedback,save:this.save,onExit:(save:Save,locale:Locale,destination='lobby')=>{
+      this.scene.wake('hotel');this.save=save;this.locale=locale;
+      if(destination==='next'){const next=afterChallenge(node.id);if(next){this.launchChallenge(next);return;}}
+      if(destination==='map'){this.lobby();this.selection();}else this.lobby();
+    }});this.scene.sleep('hotel');
   }
   private selection() {
-    this.screen = 'selection'; this.base(this.ct.levels); this.input.enabled = false;
-    this.hud?.visible(false);
-    this.dismissDetails = showNightSelection(this.locale, this.save.completed, id => this.startNight(id), () => this.lobby(), () => this.language());
+    this.input.enabled=false;this.hud?.visible(false);this.dismissDetails?.();
+    this.dismissDetails=showChallengeSelection(this.locale,this.save,node=>this.launchChallenge(node),()=>this.lobby());
   }
-
   private startNight(id: number) {
-    if (!isUnlocked(id, this.save.completed)) return;
+    if (!challengeUnlocked(this.save,`puzzle-${id}`)) return;
     const level = levels.find(l => l.id === id); if (!level) return;
     this.level = level; this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.queueArrival = true; this.play();
   }
@@ -209,7 +202,7 @@ export class HotelScene extends Phaser.Scene {
     this.base(`${String(this.level.id).padStart(2, '0')} · ${levelTitle(this.level.id, this.locale)}`);
     if (this.message) this.hud?.show(this.message);
     const status = { setText: (message: string) => this.hud?.show(message) };
-    drawReception(this, this.save, false);
+    drawReception(this, this.save, false,lobbyAmbience(this.save));
     const frame = this.add.graphics();
     frame.fillStyle(0x574057).fillRect(0, 56, 844, 324);
     frame.lineStyle(3, 0xb18a70).strokeRect(0, 56, 844, 324);
@@ -233,9 +226,10 @@ export class HotelScene extends Phaser.Scene {
     const entering = this.queueArrival && !reducedMotion(); this.queueArrival = false;
     if (entering) this.setBusy(true);
     for (const room of this.level.rooms) {
-      const p = roomPoint(room); const style = roomStyle(room);
+      const p = roomPoint(room); const style = roomStyle(room);const theme=lobbyAmbience(this.save);const roomKey=style==='elegant'&&theme!=='night'?`room-elegant-${theme}`:style==='linen'&&(theme==='autumn'||theme==='winter')?`room-linen-${theme}`:`room-${style}`;
       this.add.rectangle(p.x, p.y, roomWidth, roomHeight, C.panel);
-      if (this.textures.exists(`room-${style}`)) this.add.image(p.x, p.y, `room-${style}`, roomFrame(this, `room-${style}`)).setDisplaySize(roomWidth, roomHeight).setData('roomPanel', `room-${style}`);
+      if (this.textures.exists(roomKey)) this.add.image(p.x, p.y, roomKey, roomFrame(this, roomKey)).setDisplaySize(roomWidth, roomHeight).setData('roomPanel', roomKey);
+      drawRoomDecorations(this,this.save,{x:p.x,y:p.y,width:roomWidth,height:roomHeight});
       drawRoomLife(this, room);
       this.add.rectangle(p.x - 174, p.y - 54, 54, 23, 0x34243e, .85).setStrokeStyle(1, 0xc89d6e);
       this.add.rectangle(p.x - 142, p.y + 56, 118, 22, 0x251c32, .75);
@@ -314,41 +308,26 @@ export class HotelScene extends Phaser.Scene {
         this.feedback.setPreferences(preferences); return savePreferences(preferences);
       }, () => { this.feedback.play('place'); void this.feedback.pulse('place'); }, () => this.language(true)) });
   }
-  private shop(message = '') {
-    this.details({ kind: 'shop', eyebrow: `${this.save.coins} ${this.ht.coins}`, title: this.ht.shop, close: this.ht.back,
-      sections: message ? [{ title: '', body: message }] : [],
-      content: shopContent(this.locale, this.save, (id, owned) => {
-        let status: string = this.ht.displayed;
-        if (owned) this.save = toggleDecoration(this.save, id);
-        else {
-          const result = purchase(this.save, id); this.save = result.wallet;
-          if (result.status === 'bought') { status = this.ht.bought; this.feedback.play('purchase'); void this.feedback.pulse('purchase'); }
-          else status = result.status === 'insufficient' ? this.ht.insufficient : this.ht.already;
-        }
-        if (!writeSave(this.save)) status += `\n${this.ht.session}`;
-        this.lobby(); this.shop(status);
-      }, id => this.previewDecoration(id)) });
+  private shop(message='',tab:ShopTab='decor',page=0) {
+    this.details({kind:'shop',eyebrow:'',title:this.ht.shop,close:this.ht.back,sections:[],content:shopContent(this.locale,this.save,{
+      page:(nextTab,nextPage)=>this.shop('',nextTab,nextPage),preview:id=>this.previewItem(id,'decor',page),scene:theme=>this.previewItem(theme,'scenes',page),
+      buy:(id,owned)=>{let status=this.ht.displayed as string;if(owned)this.save=toggleDecoration(this.save,id);else{const result=purchase(this.save,id);this.save=result.wallet;status=result.status==='bought'?this.ht.bought:this.ht.insufficient;}if(!writeSave(this.save))status=this.ht.session;this.feedback.play('purchase');this.lobby();this.shop(status,tab,page);},
+    },tab,page,message)});
   }
-  private previewDecoration(id: string) {
-    if (!isDecoration(id)) return;
-    this.base(this.ht.shop); this.hud?.visible(false);
-    drawReception(this, { ...this.save, equipped: [...new Set([...(this.save.equipped ?? []), id])] }, false);
-    const root = document.createElement('nav'); root.className = 'decoration-demo';
-    this.input.enabled = false;
-    for (const name of ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click']) root.addEventListener(name, e => e.stopPropagation());
-    const title = document.createElement('strong'); title.className = 'decoration-demo-title'; title.textContent = this.locale === 'en' ? 'Lobby preview · Nothing charged' : '大廳效果預覽 · 未扣金幣';
-    const controls = document.createElement('div'); controls.className = 'decoration-demo-actions';
-    const back = document.createElement('button'); back.className = 'game-secondary-button'; back.textContent = this.locale === 'en' ? 'Back to decorations' : '返回佈置'; back.onclick = () => { this.lobby(); this.shop(); };
-    const apply = document.createElement('button'); apply.className = 'game-primary-button';
-    const owned = this.save.decorations?.includes(id); const price = decorations.find(d => d.id === id)!.price;
-    apply.textContent = owned ? (this.locale === 'en' ? 'Place in lobby' : '擺放喺大廳') : `${this.locale === 'en' ? 'Buy & place' : '買入並擺放'} · ${price}`;
-    apply.disabled = !owned && this.save.coins < price;
-    apply.onclick = () => {
-      if (owned) { if (!this.save.equipped?.includes(id)) this.save = toggleDecoration(this.save, id); }
-      else { const result = purchase(this.save, id); if (result.status !== 'bought') return; this.save = result.wallet; }
-      const persisted = writeSave(this.save); this.feedback.play('purchase'); this.lobby(); this.hud?.show(persisted ? this.ht.bought : this.ht.session);
-    };
-    controls.append(back, apply); root.append(title, controls); document.body.append(root); this.dismissDetails = () => root.remove();
+  private previewItem(id:string,tab:ShopTab,page:number) {
+    this.base(this.ht.shop);this.hud?.visible(false);this.input.enabled=false;
+    const root=document.createElement('nav');root.className='decoration-demo';for(const name of['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click'])root.addEventListener(name,e=>e.stopPropagation());
+    const title=document.createElement('strong');title.className='decoration-demo-title';title.textContent=this.locale==='en'?'Preview · Nothing charged':'效果預覽 · 未扣金幣';
+    let shown=true;const paint=()=>{this.tweens.killAll();this.children.removeAll(true);
+      const preview=tab==='decor'&&isDecoration(id)?{...this.save,equipped:shown?[...new Set([...(this.save.equipped??[]),id])]:this.save.equipped?.filter(d=>d!==id)}:this.save;
+      drawReception(this,tab==='decor'?{...preview,equipped:[]}:preview,false,tab==='scenes'&&shown?id as Ambience:lobbyAmbience(this.save));
+      if(tab==='decor')for(const room of firstLevel.rooms){const p=roomPoint(room),key=`room-${roomStyle(room)}`;this.add.image(p.x,p.y,key,roomFrame(this,key)).setDisplaySize(roomWidth,roomHeight).setData('roomPanel',key);drawRoomDecorations(this,preview,{...p,width:roomWidth,height:roomHeight});this.text(p.x-174,p.y-54,room.id,17,'#ffe7b7');}
+    };paint();
+    const controls=document.createElement('div');controls.className='decoration-demo-actions';const back=document.createElement('button');back.className='game-secondary-button';back.textContent=this.locale==='en'?'Back':'返回商店';back.onclick=()=>{this.lobby();this.shop('',tab,page);};
+    const compare=document.createElement('button');compare.className='game-secondary-button';compare.dataset.action='compare';compare.textContent=this.locale==='en'?'See original':'睇原本';compare.onclick=()=>{shown=!shown;compare.textContent=shown?(this.locale==='en'?'See original':'睇原本'):(this.locale==='en'?'See preview':'睇效果');paint();};
+    const apply=document.createElement('button');apply.className='game-primary-button';apply.dataset.action='confirm';const owned=tab==='decor'?isDecoration(id)&&this.save.decorations?.includes(id):ownedScenes(this.save).includes(id as Ambience);const price=tab==='decor'?decorations.find(d=>d.id===id)!.price:scenePrices[id as Ambience];apply.textContent=owned?(this.locale==='en'?'Apply':'套用'):`${this.locale==='en'?'Buy & apply':'買入並套用'} ${price}`;apply.disabled=!owned&&this.save.coins<price;
+    apply.onclick=()=>{if(tab==='scenes'){const result=buyScene(this.save,id as Ambience);if(result.status==='insufficient')return;this.save=result.wallet;}else if(isDecoration(id)){if(owned){if(!this.save.equipped?.includes(id))this.save=toggleDecoration(this.save,id);}else{const result=purchase(this.save,id);if(result.status!=='bought')return;this.save=result.wallet;}}const stored=writeSave(this.save);this.feedback.play('purchase');this.lobby();this.hud?.show(stored?this.ht.bought:this.ht.session);};
+    const note=document.createElement('small');note.className='preview-note';note.textContent=tab==='decor'?(this.locale==='en'?'All four rooms · Appearance only':'四間客房一齊擺放 · 不改解謎條件'):(this.locale==='en'?'Unlock a permanent hotel theme':'解鎖可自由套用嘅酒店場景');controls.append(back,compare,apply);root.append(title,note,controls);document.body.append(root);this.dismissDetails=()=>root.remove();
   }
   private guestCard(guest: Guest) {
     const c = characters[this.locale][guest.kind];
@@ -405,8 +384,9 @@ export class HotelScene extends Phaser.Scene {
     this.level.guests.forEach((g, i) => { const avatar = this.monster(140 + i * 188, 230, g).setScale(.9); if (!reducedMotion()) this.tweens.add({ targets: avatar, y: 218, duration: 650 + i * 100, repeat: reducedMotion() ? 0 : -1, yoyo: true }); });
     this.text(422, 312, this.t.happy, 26);
     this.text(422, 348, `+${this.earnedCoins} ${this.t.coins}`, 21, '#f2cc83');
-    if (this.level.id < levels.length) this.button(398, this.ct.next, () => this.startNight(this.level.id + 1));
-    else this.text(422, 395, this.ct.finished, 20, '#f2cc83');
+    const next=afterChallenge(`puzzle-${this.level.id}`);
+    if(next)this.button(398,this.locale==='en'?'Next challenge':'下一關',()=>this.launchChallenge(next));
+    else this.text(422,395,this.locale==='en'?'More challenges are on the way!':'更多關卡陸續加入！',20,'#f2cc83');
     this.button(450, this.ct.return, () => this.selection(), 210);
   }
 }

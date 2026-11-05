@@ -4,11 +4,13 @@ import { queueX, queueY, roomPoint } from '../src/game/layout';
 export const saveKey = 'midnight-check-in.save.v1';
 export async function ready(page: Page) { await expect(page.locator('canvas')).toHaveAttribute('aria-busy', 'false'); }
 export async function load(page: Page) {
+  // Legacy encounter completion isolates classic-room regression tests without awarding fixture coins.
+  await page.addInitScript(key => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify({version:1,coins:0,completed:[],storyNight:{outcome:'play'}})); }, saveKey);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/'); await page.waitForFunction(() => document.documentElement.lang === 'zh-Hant'); await ready(page);
 }
 export async function enter(page: Page, id = 1) {
-  await page.mouse.click(590, 330); await page.mouse.click(590, 325); await page.locator(`[data-night="${id}"]`).click(); await ready(page);
+  await page.mouse.click(590, 330); await page.locator('[data-action=challenges]').click(); await page.locator(`[data-puzzle="${id}"]`).click(); await ready(page);
 }
 export async function assign(page: Page, index: number, level: Level = firstLevel, roomId?: string) {
   const target = roomId ?? solve(level)[0][level.guests[index].id];

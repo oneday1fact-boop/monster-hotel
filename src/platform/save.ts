@@ -1,7 +1,7 @@
 import { isAmbience, type Ambience } from '../domain/ambience';
 import { isDecoration, type DecorationId } from '../domain/decorations';
 import { isUnlocked, levels } from '../domain/levels';
-export interface Save { version: 1; completed: number[]; coins: number; ambience?: Ambience; decorations?: DecorationId[]; equipped?: DecorationId[]; storyNight?: { outcome: 'play' | 'together' }; stories?: Partial<Record<2 | 3 | 4 | 5 | 6, { outcome: 'play' | 'together' }>> }
+export interface Save { version: 1; completed: number[]; coins: number; ambience?: Ambience; scenes?: Ambience[]; decorations?: DecorationId[]; equipped?: DecorationId[]; storyNight?: { outcome: 'play' | 'together' }; stories?: Partial<Record<2 | 3 | 4 | 5 | 6, { outcome: 'play' | 'together' }>> }
 const key = 'midnight-check-in.save.v1';
 export function readSave(): Save {
   try {
@@ -17,7 +17,8 @@ export function readSave(): Save {
         const outcome = value.stories?.[id]?.outcome;
         if ((outcome === 'play' || outcome === 'together') && save.storyNight && (id === 2 || save.stories?.[(id - 1) as 2 | 3 | 4 | 5])) save.stories = { ...save.stories, [id]: { outcome } };
       }
-      if (isAmbience(value.ambience)) save.ambience = value.ambience;
+      if (Array.isArray(value.scenes)) save.scenes = [...new Set<Ambience>(['morning', ...value.scenes.filter(isAmbience)])];
+      if (isAmbience(value.ambience) && (!save.scenes || save.scenes.includes(value.ambience))) save.ambience = value.ambience;
       return save;
     }
   } catch { /* Storage unavailable or corrupt: continue offline in memory. */ }

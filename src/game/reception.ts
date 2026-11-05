@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { Save } from '../platform/save';
 import { proportionalCrop } from './viewport';
 import { lobbyAmbience, receptionKey, type Ambience } from '../domain/ambience';
+import { drawLobbyDecorations } from './roomDecor';
 import { reducedMotion } from './art';
 
 /** Cover the physical viewport, so the illustrated furniture is never stretched. */
@@ -25,24 +26,7 @@ export function drawReception(scene: Phaser.Scene, save: Save, menuPanel = true,
     particle.setData('viewportAspect',true);
     if (!reducedMotion()) scene.tweens.add({targets:particle,x:x+9,y:Math.min(328,y+40),angle:theme==='winter'?90:35,alpha:0,duration:2400+i*90,delay:i*100,repeat:-1,ease:'Sine.easeInOut'});
   }
-  if (menuPanel) {
-    // The menu is part of the hotel wall; the artwork remains full bleed behind it.
-    const panel = scene.add.graphics();
-    panel.fillStyle(0x20172f, .84).fillRoundedRect(421, 74, 339, 393, 30);
-    panel.lineStyle(2, 0xb88b68, .7).strokeRoundedRect(425, 78, 331, 385, 27);
-    panel.lineStyle(1, 0xe4ba7d, .25).strokeRoundedRect(431, 84, 319, 373, 23);
-  }
-  if (scene.textures.exists('decor-art')) {
-    if (save.equipped?.includes('velvet-rug')) scene.add.image(244, 440, 'decor-art', 'velvet-rug').setDisplaySize(330, 85);
-    if (save.equipped?.includes('moon-lamps')) {
-      const frame = scene.textures.get('decor-art').get('moon-lamps');
-      for (const x of [48, 406]) scene.add.image(x, 386, 'decor-art', 'moon-lamps').setOrigin(.5, 1).setDisplaySize(118 * frame.width / frame.height, 118).setData('viewportAspect', true);
-    }
-    if (save.equipped?.includes('star-sign')) {
-      const frame = scene.textures.get('decor-art').get('star-sign');
-      scene.add.image(325, 126, 'decor-art', 'star-sign').setDisplaySize(180, 180 * frame.height / frame.width).setData('viewportAspect', true);
-    }
-  }
+  drawLobbyDecorations(scene,save);
   if (save.stories?.[2]) {
     for (let i = 0; i < 7; i++) {
       const light = scene.add.star(125 + i * 55, 135 + Math.sin(i) * 24, 4, 2, 5, 0xffe39a).setData('viewportAspect', true);

@@ -38,7 +38,7 @@ export function chapterUI(locale: Locale, chapter: ChapterId) {
     joining: chapter === 1 ? base.joining : chapter === 2 ? '每位住客都點亮一粒星，走廊暖返晒！' : '卷卷揮動絲帶，四位熟客都一齊跳起嚟！',
     done: chapter === 1 ? base.done : chapter === 2 ? '大廳多咗螢火迎賓燈' : '午夜舞蹈小隊成立喇！',
   };
-  return { ...base, ...extra, ...(chapter >= 4 ? seasonalCopy[locale][chapter as 4 | 5 | 6] : {}) };
+  return { ...base, ...extra, ...(chapter >= 4 ? seasonalCopy[locale][chapter as 4 | 5 | 6] : {}), chapters:locale==='en'?'Challenge map':'關卡地圖',next:locale==='en'?'Next challenge':'下一關',replay:locale==='en'?'Replay level':'再玩本關',story:locale==='en'?'Check-in challenge':'入住挑戰' };
 }
 
 const seasonalCopy = {

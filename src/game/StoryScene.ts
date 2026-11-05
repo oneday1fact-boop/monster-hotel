@@ -8,7 +8,7 @@ import type { Feedback } from '../platform/feedback';
 import { characters, conditions, saveLocale, type Locale } from '../i18n/catalog';
 import { hotelUI } from '../i18n/hotel';
 import { chapterLevels, chapterPairs, type ChapterId } from '../domain/storyChapters';
-import { showStoryBook } from './storyBook';
+import { drawRoomDecorations } from './roomDecor';
 import { seasonCinema } from './seasonCinema';
 import { chapterCinema } from './chapterCinema';
 import { chapterUI } from '../i18n/storyNight';
@@ -25,7 +25,7 @@ import { storyCinema } from './storyCinema';
 import { showDetails } from './details';
 import { settingsContent, languageContent } from './hotelMenus';
 
-interface StoryData { chapter?: ChapterId; locale: Locale; feedback: Feedback; save?: Save; onExit(save: Save, locale: Locale): void }
+interface StoryData { chapter?: ChapterId; locale: Locale; feedback: Feedback; save?: Save; onExit(save: Save, locale: Locale, destination?:'lobby'|'map'|'next'): void }
 interface Panel { x: number; y: number; width: number; height: number }
 const queue = [88, 210, 332, 454];
 export class StoryScene extends Phaser.Scene {
@@ -88,12 +88,12 @@ export class StoryScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#19152c'); document.documentElement.lang = this.locale;
     this.game.canvas.setAttribute('aria-label', `${this.t.title} · ${this.state.phase}`);
     this.ui = createStoryHUD(this.locale, this.state, this.selected, this.tool, this.focus, {
-      chapters: () => this.book(), next: () => this.changeChapter((this.chapter + 1) as ChapterId), home: () => this.exit(), language: () => this.language(), settings: () => this.settings(),
+      chapters: () => this.book(), next: () => this.exit('next'), home: () => this.exit(), language: () => this.language(), settings: () => this.settings(),
       reset: () => { this.state = { ...emptyStory(), introduced: true }; this.selected = undefined; this.tool = undefined; this.persist(); this.render(); },
       ready: () => this.ready(), guest: id => this.selectGuest(id), tool: tool => { this.tool = tool; this.selected = undefined; this.render(); this.ui?.show(`${this.t[tool]} — ${this.t.selected}`); },
       room: id => this.roomAction(id), focus: id => { this.focus = id; this.render(); }, dropTool: (tool, x, y) => this.dropTool(tool, x, y),
       choice: choice => this.choose(choice), skip: () => { if (this.choice) this.finishEvent(this.choice); else this.cinema?.skipIntro(); },
-      replay: () => { this.state.phase = storyValidation(this.state.assignment, this.state.equipment, this.chapter).valid ? 'event' : 'arranging'; this.persist(); this.render(); },
+      replay: () => { this.state={...emptyStory(),introduced:true};this.selected=undefined;this.tool=undefined;this.focus=undefined;this.persist();this.render(); },
     }, this.chapter);
     this.setBusy(false);
     if (this.state.phase === 'arranging') this.drawHotel(arriving);
@@ -102,17 +102,7 @@ export class StoryScene extends Phaser.Scene {
     if (this.storageFailed) this.ui.show(this.t.session);
     this.update();
   }
-  private changeChapter(chapter: ChapterId) {
-    if (!chapterLevels[chapter] || !storyUnlocked(this.save, chapter)) return;
-    this.persist(); this.chapter = chapter; this.state = this.drafts[chapter] ?? readStoryDraft(chapter); this.reward = 0; this.selected = undefined; this.tool = undefined; this.focus = undefined;
-    if (storyOutcome(this.save, chapter)) this.state.phase = 'settled';
-    else if (this.state.phase === 'settled') this.state.phase = 'arranging';
-    this.render();
-  }
-  private book() {
-    this.input.enabled = false; this.ui!.root.hidden = true;
-    this.modal = showStoryBook(this.locale, this.save, id => this.changeChapter(id), () => { this.modal = undefined; this.ui!.root.hidden = false; this.input.enabled = !this.busy; });
-  }
+  private book() { this.exit('map'); }
   private language() {
     this.modal?.(); this.input.enabled = false; this.ui!.root.hidden = true;
     this.modal = showDetails({ kind: 'language', title: this.locale === 'en' ? 'Language' : '語言', eyebrow: '', close: hotelUI[this.locale].back, sections: [], content: languageContent(this.locale, locale => { this.locale = locale; saveLocale(locale); this.render(); }) }, () => { this.modal = undefined; this.ui!.root.hidden = false; this.input.enabled = !this.busy; });
@@ -137,6 +127,7 @@ export class StoryScene extends Phaser.Scene {
     for (const room of level.rooms.filter(r => !this.focus || r.id === this.focus)) {
       const p = this.panel(room); const style = roomStyle(room); const theme = chapterAmbience(this.chapter); const key = style === 'elegant' && theme !== 'night' ? `room-elegant-${theme}` : style === 'linen' && (theme === 'autumn' || theme === 'winter') ? `room-linen-${theme}` : `room-${style}`;
       this.add.image(p.x, p.y, key, this.frame(key, p.width, p.height)).setDisplaySize(p.width, p.height).setData('storyPanel', { key, width: p.width, height: p.height });
+      drawRoomDecorations(this,this.save,p);
       this.add.zone(p.x, p.y, p.width, p.height).setRectangleDropZone(p.width, p.height).setData('room', room.id).on('pointerdown', () => this.roomAction(room.id));
       const icons = roomConditions(room); icons.forEach((condition, i) => {
         this.add.rectangle(p.x - p.width / 2 + 25 + i * 27, p.y + p.height / 2 - 14, 24, 24, 0x2b1c34, .8);
@@ -219,8 +210,8 @@ export class StoryScene extends Phaser.Scene {
     const mummy = drawMonster(this, 345, 350, chapterLevels[this.chapter].guests.find(g => g.id === chapterPairs[this.chapter][1])!).setScale(1.05).setData('viewportAspect', true); (mummy.getData('setPose') as (p: number) => void)?.(3);
     this.ui?.ending(this.reward, chapterBonds(this.save, this.chapter), this.reward === 0); this.setBusy(false);
   }
-  private exit() {
+  private exit(destination:'lobby'|'map'|'next'='lobby') {
     this.persist(); this.ui?.destroy(); this.ui = undefined; this.modal?.(); this.modal = undefined;
-    const save = this.save; const locale = this.locale; this.scene.stop('story'); this.onExit(save, locale);
+    const save = this.save; const locale = this.locale; this.scene.stop('story'); this.onExit(save, locale, destination);
   }
 }

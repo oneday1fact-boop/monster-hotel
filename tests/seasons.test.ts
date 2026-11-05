@@ -24,7 +24,7 @@ it('has playable seasonal puzzles and a genuine daytime moon-lamp requirement',(
 });
 it('maps story weather separately from the player’s saved lobby preference',()=>{
  expect([1,2,3,4,5,6].map(chapterAmbience)).toEqual(['night','night','night','autumn','morning','winter']);
- expect(lobbyAmbience({})).toBe('night');expect(lobbyAmbience({stories:{5:{outcome:'play'}}})).toBe('morning');expect(lobbyAmbience({ambience:'autumn',stories:{6:{}}})).toBe('autumn');
+ expect(lobbyAmbience({})).toBe('morning');expect(lobbyAmbience({stories:{5:{outcome:'play'}}})).toBe('morning');expect(lobbyAmbience({ambience:'autumn',stories:{6:{}}})).toBe('autumn');
  for(const ambience of ambiences){vi.stubGlobal('localStorage',{getItem:()=>JSON.stringify({version:1,completed:[1],coins:75,ambience})});expect(readSave()).toMatchObject({completed:[1],coins:75,ambience});}
  vi.stubGlobal('localStorage',{getItem:()=>JSON.stringify({version:1,completed:[],coins:0,ambience:'bad'})});expect(readSave().ambience).toBeUndefined();
 });
