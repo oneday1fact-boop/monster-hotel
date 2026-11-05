@@ -61,10 +61,12 @@ export class HotelScene extends Phaser.Scene {
   private get t() { return ui[this.locale]; }
   constructor() { super('hotel'); }
   preload() {
+    this.game.canvas.setAttribute('aria-busy','true');
     this.text(422, 230, this.locale === 'en' ? 'Lighting the hotel…' : '正在點亮旅館…', 24);
     for (const [condition, symbol] of Object.entries({ moonlight: 'moon', quiet: 'quiet', warm: 'flame', dry: 'sun' } as const)) {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
+    this.load.image('episode-props','/art/episode-props.png');
     this.load.image('decor-more','/art/decor-more.png');
     this.load.image('decor-art', '/art/decorations.png');
     this.load.image('ui-gold-button', '/art/ui/gold-button.png');
@@ -173,7 +175,7 @@ export class HotelScene extends Phaser.Scene {
   private launchChallenge(node:Challenge) {
     if(!challengeUnlocked(this.save,node.id))return;this.game.canvas.dataset.challenge=node.id;this.dismissDetails?.();this.dismissDetails=undefined;
     if(node.kind==='puzzle'){this.startNight(node.puzzle);return;}
-    this.hud?.visible(false);this.scene.launch('story',{chapter:node.chapter,locale:this.locale,feedback:this.feedback,save:this.save,onExit:(save:Save,locale:Locale,destination='lobby')=>{
+    this.hud?.visible(false);this.scene.launch('episode',{episode:node.episode,locale:this.locale,feedback:this.feedback,save:this.save,onExit:(save:Save,locale:Locale,destination='lobby')=>{
       this.scene.wake('hotel');this.save=save;this.locale=locale;
       if(destination==='next'){const next=afterChallenge(node.id);if(next){this.launchChallenge(next);return;}}
       if(destination==='map'){this.lobby();this.selection();}else this.lobby();
@@ -209,6 +211,7 @@ export class HotelScene extends Phaser.Scene {
     frame.fillStyle(0x3d2a43).fillRect(406, 56, 32, 324).fillRect(0, 216, 844, 4);
     frame.lineStyle(2, 0xb28c72);
     for (let y = 88; y < 337; y += 17) frame.lineBetween(413, y, 431, y - 10);
+    const wishes=document.createElement('div');wishes.className='classic-wishes';wishes.setAttribute('aria-label',this.locale==='en'?'Tap a guest, then a room':'點住客，再點房間');for(const label of (this.locale==='en'?['Luno: moonlight','Dou: quiet','Ember: warm','Rollo: dry']:['月毛要月光','豆豆要安靜','燈燈要溫暖','卷卷要乾爽'])){const tag=document.createElement('span');tag.textContent=label;wishes.append(tag);}this.hud?.append(wishes);
     const selection = this.add.ellipse(0, 0, 76, 72).setStrokeStyle(2, C.gold, .8).setVisible(false).setDepth(5).setData('viewportAspect', true);
     const bindGuest = (avatar: Phaser.GameObjects.Container, guest: Guest) => {
       avatar.setInteractive({ useHandCursor: true }).setData('guest', guest.id); this.input.setDraggable(avatar);
@@ -231,6 +234,8 @@ export class HotelScene extends Phaser.Scene {
       if (this.textures.exists(roomKey)) this.add.image(p.x, p.y, roomKey, roomFrame(this, roomKey)).setDisplaySize(roomWidth, roomHeight).setData('roomPanel', roomKey);
       drawRoomDecorations(this,this.save,{x:p.x,y:p.y,width:roomWidth,height:roomHeight});
       drawRoomLife(this, room);
+      this.add.rectangle(p.x,p.y-54,154,24,0x28152e,.86);
+      this.text(p.x,p.y-54,roomConditions(room).map(c=>conditions[this.locale][c].name).join(' · '),15,'#fff0c6');
       this.add.rectangle(p.x - 174, p.y - 54, 54, 23, 0x34243e, .85).setStrokeStyle(1, 0xc89d6e);
       this.add.rectangle(p.x - 142, p.y + 56, 118, 22, 0x251c32, .75);
       const drop = this.add.zone(p.x, p.y, roomWidth, roomHeight).setRectangleDropZone(roomWidth, roomHeight).setData('room', room.id);

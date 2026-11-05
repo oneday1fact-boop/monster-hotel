@@ -16,15 +16,13 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
-## Version 1.3: one growing puzzle route
+## Version 1.4: different stories and mechanics
 
-The spring-morning cover opens a full-bleed lobby with standalone game buttons. **Puzzle challenges / 解謎挑戰** now includes the guest encounters in the main progression. There is no separate story menu and no fixed-night limit in the interface. The current 26 stages combine 20 uniquely solvable handcrafted classic puzzles with six playable encounter puzzles and their two event choices. New arrivals include Yuzu the fox spirit and Nemu the baku.
+The active route now has four stages: **missing birthday cake** (investigate three clues and make an evidence-based accusation), **runaway luggage** (slide furniture into adjacent empty tiles and clear a path), **dream door** (change objects across waking/dream worlds), and exactly one classic room-assignment puzzle. Each episode has its own objective, interaction system, feedback and ending. Future stages should vary mechanics, not repeat the same four-room match with different dialogue.
 
-Assign four waiting guests to the four distinct rooms by tapping or dragging. Classic guests require moonlight, quiet, warmth or dry air; extra logical clues constrain floor, neighbors and exclusions. Progressive hints explain the method without moving guests. Encounters add curtain/moon-lamp supplies and small character events. Rewards are issued only on first completion. Old saves retain completed puzzle IDs, encounter outcomes, coins, owned decorations and drafts.
+Goals and controls remain visible throughout play. Classic guest wishes are written directly above the queue and room conditions are written inside each room; biographies are optional. All three new episodes save partial progress locally. First episode completion awards 500 coins once; the classic stage awards 50 once. The 1,550-coin route can fund all 1,420 coins of cosmetics. Previous version-1 completed IDs, story outcomes, coins and purchases remain compatible. Old repeated stages are archived in source and saves, not listed in the active route.
 
-**Hotel boutique / 布置商店** sells six cosmetic decoration sets and permanent scenery. Every decoration appears in all four rooms and the lobby. Large heart carpets, moon lanterns, star garlands, rose curtains, flower boxes and tea carts have actual four-room before/after previews. Preview and cancel never charge coins. Owned items can be put away or redisplayed without paying again. Scenery costs: spring morning included; midnight 120, autumn 150, winter 200. Previously selected scenery is retained for legacy saves. Story weather is temporary narrative staging and never blocks the puzzle route.
-
-The current route awards 1,455 coins total on first completion. All six sets and three paid scenes cost 1,420 together. No purchases, ads or real money are needed. Settings independently save music, sound and haptics; English and Traditional Chinese are available offline. All menus fit fixed screens, with explicit page buttons for inventory, levels and long descriptions. No scrolling is required.
+The spring-morning cover, standalone lobby buttons, permanent coin-purchased scenery and six visible decoration sets remain. Shop previews never charge until confirmation. Settings, inventory, stage selection and descriptions use fixed pages without scrolling. English and Traditional Chinese, local audio/haptics and all art work offline.
 
 ## Android development build
 
@@ -39,11 +37,12 @@ Output: `artifacts/monster-hotel-midnight-check-in-debug.apk`. This is a sideloa
 
 ## Architecture
 
-- `src/domain/puzzle.ts`, `levels.ts`, `rules.ts`: pure constraints, solver and handcrafted classic puzzles.
-- `src/domain/campaign.ts`: stable unified route IDs, unlocks and progress; new classic puzzles append automatically.
+- `src/domain/puzzle.ts`, `levels.ts`, `rules.ts`: pure constraints, solver and archived classic puzzles.
+- `src/domain/campaign.ts`: active four-stage route, compatible IDs, unlocks and one-time rewards.
+- `src/domain/episodes.ts`, `src/game/EpisodeScene.ts`: pure new puzzle systems and their illustrated renderer.
 - `src/domain/storyNight.ts`, `storyChapters.ts`: encounter drafts, supply rules, endings and one-time rewards.
 - `src/domain/decorations.ts`, `sceneryShop.ts`: offline cosmetic ownership, transactions and legacy migration.
-- `src/game/HotelScene.ts`, `StoryScene.ts`: classic and encounter renderers behind one navigation route.
+- `src/game/HotelScene.ts`, `StoryScene.ts`: legacy renderers; only the first classic puzzle is in active navigation.
 - `src/game/challengeSelection.ts`, `hotelMenus.ts`, `details.ts`: fullscreen fixed-page accessible interfaces.
 - `src/game/roomDecor.ts`: shared room/lobby prop placement used by gameplay and actual previews.
 - `src/platform/`: additive version-1 saves, preferences, audio/haptics and inactive future ad-provider boundary.
@@ -51,8 +50,8 @@ Output: `artifacts/monster-hotel-midnight-check-in-debug.apk`. This is a sideloa
 
 ## Verification and review
 
-Verified: 123 unit checks and 25 browser scenarios pass, production build and Android debug build succeed. Run `npm test`, `npm run build` and `npm run test:browser`. Browser coverage has been migrated from the removed storybook/free-scenery interfaces to the integrated route, all stages and both endings, paid scenery, decoration preview/transactions, multiple screen sizes, settings, storage failure, density, dragging, tutorial and looping activities. Device performance and native haptics still require physical Android testing. Phaser’s production bundle produces a size warning; it is bundled offline.
+Verified: 125 unit checks and 21 browser scenarios pass; final text-position and map bounds checks also pass. Run `npm test`, `npm run build` and `npm run test:browser`. New browser coverage plays the entire different-mechanics route, validates evidence, illegal furniture moves, cross-world causality, saved drafts, bilingual UI, offline/storage failure and one-time rewards. It checks visible content bounds on 844×480, 915×412, 640×320 and portrait fallback screens; classic motion, drag, tutorial and font regressions remain covered. Device performance and native haptics still require physical Android testing. Phaser’s production bundle produces a size warning; it is bundled offline.
 
-With a game server on port 5175, run `node scripts/record-unified.cjs` to produce real in-game PNG screenshots plus H.264 MP4 and animated GIF review files under `artifacts/`. Recording requires Chromium, Playwright’s FFmpeg support and system ffmpeg. The shop recording uses a documented test wallet, not extra in-game currency for players.
+With a game server on port 5175, run `node scripts/record-episodes.cjs` to produce real in-game PNG screenshots plus H.264 MP4 and animated GIF review files under `artifacts/`. Recording requires Chromium, Playwright’s FFmpeg support and system ffmpeg. The episode recording starts from a fresh save.
 
-Older milestone documents are historical; the current behavior above and [version 1.3 notes](docs/unified-challenges.zh-Hant.md) supersede the former separate storybook and free scenery selection.
+See [new mechanics and visible instructions](docs/distinct-episodes.zh-Hant.md). Older milestone documents are historical; the current behavior above and [version 1.3 notes](docs/unified-challenges.zh-Hant.md) supersede the former separate storybook and free scenery selection.

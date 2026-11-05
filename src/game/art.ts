@@ -53,6 +53,11 @@ export function registerArt(scene: Phaser.Scene) {
     const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;const context=canvas.getContext('2d',{willReadFrequently:true})!;context.drawImage(source.image as HTMLImageElement,0,0);const pixels=context.getImageData(0,0,source.width,source.height).data;
     ['velvet-rug','rose-curtains','flower-box','tea-corner'].forEach((id,i)=>{if(texture.has(id))return;const left=i%2*w,top=Math.floor(i/2)*h;let x0=w,y0=h,x1=0,y1=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(pixels[((top+y)*source.width+left+x)*4+3]>128){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}texture.add(id,0,left+x0,top+y0,x1-x0+1,y1-y0+1);});
   }
+  if (scene.textures.exists('episode-props')) {
+    const texture=scene.textures.get('episode-props');const source=texture.source[0];const w=Math.floor(source.width/2),h=Math.floor(source.height/2);
+    const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;const context=canvas.getContext('2d',{willReadFrequently:true})!;context.drawImage(source.image as HTMLImageElement,0,0);const pixels=context.getImageData(0,0,source.width,source.height).data;
+    ['suitcase','cake','vine','key'].forEach((id,i)=>{if(texture.has(id))return;const left=i%2*w,top=Math.floor(i/2)*h;let x0=w,y0=h,x1=0,y1=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(pixels[((top+y)*source.width+left+x)*4+3]>128){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}texture.add(id,0,left+x0,top+y0,x1-x0+1,y1-y0+1);});
+  }
   for (const style of ['elegant', 'linen', 'basement', 'hearth']) {
     const key = `room-${style}`; if (scene.textures.exists(key)) roomFrame(scene, key);
   }

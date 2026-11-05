@@ -1,28 +1,37 @@
-import {afterEach,expect,it,vi} from 'vitest';
-import {challenges,challengeComplete,challengeUnlocked,nextChallenge,afterChallenge,challengeProgress} from '../src/domain/campaign';
-import {settleStory} from '../src/domain/storyNight';
-import {complete,readSave,type Save} from '../src/platform/save';
-import {buyScene,ownedScenes,scenePrices} from '../src/domain/sceneryShop';
-import {decorations,purchase} from '../src/domain/decorations';
-afterEach(()=>vi.unstubAllGlobals());
-it('one growing route contains every existing puzzle and guest encounter with stable IDs',()=>{
- expect(challenges).toHaveLength(26);expect(new Set(challenges.map(n=>n.id)).size).toBe(challenges.length);expect(challenges.filter(n=>n.kind==='puzzle')).toHaveLength(20);expect(challenges.filter(n=>n.kind==='encounter')).toHaveLength(6);
- expect(challenges[0].id).toBe('encounter-1');expect(afterChallenge('puzzle-2')?.id).toBe('encounter-2');expect(afterChallenge('encounter-6')?.id).toBe('puzzle-17');
-});
-it('unlocks the entire integrated route and awards exactly once without creating a second wallet',()=>{
- vi.stubGlobal('localStorage',{setItem:()=>{}});let save:Save={version:1,coins:0,completed:[]};
- for(const node of challenges){expect(nextChallenge(save).id).toBe(node.id);expect(challengeUnlocked(save,node.id)).toBe(true);save=node.kind==='puzzle'?complete(save,node.puzzle):settleStory(save,'together',node.chapter).save;expect(challengeComplete(save,node)).toBe(true);const again=node.kind==='puzzle'?complete(save,node.puzzle):settleStory(save,'play',node.chapter).save;expect(again.coins).toBe(save.coins);}
- expect(save.coins).toBe(1455);expect(challengeProgress(save)).toBe(26);expect(challengeUnlocked(save,'unknown')).toBe(false);
-});
-it('retains completed legacy content as replayable even when the route now includes intervening encounters',()=>{
- const old:Save={version:1,coins:999,completed:[1,2,20],storyNight:{outcome:'play'},stories:{2:{outcome:'together'}}};expect(challengeUnlocked(old,'puzzle-20')).toBe(true);expect(challengeUnlocked(old,'puzzle-3')).toBe(true);expect(challengeUnlocked(old,'encounter-4')).toBe(false);expect(nextChallenge(old).id).toBe('puzzle-3');expect(old.coins).toBe(999);
-});
-it('sells scenes once and keeps old selected scenery without retroactive charges',()=>{
- const old:Save={version:1,coins:250,completed:[1],ambience:'winter'};expect(ownedScenes(old)).toEqual(['morning','winter']);const r=buyScene(old,'autumn');expect(r.wallet.coins).toBe(100);expect(ownedScenes(r.wallet)).toContain('winter');expect(buyScene(r.wallet,'autumn').wallet.coins).toBe(100);expect(buyScene(r.wallet,'night').status).toBe('insufficient');expect(old.coins).toBe(250);
- vi.stubGlobal('localStorage',{getItem:()=>JSON.stringify({...old,scenes:['morning'],ambience:'night'})});expect(readSave().ambience).toBeUndefined();
-});
-it('offers a real included spring scene and an affordable complete decoration/scenery collection',()=>{
- let save:Save={version:1,completed:[],coins:1455};expect(ownedScenes(save)).toEqual(['morning']);expect(buyScene(save,'morning').wallet.coins).toBe(1455);
- for(const item of decorations)save=purchase(save,item.id).wallet;for(const theme of ['night','autumn','winter'] as const)save=buyScene(save,theme).wallet;
- expect(save.coins).toBe(35);expect(save.decorations).toHaveLength(6);expect(save.scenes).toHaveLength(4);expect(scenePrices.morning).toBe(0);
-});
+import { afterEach, expect, it, vi } from 'vitest';
+import { challenges, challengeComplete, challengeUnlocked, nextChallenge, afterChallenge, challengeProgress, completeEpisode } from '../src/domain/campaign';
+import { episodeIds, accusation, initialFurniture, moveFurniture, luggagePath, emptyDream, dreamAction, evidenceIds } from '../src/domain/episodes';
+import { complete, readSave, type Save } from '../src/platform/save';
+import { buyScene, ownedScenes } from '../src/domain/sceneryShop';
+import { decorations, purchase } from '../src/domain/decorations';
+afterEach(() => vi.unstubAllGlobals());
+it('keeps exactly one room-assignment puzzle and three genuinely different episode types', () => { expect(challenges.map(n => n.id)).toEqual([...episodeIds, 'puzzle-1']); expect(afterChallenge('dream-door')?.id).toBe('puzzle-1'); expect(afterChallenge('unknown')).toBeUndefined(); });
+it('new progression awards once and retains all legacy achievements and coins', () => { vi.stubGlobal('localStorage', { setItem: () => { } }); let save: Save = { version: 1, completed: [1, 2, 20], coins: 999, storyNight: { outcome: 'play' } }; for (const id of episodeIds) {
+    expect(nextChallenge(save).id).toBe(id);
+    expect(challengeUnlocked(save, id)).toBe(true);
+    save = completeEpisode(save, id).save;
+    expect(completeEpisode(save, id).reward).toBe(0);
+} expect(save.completed).toEqual([1, 2, 20]); expect(save.coins).toBe(2499); expect(challengeProgress(save)).toBe(4); expect(challengeUnlocked(save, 'puzzle-20')).toBe(false); expect(complete(save, 1).coins).toBe(2499); });
+it('locks future episodes and filters unknown saved IDs', () => { const save: Save = { version: 1, completed: [], coins: 0 }; expect(completeEpisode(save, 'dream-door').reward).toBe(0); vi.stubGlobal('localStorage', { getItem: () => JSON.stringify({ ...save, episodes: ['cake-case', 'unknown', 'cake-case'], completed: [1, 20] }) }); expect(readSave()).toMatchObject({ episodes: ['cake-case'], completed: [1, 20] }); });
+it('requires all evidence and the supported suspect; evidence order is free', () => { expect(accusation(['footprints'], 'rollo')).toBe(false); expect(accusation(evidenceIds, 'yuzu')).toBe(false); expect(accusation([...evidenceIds].reverse(), 'rollo')).toBe(true); });
+it('furniture obeys adjacency and occupancy and the puzzle has a reachable solution', () => { expect(luggagePath(initialFurniture)).toEqual([]); expect(moveFurniture(initialFurniture, 1, 4)).toEqual(initialFurniture); expect(moveFurniture(initialFurniture, 1, 2)).toEqual(initialFurniture); const queue = [initialFurniture], seen = new Set<string>(); let solution: number[] = []; while (queue.length) {
+    const state = queue.shift()!, key = [...state].sort((a, b) => a - b).join();
+    if (seen.has(key))
+        continue;
+    seen.add(key);
+    if (luggagePath(state).length) {
+        solution = state;
+        break;
+    }
+    for (const from of state)
+        for (let to = 0; to < 12; to++) {
+            const next = moveFurniture(state, from, to);
+            if (next.some((x, i) => x !== state[i]))
+                queue.push(next);
+        }
+} expect(solution.length).toBe(3); const path = luggagePath(solution); expect(path[0]).toBe(0); expect(path.at(-1)).toBe(11); });
+it('dream objects require cross-world causality, not just tapping every button', () => { let s = emptyDream(); expect(dreamAction(s, 'door').open).toBe(false); expect(dreamAction(s, 'water').grown).toBe(false); s = dreamAction(s, 'seed'); s = dreamAction(s, 'switch'); expect(dreamAction(s, 'key').key).toBe(false); s = dreamAction(s, 'water'); s = dreamAction(s, 'switch'); s = dreamAction(s, 'key'); expect(dreamAction(s, 'door').open).toBe(false); s = dreamAction(s, 'switch'); s = dreamAction(s, 'door'); expect(s.open).toBe(true); });
+it('new first rewards can fund all cosmetics and legacy scenery stays owned', () => { let s: Save = { version: 1, completed: [], coins: 0 }; for (const id of episodeIds)
+    s = completeEpisode(s, id).save; for (const item of decorations)
+    s = purchase(s, item.id).wallet; for (const scene of ['night', 'autumn', 'winter'] as const)
+    s = buyScene(s, scene).wallet; expect(s.coins).toBe(80); expect(ownedScenes({ coins: 0, ambience: 'winter' })).toContain('winter'); });

@@ -14,7 +14,7 @@
     "test:browser": "playwright test",
     "android:apk": "bash scripts/build-android.sh",
     "android:setup:cloud": "bash scripts/setup-android-cloud.sh",
-    "review:record": "node scripts/record-review.cjs",
+    "review:record": "node scripts/record-episodes.cjs",
     "android:aab": "bash scripts/build-play-bundle.sh",
     "android:bundle:check": "bash scripts/build-play-bundle.sh --unsigned-check"
   },

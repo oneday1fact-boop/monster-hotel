@@ -1,6 +1,3 @@
-Monster Hotel: Midnight Check-in — Internal test 1.1
-• Full-screen landscape hotel with four original guests and distinct rooms.
-• Three guest stories with room puzzles, animated events and two endings each.
-• Twenty puzzle challenges, offline saves, coins and lobby decoration previews.
-• English/Traditional Chinese, audio and haptic settings.
-• Please report installation, image quality, touch input, audio and performance issues.
+Three distinct puzzles: investigate a missing cake, move furniture to guide luggage, and connect reality with dreams.
+The route keeps one classic room puzzle, with visible goals, controls and guest wishes.
+Preserves existing coins, achievements and cosmetics, with saved episode drafts.

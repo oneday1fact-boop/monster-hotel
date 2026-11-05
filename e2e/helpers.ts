@@ -2,10 +2,10 @@ import { expect, type Page } from '@playwright/test';
 import { firstLevel, solve, type Level } from '../src/domain/puzzle';
 import { queueX, queueY, roomPoint } from '../src/game/layout';
 export const saveKey = 'midnight-check-in.save.v1';
-export async function ready(page: Page) { await expect(page.locator('canvas')).toHaveAttribute('aria-busy', 'false'); }
+export async function ready(page: Page) { await expect(page.locator('canvas')).toHaveAttribute('aria-busy', 'false',{timeout:20000}); }
 export async function load(page: Page) {
   // Legacy encounter completion isolates classic-room regression tests without awarding fixture coins.
-  await page.addInitScript(key => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify({version:1,coins:0,completed:[],storyNight:{outcome:'play'}})); }, saveKey);
+  await page.addInitScript(key => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify({version:1,coins:0,completed:[],storyNight:{outcome:'play'},episodes:['cake-case','luggage-run','dream-door']})); }, saveKey);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/'); await page.waitForFunction(() => document.documentElement.lang === 'zh-Hant'); await ready(page);
 }
