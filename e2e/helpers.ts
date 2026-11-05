@@ -10,7 +10,7 @@ export async function load(page: Page) {
   await page.goto('/'); await page.waitForFunction(() => document.documentElement.lang === 'zh-Hant'); await ready(page);
 }
 export async function enter(page: Page, id = 1) {
-  await page.mouse.click(590, 330); await page.locator('[data-action=challenges]').click(); await page.locator(`[data-puzzle="${id}"]`).click(); await ready(page);
+  await page.mouse.click(590, 330); await page.locator('[data-action=challenges]').click(); await page.locator(`[data-puzzle="${id}"]`).click(); if(await page.locator('[data-action=welcome-guests]').isVisible())await page.locator('[data-action=welcome-guests]').click(); await ready(page);
 }
 export async function assign(page: Page, index: number, level: Level = firstLevel, roomId?: string) {
   const target = roomId ?? solve(level)[0][level.guests[index].id];

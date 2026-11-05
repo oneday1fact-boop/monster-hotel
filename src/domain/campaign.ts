@@ -13,7 +13,7 @@ export type Challenge = {
     puzzle: number;
 };
 // Previous puzzles/outcomes remain in the save, but repetitive stages leave the active route.
-export const challenges: readonly Challenge[] = [...episodeIds.map(episode => ({ id: episode, kind: 'episode' as const, episode })), { id: 'puzzle-1', kind: 'puzzle', puzzle: 1 }];
+export const challenges: readonly Challenge[] = [{ id: 'puzzle-1', kind: 'puzzle', puzzle: 1 }, ...episodeIds.map(episode => ({ id: episode, kind: 'episode' as const, episode }))];
 export function challengeComplete(save: Save, node: Challenge) { return node.kind === 'puzzle' ? save.completed.includes(node.puzzle) : !!save.episodes?.includes(node.episode); }
 export function challengeUnlocked(save: Save, id: string) { const i = challenges.findIndex(n => n.id === id); return i >= 0 && (challengeComplete(save, challenges[i]) || challenges.slice(0, i).every(n => challengeComplete(save, n))); }
 export function nextChallenge(save: Save) { return challenges.find(n => !challengeComplete(save, n)) ?? challenges.at(-1)!; }

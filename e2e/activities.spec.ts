@@ -4,7 +4,8 @@ import { residentPoint } from '../src/game/layout';
 import { load, enter, assign, saved } from './helpers';
 
 test('all four residents keep performing their activities across a complete cycle', async ({ page }) => {
-  test.setTimeout(45_000);
+  // Include startup, guest introduction and software-rendered screenshots across full motion cycles.
+  test.setTimeout(90_000);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await load(page); await enter(page);
   for (let i = 0; i < 4; i++) await assign(page, i);

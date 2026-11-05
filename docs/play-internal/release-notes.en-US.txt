@@ -1,3 +1,4 @@
-Three distinct puzzles: investigate a missing cake, move furniture to guide luggage, and connect reality with dreams.
-The route keeps one classic room puzzle, with visible goals, controls and guest wishes.
-Preserves existing coins, achievements and cosmetics, with saved episode drafts.
+Room assignment opens the game with a welcome for four guests.
+Visible physical clues and matching evidence thumbnails in the cake case.
+One-gap sliding roads for luggage; paired-picture spot-the-differences for dreams.
+Preserves existing coins, cosmetics and achievements.

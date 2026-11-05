@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {arrivalIntroduction} from './arrivalIntro';
 import { displayDensity } from './display';
 import { drawToyBasket } from './storyProps';
 
@@ -66,6 +67,7 @@ export class HotelScene extends Phaser.Scene {
     for (const [condition, symbol] of Object.entries({ moonlight: 'moon', quiet: 'quiet', warm: 'flame', dry: 'sun' } as const)) {
       this.load.svg(`condition-${condition}`, `data:image/svg+xml;base64,${btoa(svgMarkup(symbol).replaceAll('currentColor', '#ffe3a4'))}`);
     }
+    this.load.image('evidence-props','/art/evidence-props.png');
     this.load.image('episode-props','/art/episode-props.png');
     this.load.image('decor-more','/art/decor-more.png');
     this.load.image('decor-art', '/art/decorations.png');
@@ -188,7 +190,8 @@ export class HotelScene extends Phaser.Scene {
   private startNight(id: number) {
     if (!challengeUnlocked(this.save,`puzzle-${id}`)) return;
     const level = levels.find(l => l.id === id); if (!level) return;
-    this.level = level; this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.queueArrival = true; this.play();
+    this.level = level; this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.queueArrival = true;
+    if(id===1&&!this.save.completed.includes(1)){this.lobby();this.input.enabled=false;this.hud?.visible(false);this.dismissDetails=showDetails({kind:'card',title:this.locale==='en'?'The hotel’s opening night':'旅館開門第一晚',eyebrow:'',close:this.locale==='en'?'Back':'返回',sections:[],content:arrivalIntroduction(this.locale,()=>{this.dismissDetails?.();this.dismissDetails=undefined;this.play();})},()=>{this.lobby();this.selection();});return;}this.play();
   }
   private monster(x: number, y: number, guest: Guest, activity: 'queue' | 'room' = 'queue') {
     return drawMonster(this, x, y, guest, activity).setData('viewportAspect', true);

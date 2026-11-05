@@ -2,7 +2,7 @@
 
 用戶已授權上傳至內部測試；未授權公開上架。現時尚未上傳：此工作階段沒有 Play Console 工具、已就緒的 Play 發佈身分或上傳金鑰。
 
-目前 applicationId 為 `com.midnightcheckin.monsterhotel`，版本名稱 1.4，預設 versionCode 5。必須先核對擁有者的 Play 應用及最高已用 versionCode；既有應用不可任意更換 applicationId 或 upload key。
+目前 applicationId 為 `com.midnightcheckin.monsterhotel`，版本名稱 1.5，預設 versionCode 6。必須先核對擁有者的 Play 應用及最高已用 versionCode；既有應用不可任意更換 applicationId 或 upload key。
 
 ## 已準備
 
@@ -20,7 +20,7 @@
 - `MONSTER_UPLOAD_KEY_ALIAS`
 - `MONSTER_UPLOAD_KEY_PASSWORD`
 - `MONSTER_VERSION_CODE`：可選，必須高於 Play 已用版本碼。
-- `MONSTER_VERSION_NAME`：可選，預設 1.4。
+- `MONSTER_VERSION_NAME`：可選，預設 1.5。
 
 執行 `npm run android:aab`，取得 `artifacts/monster-hotel-internal-release.aab` 及校驗碼。上傳前須確認憑證符合該 Play 應用登記的 upload certificate。
 
