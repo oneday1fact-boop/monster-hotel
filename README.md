@@ -109,3 +109,7 @@ The renderer now uses up to three device pixels per CSS pixel, tightly framed gu
 ## Expanded hotel and follow-up stories
 
 The lobby storybook now contains three playable stories with separate drafts, sequential unlocks and one-time rewards. Lobby decorations have actual in-hotel previews before purchase. The hotel fills more of the viewport; high-resolution action art is used even while guests idle, with up to 3× device-pixel rendering and bundled playful numerals. See [全螢幕酒店與三晚故事](docs/expanded-hotel-stories.zh-Hant.md) for scope, saves, solutions and actual gameplay previews.
+
+## Google Play internal testing preparation
+
+Internal testing is now authorized. `npm run android:bundle:check` verifies an explicitly unsigned release AAB; `npm run android:aab` requires owner-managed signing configuration and verifies the signed bundle. No Play upload has occurred: the owner still needs to create the Play app and establish a secure upload key and authorized account access. See [Google Play 內部測試準備](docs/play-internal/README.zh-Hant.md).

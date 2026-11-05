@@ -9,3 +9,9 @@ android/app/build/
 playwright-report/
 test-results/
 artifacts/
+
+# Owner-managed publishing credentials
+.env.release
+.env.release.*
+*service-account*.json
+play-credentials*.json
