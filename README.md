@@ -16,6 +16,12 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.17: warm original bear art and three chapter designs
+
+Replace the flat bear sprite with a high-resolution transparent amber-gold original teddy, retaining its cream muzzle, stitched belly, honey crock and bee. The image service rejected the Disney-lookalike request; this accepted original design must not be presented as that likeness or as cleared for worldwide commercial use. Single-sprite CSS sizing keeps the complete character visible on cover, lobby, gameplay and completion; continuous motion and reduced motion are preserved.
+
+The three [afternoon-tea chapter designs](docs/pooh-next-three.zh-Hant.md) are **not playable in this APK**: honey-pot pushing (paper board BFS-verified at thirteen walk/push steps), shadow theatre and pillow bounce. Projection and physics layouts still require implementation and playtesting. Existing clock difficulty, route, saved achievements, prices and rewards are unchanged. Android 1.17 / versionCode 18.
+
 ## Version 1.16: Winnie-the-Pooh replaces Grin
 
 The new guest is now Winnie-the-Pooh / 維尼 throughout the arrival introduction, clock game, completion, animated cover and lobby. Newly drawn honey-brown teddy artwork has no clothing, a stitched belly and a blue-grey honey pot. The story centres on quiet clocks and afternoon tea. See [source and territory notes](docs/public-domain-guests.zh-Hant.md): removing a red shirt alone is not a global copyright clearance.
