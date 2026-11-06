@@ -1,5 +1,5 @@
 import { isAmbience, type Ambience } from './ambience';
-export const scenePrices:Record<Ambience,number>={morning:0,night:120,autumn:150,winter:200};
+export const scenePrices:Record<Ambience,number>={morning:0,night:1600,autumn:2200,winter:2800};
 export interface SceneWallet {coins:number;ambience?:Ambience;scenes?:Ambience[]}
 /** Preserve only a legacy player's currently selected free scenery, never charge retroactively. */
 export function ownedScenes(wallet:SceneWallet):Ambience[]{return [...new Set<Ambience>(['morning',...(wallet.scenes??(isAmbience(wallet.ambience)?[wallet.ambience]:[]))])];}

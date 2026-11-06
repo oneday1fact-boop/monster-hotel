@@ -1,7 +1,9 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './browser';
+import { echoRounds } from '../src/domain/liveGames';
+import { roadReviewSolution } from '../src/domain/episodes';
 import { ready, saved, saveKey, assign } from './helpers';
 const episodes = ['cake-case', 'luggage-run', 'dream-door', 'lift-balance', 'moon-mirrors', 'gift-box', 'midnight-knock', 'spring-pipes', 'lost-letters'];
-const roadMoves = [15, 11, 7, 6, 10, 14, 13, 12, 8, 4, 0, 1, 5, 9, 13, 14];
+const roadMoves=roadReviewSolution;
 const caseSave = { version: 1, coins: 50, completed: [1] };
 async function boot(p: Page, seed: object | null = caseSave) {
     if (seed)
@@ -13,7 +15,7 @@ async function boot(p: Page, seed: object | null = caseSave) {
     await p.goto('/');
     await ready(p);
 }
-async function lobby(p: Page) { const s = p.viewportSize()!; await p.mouse.click(590 * s.width / 844, 330 * s.height / 480); await expect(p.locator('.lobby-menu')).toBeVisible(); }
+async function lobby(p: Page) { const s = p.viewportSize()!; await p.mouse.click(650 * s.width / 844, 365 * s.height / 480); await expect(p.locator('.lobby-menu')).toBeVisible(); }
 async function choose(p: Page, id: string) {
     const target = p.locator(`.challenge-node[data-challenge="${id}"]`);
     const wanted = Math.floor(['puzzle-1', ...episodes].indexOf(id) / 4);
@@ -94,13 +96,7 @@ async function solve(p: Page, id: string) {
                 await p.locator(`[data-pipe="${i}"]`).click();
         await p.locator('[data-action=check-pipes]').click();
     }
-    else {
-        for (const [letter, guest] of [['violet', 'ember'], ['moon', 'luno'], ['flower', 'nemu'], ['mint', 'yuzu']]) {
-            await p.locator(`[data-letter=${letter}]`).click();
-            await p.locator(`[data-mailbox=${guest}]`).click();
-        }
-        await p.locator('[data-action=check-mail]').click();
-    }
+    else {for(const notes of echoRounds){await p.locator('[data-action=play-echo]').click();await expect(p.locator('.echo-board')).toHaveAttribute('data-echo-phase','answer',{timeout:8000});for(const n of notes)await p.locator(`[data-echo-note="${n}"]`).click();}}
     await expect(p.locator('.episode-finish')).toBeVisible();
 }
 async function fits(p: Page) {
@@ -186,12 +182,12 @@ test('larger roads keep fifteen visible pieces and one gap, reject jumps and res
     await expect(page.getByRole('status')).toContainText('未接通');
     await page.locator('[data-tile="0"]').click();
     await expect(page.getByRole('status')).toContainText('空位上下左右');
-    await page.locator('[data-tile="15"]').click();
+    await page.locator(`[data-tile="${roadMoves[0]}"]`).click();
     await ready(page);
     await page.reload();
     await ready(page);
     await open(page, 'luggage-run');
-    await expect(page.locator('[data-tile="15"]')).toHaveClass(/road-blank/);
+    await expect(page.locator(`[data-tile="${roadMoves[0]}"]`)).toHaveClass(/road-blank/);
     for (const i of roadMoves.slice(1))
         await page.locator(`[data-tile="${i}"]`).click();
     await page.locator('[data-action=send-luggage]').click();
@@ -214,7 +210,7 @@ test('paired pictures mark the matching region on both sides, ignore repeat and 
     await page.getByRole('button', { name: 'English', exact: true }).click();
     await page.reload();
     await ready(page);
-    await page.mouse.click(590, 330);
+    await page.mouse.click(650, 365);
     await page.locator('[data-action=challenges]').click();
     await page.locator('[data-challenge=dream-door]').click();
     await expect(page.locator('.difference-count')).toHaveText('Found 1 / 5');
@@ -240,7 +236,7 @@ for (const size of [{ width: 844, height: 480 }, { width: 915, height: 412 }, { 
 for (const size of [{ width: 844, height: 480 }, { width: 915, height: 412 }, { width: 640, height: 320 }, { width: 390, height: 844 }])
     test(`first guest introduction fits ${size.width}x${size.height}`, async ({ page }) => { await page.setViewportSize(size); await boot(page, null); await open(page, 'puzzle-1'); await expect(page.locator('.arrival-guest')).toHaveCount(4); await fits(page); await page.locator('[data-action=welcome-guests]').click(); await ready(page); await expect(page.locator('.classic-wishes')).toContainText('月毛要月光'); await fits(page); });
 test('legacy coins and achievements survive changed puzzle drafts and new stage order', async ({ page }) => { await page.addInitScript(() => localStorage.setItem('midnight-check-in.episode.dream-door.v1', JSON.stringify({ dream: { world: 'dream', seed: true, grown: true, key: true, open: false } }))); await boot(page, { version: 1, coins: 123, completed: [1, 2, 20], storyNight: { outcome: 'together' }, ambience: 'winter', decorations: ['moon-lamps'], episodes: ['cake-case', 'luggage-run'] }); await open(page, 'dream-door'); await expect(page.locator('.difference-count')).toHaveText('已找到 0 / 5'); await solve(page, 'dream-door'); expect(await saved(page)).toMatchObject({ coins: 623, completed: [1, 2, 20], storyNight: { outcome: 'together' }, ambience: 'winter', decorations: ['moon-lamps'] }); });
-test('settings, shop previews and purchased weather remain usable', async ({ page }) => { await boot(page, { ...caseSave, coins: 1000 }); await lobby(page); await page.getByRole('button', { name: '設定', exact: true }).click(); await page.getByRole('checkbox', { name: '音效', exact: true }).uncheck(); await fits(page); await page.keyboard.press('Escape'); await page.locator('[data-action=shop]').click(); await page.locator('[data-decoration=moon-lamps] [data-action=preview]').click(); expect((await saved(page)).coins).toBe(1000); await page.getByRole('button', { name: '返回商店' }).click(); await page.locator('[data-decoration=moon-lamps] [data-action=buy]').click(); expect((await saved(page)).coins).toBe(900); await page.locator('[data-tab=scenes]').click(); await page.getByRole('button', { name: '下一頁', exact: true }).click(); await page.locator('[data-scene=winter] [data-action=scene]').click(); await page.locator('[data-action=confirm]').click(); expect((await saved(page)).coins).toBe(700); });
+test('settings, shop previews and purchased weather remain usable', async ({ page }) => { await boot(page, { ...caseSave, coins: 5000 }); await lobby(page); await page.getByRole('button', { name: '設定', exact: true }).click(); await page.getByRole('checkbox', { name: '音效', exact: true }).uncheck(); await fits(page); await page.keyboard.press('Escape'); await page.locator('[data-action=shop]').click(); await page.locator('[data-decoration=moon-lamps] [data-action=preview]').click(); expect((await saved(page)).coins).toBe(5000); await page.getByRole('button', { name: '返回商店' }).click(); await page.locator('[data-decoration=moon-lamps] [data-action=buy]').click(); expect((await saved(page)).coins).toBe(3800); await page.locator('[data-tab=scenes]').click(); await page.getByRole('button', { name: '下一頁', exact: true }).click(); await page.locator('[data-scene=winter] [data-action=scene]').click(); await page.locator('[data-action=confirm]').click(); expect((await saved(page)).coins).toBe(1000); });
 test('offline play with blocked storage still carries opening-night progress into the case', async ({ page, context }) => { test.setTimeout(90000); await page.addInitScript(() => { Storage.prototype.setItem = () => { throw Error('blocked'); }; }); await boot(page, null); await context.setOffline(true); await firstNight(page); await solve(page, 'cake-case'); await expect(page.getByRole('status')).toContainText('未能儲存'); await page.getByRole('button', { name: '下一關', exact: true }).click(); await expect(page.locator('.episode-screen')).toHaveAttribute('data-episode', 'luggage-run'); });
 test('balance rejects empty and unequal loads, and restores partially loaded bags', async ({ page }) => { await boot(page, { ...caseSave, episodes: episodes.slice(0, 3), coins: 1550 }); await open(page, 'lift-balance'); await page.locator('[data-action=check-lift]').click(); await expect(page.getByRole('status')).toContainText('六件全裝好'); await page.locator('[data-bag=b]').click(); await page.locator('[data-pan=left]').click(); await page.reload(); await ready(page); await open(page, 'lift-balance'); await expect(page.locator('[data-weight=left]')).toContainText('4kg'); await page.locator('[data-loaded=b]').click(); await solve(page, 'lift-balance'); expect((await saved(page)).coins).toBe(2050); });
 test('mirror rays update live, incorrect lighting does not win, and all targets must be lit', async ({ page }) => { await boot(page, { ...caseSave, episodes: episodes.slice(0, 4), coins: 2050 }); await open(page, 'moon-mirrors'); await page.locator('[data-action=check-mirrors]').click(); await expect(page.getByRole('status')).toContainText('同時亮起'); const ray = await page.locator('.moon-ray polyline').getAttribute('points'); await page.locator('[data-mirror="0"]').click(); const changedRay = await page.locator('.moon-ray polyline').getAttribute('points'); expect(changedRay).not.toBe(ray); await page.reload(); await ready(page); await open(page, 'moon-mirrors'); await expect(page.locator('.moon-ray polyline')).toHaveAttribute('points', changedRay!); await page.locator('[data-mirror="0"]').click(); await solve(page, 'moon-mirrors'); expect((await saved(page)).coins).toBe(2550); });
@@ -285,25 +281,7 @@ test('pipes reject leaks and keep rotation drafts after reload', async ({ page }
     await solve(page, 'spring-pipes');
     expect((await saved(page)).coins).toBe(4050);
 });
-test('mail needs all four clues together and returns an occupied mailbox letter to the tray', async ({ page }) => {
-    await boot(page, { ...caseSave, episodes: episodes.slice(0, 8), coins: 4050 });
-    await open(page, 'lost-letters');
-    await page.locator('[data-action=check-mail]').click();
-    await expect(page.getByRole('status')).toContainText('每人一封');
-    await page.locator('[data-letter=violet]').click();
-    await page.locator('[data-mailbox=luno]').click();
-    await page.locator('[data-action=check-mail]').click();
-    await expect(page.getByRole('status')).toContainText('唔吻合');
-    await page.locator('[data-letter=flower]').click();
-    await page.locator('[data-mailbox=luno]').click();
-    await expect(page.locator('[data-letter=violet]')).toContainText('未送出');
-    await page.reload();
-    await ready(page);
-    await open(page, 'lost-letters');
-    await expect(page.locator('[data-letter=flower]')).toContainText('月毛');
-    await solve(page, 'lost-letters');
-    expect((await saved(page)).coins).toBe(4550);
-});
+test('relay preserves completed rounds across replay and reload',async({page})=>{await boot(page,{...caseSave,episodes:episodes.slice(0,8),coins:4050});await open(page,'lost-letters');await page.locator('[data-action=play-echo]').click();await expect(page.locator('.echo-board')).toHaveAttribute('data-echo-phase','answer',{timeout:8000});for(const n of echoRounds[0])await page.locator(`[data-echo-note="${n}"]`).click();await page.reload();await ready(page);await open(page,'lost-letters');await expect(page.locator('.echo-progress')).toContainText('2 / 3');expect((await saved(page)).coins).toBe(4050);});
 test('new controls remain readable in English on a short phone', async ({ page }) => {
     test.setTimeout(180000);
     await page.setViewportSize({ width: 640, height: 320 });

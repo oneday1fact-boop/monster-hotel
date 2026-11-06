@@ -1,10 +1,10 @@
 export const decorations = [
-  { id: 'moon-lamps', price: 100 },
-  { id: 'velvet-rug', price: 200 },
-  { id: 'star-sign', price: 300 },
-  { id: 'flower-box', price: 80 },
-  { id: 'rose-curtains', price: 120 },
-  { id: 'tea-corner', price: 150 },
+  { id: 'moon-lamps', price: 1200 },
+  { id: 'velvet-rug', price: 1800 },
+  { id: 'star-sign', price: 2400 },
+  { id: 'flower-box', price: 800 },
+  { id: 'rose-curtains', price: 1400 },
+  { id: 'tea-corner', price: 2000 },
 ] as const;
 export type DecorationId = typeof decorations[number]['id'];
 export interface DecoratedWallet { coins: number; decorations?: DecorationId[]; equipped?: DecorationId[] }

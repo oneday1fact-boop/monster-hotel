@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './browser';
 import { queueX, queueY, roomPoint } from '../src/game/layout';
 import { firstLevel } from '../src/domain/puzzle';
 import { load, enter, assign, saved } from './helpers';

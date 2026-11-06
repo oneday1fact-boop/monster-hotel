@@ -22,11 +22,12 @@ export function guestById(id: string): Guest { const guest = allGuests.find(g =>
 export const firstLevel: Level = {
   id: 1, guests,
   rooms: [
-    { id: 'B01', condition: 'quiet', floor: 0, position: 1 },
-    { id: 'B02', condition: 'warm', floor: 0, position: 2 },
-    { id: '101', condition: 'moonlight', floor: 1, position: 1 },
-    { id: '102', condition: 'dry', floor: 1, position: 2 },
+    { id: 'B01', condition: 'quiet', features: ['warm', 'dry'], floor: 0, position: 1 },
+    { id: 'B02', condition: 'warm', features: ['moonlight', 'dry'], floor: 0, position: 2 },
+    { id: '101', condition: 'moonlight', features: ['quiet', 'warm'], floor: 1, position: 1 },
+    { id: '102', condition: 'dry', features: ['moonlight', 'quiet'], floor: 1, position: 2 },
   ],
+  rules: [{type:'avoid',guest:'rollo',condition:'warm'}, {type:'sameFloor',a:'luno',b:'rollo'}, {type:'leftOf',a:'dou',b:'ember'}],
 };
 export function roomConditions(room: Room): readonly Condition[] { return [room.condition, ...(room.features ?? [])]; }
 export function satisfiesRule(level: Level, assignment: Assignment, rule: Rule): boolean {

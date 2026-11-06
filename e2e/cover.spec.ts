@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './browser';
 import { load } from './helpers';
 
 test('bilingual rounded cover logo stays upper-centred and loads offline', async ({ page, context }) => {
@@ -19,7 +19,7 @@ test('bilingual rounded cover logo stays upper-centred and loads offline', async
   await page.getByRole('button', { name: '語言', exact: true }).click(); await expect(logo).toBeHidden();
   await page.getByRole('button', { name: 'English', exact: true }).click(); await expect(logo).toBeVisible();
   await expect(page.locator('.cover-logo')).toHaveCount(1);
-  await page.mouse.click(590, 330); await expect(page.locator('canvas')).toHaveAttribute('aria-label', 'Welcome, keeper');
+  await page.mouse.click(650, 365); await expect(page.locator('canvas')).toHaveAttribute('aria-label', 'Welcome, keeper');
   await expect(logo).toHaveCount(0);
   await page.locator('[data-action=cover]').click(); await expect(logo).toHaveCount(1);
 });

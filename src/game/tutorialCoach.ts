@@ -28,6 +28,7 @@ export function createTutorialCoach(root: HTMLElement, locale: Locale, skip: () 
       const point = occupied ? residentPoint(occupied) : { x: queueX[firstLevel.guests.findIndex(g => g.id === view.guestId)], y: queueY };
       box(guest, point.x, point.y, 94, 86); guest.hidden = false;
     }
-    if (view.step === 'place' || view.correction) { const p = roomPoint(firstLevel.rooms.find(r => r.id === view.roomId)!); box(room, p.x, p.y, roomWidth - 6, roomHeight - 6); room.hidden = false; }
+    // Teach the gesture without revealing the room assignment.
+
   };
 }

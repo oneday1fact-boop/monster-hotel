@@ -24,7 +24,7 @@ describe('relational rules', () => {
   });
   it('checks exclusions against secondary amenities too', () => {
     expect(satisfiesRule(level, ordered, { type: 'avoid', guest: 'luno', condition: 'warm' })).toBe(false);
-    expect(satisfiesRule(levels[0], { luno: '101' }, { type: 'avoid', guest: 'luno', condition: 'warm' })).toBe(true);
+    expect(satisfiesRule(levels[0], { rollo: '102' }, { type: 'avoid', guest: 'rollo', condition: 'warm' })).toBe(true);
   });
 });
 

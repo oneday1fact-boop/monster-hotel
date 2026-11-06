@@ -61,7 +61,7 @@ it('three hops land smoothly before resting, without a mid-air snap at 60 Hz', (
 
 it('story progress survives classic rewards and cosmetic transactions', () => {
   vi.stubGlobal('localStorage', { setItem: () => {} });
-  const story = settleStory({ version: 1, completed: [], coins: 50 }, 'together').save;
+  const story = settleStory({ version: 1, completed: [], coins: 1100 }, 'together').save;
   const classic = complete(story, 1); const bought = purchase(classic, 'moon-lamps').wallet;
-  expect(bought.storyNight).toEqual({ outcome: 'together' }); expect(bought.completed).toEqual([1]); expect(bought.coins).toBe(50);
+  expect(bought.storyNight).toEqual({ outcome: 'together' }); expect(bought.completed).toEqual([1]); expect(bought.coins).toBe(0);
 });

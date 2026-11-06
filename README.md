@@ -16,6 +16,16 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.11: livelier, retryable hotel games
+
+The opening night now needs three visible relational clues rather than simple one-to-one amenity matching. Laundry pieces slide with cloth follow-through. Runaway Luggage stays 4×4, starts eight moves from its authored route, and has persisted undo/redo. Difference markers are smaller while touch targets stay generous. The lift carries two original passengers and actually travels after a valid load.
+
+Souvenirs support pointer/touch drag with green/red placement previews, commit only on release and preserve the prior state on an invalid/cancelled drop. Tap/rotate controls remain available. The old letter-elimination stage is replaced by a three-round animated monster memory relay. The photo stage is now a live camera-moment game: freeze each guest during their green cue, then shoot to earn the existing photo collection. There is no overall timer or penalty for a missed photo moment; relay mistakes retry only the current round.
+
+The cover start button moves down/right. A compact coin wallet appears on the cover and lobby; four lobby buttons sit as a centred two-by-two group on the right. Cosmetic prices now total 16,200 coins, against 6,050 available from the active route, so purchases require choices. Owned items, old coin balances, completion IDs and earned photos are preserved. Only replaced letter/photo drafts use new keys.
+
+`MONSTER_SOFTWARE_TEST=1 npm run test:browser` selects the supported Canvas2D fallback for GPU-less cloud testing. Default browser tests and Android still use Phaser AUTO. `node scripts/record-lively-games.cjs` records real browser input against preview port 5188, using a returning-player fixture. Android versionCode is 12 (1.11).
+
 ## Version 1.10: mobile interaction feedback
 
 Shared touch and keyboard controls now press, rebound and emit a small bounded gold glint. Full-screen sheets fade in/out; route changes use a short opacity fade that keeps Phaser and reward counters rendering across Android WebViews. Switches slide, route pages stagger in, and changed puzzle selections briefly brighten without blocking repeated input. Reduced-motion settings skip these effects.

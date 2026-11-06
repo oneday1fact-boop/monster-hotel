@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './browser';
 import { load, enter, assign, saved, ready } from './helpers';
 import { queueX, queueY, roomPoint } from '../src/game/layout';
 import { firstLevel } from '../src/domain/puzzle';
@@ -8,7 +8,7 @@ test('guide follows selection, wrong placement, drag correction and independent 
   const coach = page.getByRole('region', { name: '新手教學' });
   await expect(coach).toContainText('先點月毛');
   await page.mouse.click(queueX[0], queueY); await expect(coach).toContainText('月光');
-  await expect(page.locator('.tutorial-target--room')).toBeVisible();
+  await expect(page.locator('.tutorial-target--room')).toBeHidden();
   await page.mouse.click(roomPoint(firstLevel.rooms[0]).x, roomPoint(firstLevel.rooms[0]).y); await ready(page);
   await expect(coach).toContainText('再選佢');
   const source = { x: roomPoint(firstLevel.rooms[0]).x + 90, y: roomPoint(firstLevel.rooms[0]).y + 18 }; const target = roomPoint(firstLevel.rooms[2]);

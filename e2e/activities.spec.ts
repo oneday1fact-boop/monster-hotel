@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './browser';
 import { firstLevel, solve } from '../src/domain/puzzle';
 import { residentPoint } from '../src/game/layout';
 import { load, enter, assign, saved } from './helpers';

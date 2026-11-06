@@ -10,8 +10,8 @@ export function accusation(clues: readonly EvidenceId[], suspect: string) {
 // A road tile has two ports: north=1, east=2, south=4, west=8.
 export const roadSize = 4;
 export const roadPorts = [10, 12, 5, 9, 3, 5, 10, 12, 3, 3, 10, 12, 5, 10, 3] as const;
-export const initialRoad = [4, 0, 2, 3, 8, 1, 7, 11, 12, 5, 6, 14, 9, 13, -1, 10] as const;
-export const roadReviewSolution = [15, 11, 7, 6, 10, 14, 13, 12, 8, 4, 0, 1, 5, 9, 13, 14] as const;
+export const initialRoad = [4, 0, 2, 3, 8, 1, 6, 7, 12, 5, 10, 11, -1, 9, 13, 14] as const;
+export const roadReviewSolution = [8, 4, 0, 1, 5, 9, 13, 14] as const;
 export const adjacentRoad = (a: number, b: number) => a >= 0 && a < 16 && b >= 0 && b < 16 && Math.abs(Math.floor(a / 4) - Math.floor(b / 4)) + Math.abs(a % 4 - b % 4) === 1;
 export function validRoad(board: unknown): board is number[] {
     return Array.isArray(board) && board.length === 16 && new Set(board).size === 16 && board.every(n => Number.isInteger(n) && n >= -1 && n < 15);
@@ -57,3 +57,8 @@ export function markDifference(found: readonly DifferenceId[], id: string): Diff
     return differences.some(d => d.id === id) && !found.includes(id as DifferenceId) ? [...found, id as DifferenceId] : [...found];
 }
 export function differencesComplete(found: readonly DifferenceId[]) { return differences.every(d => found.includes(d.id)); }
+/** A persisted undo/redo stack must be a chain of real, reversible one-cell slides. */
+export function validRoadStack(value:unknown,board:readonly number[]):value is number[][]{
+ if(!Array.isArray(value)||value.length>512||!validRoad([...board]))return false;
+ let current=[...board];for(let i=value.length-1;i>=0;i--){const previous=value[i];if(!validRoad(previous))return false;const next=slideRoad(current,previous.indexOf(-1));if(!next.every((x,j)=>x===previous[j]))return false;current=previous;}return true;
+}

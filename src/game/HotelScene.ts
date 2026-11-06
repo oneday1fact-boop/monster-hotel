@@ -1,3 +1,4 @@
+import { icon } from './icons';
 import { installButtonFeel, navigate, navigationBusy, cancelNavigation, tapShimmer, prefersQuietMotion } from './gameFeel';
 import { photoWallContent } from './photoWall';
 import { fitPhotoFrames } from './guestPuzzleWidgets';
@@ -178,17 +179,17 @@ export class HotelScene extends Phaser.Scene {
   }
   private title() {
     this.screen = 'title'; this.base(this.t.title); this.reception();
-    this.hud?.coverLogo();
-    this.button(330, this.locale === 'en' ? 'Play' : '開始遊戲', () => this.lobby(), 210, 590);
+    this.hud?.coverLogo();this.walletBadge();
+    this.button(365, this.locale === 'en' ? 'Play' : '開始遊戲', () => this.lobby(), 210, 650);
   }
   private lobby() {
-    this.screen='lobby';this.base(this.t.welcome);this.reception();
-    this.text(590,133,this.t.welcome,27,'#fff0c6');this.text(590,181,`${this.save.coins} ${this.t.coins}  ·  ${this.locale==='en'?'Cleared':'已完成'} ${challengeProgress(this.save)}`,18,'#fff0c6');
+    this.screen='lobby';this.base(this.t.welcome);this.reception();this.walletBadge();
     const menu=document.createElement('nav');menu.className='lobby-menu';
     const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=()=>navigate(`lobby:${action}`,callback);menu.append(b);};
     add(this.locale==='en'?'Puzzles':'解謎挑戰','challenges',()=>this.selection(),true);
     add(this.locale==='en'?'Shop':this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());add(this.locale==='en'?'Memories':'酒店相牆','photos',()=>this.photoWall());this.hud?.append(menu);
   }
+  private walletBadge(){const b=document.createElement('div');b.className='wallet-badge';b.append(icon('coin'),Object.assign(document.createElement('strong'),{textContent:String(this.save.coins)}));b.setAttribute('aria-label',`${this.save.coins} ${this.t.coins}`);this.hud?.append(b);}
   private photoWall(){
     const root=photoWallContent(this.save,this.locale);this.albumRoot=root;
     this.details({kind:'card',title:this.locale==='en'?'Hotel memory wall':'酒店相牆',eyebrow:'',sections:[],close:this.ht.back,content:root},()=>{this.albumRoot=undefined;});fitPhotoFrames(root);
@@ -234,7 +235,7 @@ export class HotelScene extends Phaser.Scene {
     frame.fillStyle(0x3d2a43).fillRect(406, 56, 32, 324).fillRect(0, 216, 844, 4);
     frame.lineStyle(2, 0xb28c72);
     for (let y = 88; y < 337; y += 17) frame.lineBetween(413, y, 431, y - 10);
-    const wishes=document.createElement('div');wishes.className='classic-wishes';wishes.setAttribute('aria-label',this.locale==='en'?'Tap a guest, then a room':'點住客，再點房間');for(const label of (this.locale==='en'?['Luno: moonlight','Dou: quiet','Ember: warm','Rollo: dry']:['月毛要月光','豆豆要安靜','燈燈要溫暖','卷卷要乾爽'])){const tag=document.createElement('span');tag.textContent=label;wishes.append(tag);}this.hud?.append(wishes);
+    const wishes=document.createElement('div');wishes.className='classic-wishes';wishes.setAttribute('aria-label',this.locale==='en'?'Tap a guest, then a room':'點住客，再點房間');for(const label of (this.locale==='en'?['Luno: moonlight','Dou: quiet','Ember: warm','Rollo: dry']:['月毛要月光','豆豆要安靜','燈燈要溫暖','卷卷要乾爽'])){const tag=document.createElement('span');tag.textContent=label;wishes.append(tag);}this.hud?.append(wishes);const rules=document.createElement('div');rules.className='classic-rules';rules.textContent=this.locale==='en'?'Rollo avoids warmth · Luno & Rollo same floor · Dou left of Ember':'卷卷避暖氣 · 月毛與卷卷同層 · 小豆在燈燈左邊';this.hud?.append(rules);
     const selection = this.add.ellipse(0, 0, 76, 72).setStrokeStyle(2, C.gold, .8).setVisible(false).setDepth(5).setData('viewportAspect', true);
     const bindGuest = (avatar: Phaser.GameObjects.Container, guest: Guest) => {
       avatar.setInteractive({ useHandCursor: true }).setData('guest', guest.id); this.input.setDraggable(avatar);

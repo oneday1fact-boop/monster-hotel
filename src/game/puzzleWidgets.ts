@@ -1,3 +1,4 @@
+import { attachGiftDrag } from './giftDrag';
 import { liftBags, liftWeight, mirrorPositions, lightStars, traceMoon, gifts, giftShape, giftCells, type LiftState, type LiftSide, type GiftPlacement } from '../domain/hotelPuzzles';
 interface UI {
     button(label: string, run: () => void, primary?: boolean): HTMLButtonElement;
@@ -45,7 +46,7 @@ export function balanceWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, st
         total.className = 'lift-total';
         total.dataset.weight = side;
         total.textContent = `${liftWeight(state, side)}kg · ${Object.values(state).filter(s => s === side).length}/3`;
-        pan.append(load, slots, total);
+        const guest=document.createElement('span');guest.className='lift-passenger';guest.style.setProperty('--actor-art',`url('/art/${side==='left'?'mummy':'jiangshi'}-poses.png')`);guest.innerHTML='<span class="live-body"></span>';pan.append(guest,load, slots, total);
         machine.append(pan);
     }
     stage.append(machine);
@@ -105,7 +106,7 @@ export function mirrorsWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, st
     panel.append(status, done);
 }
 export function shapeSVG(id: string, rotation: number) { const color = gifts.find(g => g.id === id)?.color ?? '#ddd', points = giftShape(id, rotation), minX = Math.min(...points.map(p => p.x)), minY = Math.min(...points.map(p => p.y)); return `<svg viewBox="0 0 96 96" aria-hidden="true">${points.map(c => `<rect x="${5 + (c.x - minX) * 28}" y="${5 + (c.y - minY) * 28}" width="25" height="25" rx="5" fill="${color}" stroke="#674052" stroke-width="2"/><path d="M${17.5 + (c.x - minX) * 28} ${5 + (c.y - minY) * 28}v25M${5 + (c.x - minX) * 28} ${17.5 + (c.y - minY) * 28}h25" stroke="#ffe3a1" stroke-width="3"/>`).join('')}<circle cx="${17.5 - minX * 28}" cy="${17.5 - minY * 28}" r="6" fill="#fff8d7" stroke="#593449" stroke-width="2"/></svg>`; }
-export function giftsWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, state: readonly GiftPlacement[], selected: string | undefined, rotation: number, pick: (id: string) => void, cell: (x: number, y: number) => void, rotate: () => void, check: () => void) {
+export function giftsWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, state: readonly GiftPlacement[], selected: string | undefined, rotation: number, pick: (id: string) => void, cell: (x: number, y: number) => void, rotate: () => void, check: () => void, drop: (piece:GiftPlacement)=>void) {
     const board = document.createElement('div');
     board.className = 'gift-board';
     board.setAttribute('aria-label', ui.t('四乘四手信禮盒', 'Four by four gift box'));
@@ -139,4 +140,5 @@ export function giftsWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, stat
     done.dataset.action = 'check-gifts';
     actions.append(r, done);
     panel.append(actions);
+    attachGiftDrag(board,palette,state,selected,rotation,drop,shapeSVG);
 }

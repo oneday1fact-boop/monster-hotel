@@ -1,12 +1,14 @@
-import { navigate, navigationBusy, revealFeedback } from './gameFeel';
+import { echoWidget, livePhotoWidget, liveActor } from './liveWidgets';
+import { echoRounds, freshEcho, validEcho, echoTap, cameraGuests, cameraReady, validCamera, type EchoState } from '../domain/liveGames';
+import { navigate, navigationBusy, revealFeedback, motion as animateElement } from './gameFeel';
 import { initialScent, validScent, validPartialCode, placeRune, validGuesses, codeSolved, validPhoto, freshPhoto, photoGuests, swapPhoto, turnPhoto, photoSolved, type ScentBoard, type Rune, type PhotoState, type PhotoGuest } from '../domain/guestPuzzles';
 import { scentWidget, scentPourEffect, codeWidget, photoWidget, fitPhotoFrames } from './guestPuzzleWidgets';
 import { initialLaundry, validLaundry } from '../domain/laundry';
 import { laundryWidget } from './laundryWidget';
 import { celebrateReward } from './rewardFx';
-import { capturePuzzle, animatePuzzle, episodeCompanion } from './puzzleMotion';
+import { capturePuzzle, animatePuzzle, episodeCompanion, episodeHosts } from './puzzleMotion';
 import Phaser from 'phaser';
-import { evidenceIds, accusation, initialRoad, validRoad, slideRoad, roadPath, roadPorts, roadSize, comparisonProps, differences, markDifference, differencesComplete, type EpisodeId, type EvidenceId, type DifferenceId } from '../domain/episodes';
+import { evidenceIds, accusation, initialRoad, validRoad, validRoadStack, slideRoad, roadPath, roadPorts, roadSize, comparisonProps, differences, markDifference, differencesComplete, type EpisodeId, type EvidenceId, type DifferenceId } from '../domain/episodes';
 import { afterChallenge, completeEpisode } from '../domain/campaign';
 import { episodeCopy } from '../i18n/episodes';
 import { saveLocale, type Locale } from '../i18n/catalog';
@@ -35,6 +37,7 @@ type Data = {
 type Draft = {
     clues: EvidenceId[];
     road: number[];
+    roadPast: number[][]; roadFuture: number[][]; echo: EchoState; camera: string[];
     found: DifferenceId[];
     lift: LiftState;
     mirrors: number[];
@@ -49,11 +52,16 @@ type Draft = {
     lockGuesses: Rune[][];
     photo: PhotoState;
 };
-const fresh = (): Draft => ({ clues: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
+const fresh = (): Draft => ({ clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
     private root?: HTMLElement;
+    private liveTick?: (now:number)=>void;
+    private liveEpoch=0;
+    private echoPlaying=false;
+    private echoOpen=false;
+    private echoTimers: Phaser.Time.TimerEvent[]=[];
     private modal?: () => void;
     private message = '';
     private won = false;
@@ -68,8 +76,8 @@ export class EpisodeScene extends Phaser.Scene {
     private hintTarget?: DifferenceId;
     constructor() { super('episode'); }
     init(data: Data) {
-        this.dataIn = data;
-        this.state = fresh();
+        this.dataIn = data;this.liveEpoch=performance.now();this.echoOpen=false;this.echoPlaying=false;this.liveTick=undefined;
+        this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now();
         this.selectedItem = undefined;
         this.rotation = 0;
         this.hintTarget = undefined;
@@ -84,6 +92,10 @@ export class EpisodeScene extends Phaser.Scene {
             const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
             if (d) {
+                if(validEcho(d.echo))this.state.echo=d.echo.round===3?freshEcho():d.echo;
+                if(validCamera(d.camera))this.state.camera=d.camera;
+                for(const field of ['roadPast','roadFuture'] as const)if(validRoad(d.road)&&validRoadStack(d[field],d.road))this.state[field]=d[field];
+
                 if (validScent(d.scent))
                     this.state.scent = d.scent;
                 if (Array.isArray(d.scentHistory) && d.scentHistory.length <= 40 && d.scentHistory.every(validScent))
@@ -119,11 +131,13 @@ export class EpisodeScene extends Phaser.Scene {
         }
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
     }
-    private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
+    private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'lost-letters' || this.dataIn.episode === 'group-photo' ? 2 : this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
     private get en() { return this.dataIn.locale === 'en'; }
     private t(zh: string, en: string) { return this.en ? en : zh; }
     create() { this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.rewardFx?.(); this.root?.remove(); this.modal?.(); this.time.removeAllEvents(); }); this.render(); }
+    private refreshLive(){this.liveTick?.(performance.now());}
     update() {
+        this.refreshLive();
         const d = `${this.scale.width}:${this.scale.height}`;
         if (d !== this.dimensions) {
             this.dimensions = d;
@@ -186,6 +200,7 @@ export class EpisodeScene extends Phaser.Scene {
         });
     }
     private render() {
+        this.liveTick=undefined;this.echoTimers.forEach(t=>t.remove(false));this.echoTimers=[];this.echoPlaying=false;
         const motion = capturePuzzle(this.root);
         this.root?.remove();
         document.documentElement.lang = this.dataIn.locale;
@@ -204,7 +219,7 @@ export class EpisodeScene extends Phaser.Scene {
         top.append(iconButton('home', this.t('返回大廳', 'Lobby'), () => this.exit()), Object.assign(document.createElement('h1'), { textContent: copy.title }), iconButton('book', this.t('關卡地圖', 'Level map'), () => this.exit('map')), iconButton('globe', this.t('語言', 'Language'), () => this.language()), iconButton('gear', this.t('設定', 'Settings'), () => this.settings()));
         root.append(top);
         const layout = document.createElement('div');
-        layout.className = !this.won && (this.dataIn.episode === 'dream-door' || this.dataIn.episode === 'lost-letters' || this.dataIn.episode === 'key-cabinet' || this.dataIn.episode === 'group-photo') ? 'episode-layout episode-layout--differences' : 'episode-layout';
+        layout.className = !this.won && (this.dataIn.episode === 'dream-door' || this.dataIn.episode === 'key-cabinet') ? 'episode-layout episode-layout--differences' : 'episode-layout';
         const stage = document.createElement('section');
         stage.className = 'episode-stage';
         stage.setAttribute('aria-label', this.t('解謎現場', 'Puzzle scene'));
@@ -215,14 +230,14 @@ export class EpisodeScene extends Phaser.Scene {
         const how = document.createElement('p');
         how.className = 'episode-how';
         how.textContent = copy.instruction;
-        panel.append(goal, how);
+        const mascot=liveActor(episodeHosts[this.dataIn.episode].kind);mascot.classList.add('goal-mascot');goal.prepend(mascot);panel.append(goal, how);
         layout.append(stage, panel);
         root.append(layout);
         if (this.won) {
             stage.classList.add('episode-celebrate');
             const finish = document.createElement('div');
             finish.className = 'episode-finish';
-            finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
+            finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
             panel.replaceChildren(finish);
         }
         else if (this.dataIn.episode === 'cake-case')
@@ -240,11 +255,13 @@ export class EpisodeScene extends Phaser.Scene {
         const message = document.createElement('span');
         message.textContent = this.message || (this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('可以慢慢諗，唔使鬥快。', 'Take your time. There is no timer.'));
         status.append(episodeCompanion(this.dataIn.episode, this.en), message);
-        footer.append(status, this.button(this.t('重新開始', 'Start over'), () => { this.state = fresh(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
+        footer.append(status, this.button(this.t('重新開始', 'Start over'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
         root.append(footer);
         document.body.append(root);
         this.paint();
+        this.refreshLive();
         animatePuzzle(root, motion);
+        if(this.message){const host=root.querySelector<HTMLElement>('.goal-mascot');if(host)animateElement(host,[{translate:'0 0',rotate:'0deg'},{translate:'0 -7px',rotate:'-5deg',offset:.4},{translate:'0 0',rotate:'0deg'}],320);}
         if(this.message)revealFeedback(root.querySelector<HTMLElement>('.episode-footer [role=status]>span:last-child')??undefined);
     }
     private laundry(stage: HTMLElement, panel: HTMLElement) {
@@ -267,6 +284,7 @@ export class EpisodeScene extends Phaser.Scene {
                     return;
                 }
                 const blank = board.querySelector<HTMLElement>(`[data-tile="${this.state.road.indexOf(-1)}"]`)!;
+                this.state.roadPast=[...this.state.roadPast.slice(-511),[...this.state.road]];this.state.roadFuture=[];
                 this.state.road = next;
                 this.persist();
                 this.moving = true;
@@ -306,7 +324,7 @@ export class EpisodeScene extends Phaser.Scene {
         stage.append(board);
         const note = document.createElement('p');
         note.textContent = this.t('每塊路磚唔會旋轉，只有空位旁邊嘅一塊可以滑動。路口要真正相接先行到。', 'Tiles do not rotate. Slide one neighboring tile into the gap. Road ends must actually meet.');
-        panel.append(note);
+        const undo=this.button(this.t('撤回','Undo'),()=>{const previous=this.state.roadPast.pop();if(previous){this.state.roadFuture.push([...this.state.road]);this.state.road=previous;this.persist();this.render();}});undo.dataset.action='undo-road';undo.disabled=!this.state.roadPast.length;const redo=this.button(this.t('重做','Redo'),()=>{const next=this.state.roadFuture.pop();if(next){this.state.roadPast=[...this.state.roadPast.slice(-511),[...this.state.road]];this.state.road=next;this.persist();this.render();}});redo.dataset.action='redo-road';redo.disabled=!this.state.roadFuture.length;const history=document.createElement('div');history.className='road-history';history.append(undo,redo);panel.append(note,history);
         const go = this.button(this.t('行李出發！', 'Send luggage!'), () => {
             const path = roadPath(this.state.road);
             if (!path.length) {
@@ -484,29 +502,8 @@ export class EpisodeScene extends Phaser.Scene {
             });
             return;
         }
-        if (this.dataIn.episode === 'group-photo') {
-            const selected = photoGuests.includes(this.selectedItem as PhotoGuest) ? this.selectedItem as PhotoGuest : undefined;
-            photoWidget(stage, panel, ui, this.state.photo, selected, id => {
-                if (!selected) {
-                    this.selectedItem = id;
-                    this.render();
-                    return;
-                }
-                if (selected === id) {
-                    this.selectedItem = undefined;
-                    this.render();
-                    return;
-                }
-                this.state.photo = swapPhoto(this.state.photo, this.state.photo.order.indexOf(selected), this.state.photo.order.indexOf(id));
-                this.selectedItem = undefined;
-                update();
-            }, () => {
-                if (selected) {
-                    this.state.photo = turnPhoto(this.state.photo, selected);
-                    update();
-                }
-            }, () => this.finish());
-            return;
+        if(this.dataIn.episode==='group-photo'){
+            this.liveTick=livePhotoWidget(stage,panel,ui,this.state.camera,id=>{const i=cameraGuests.findIndex(g=>g===id);if(i<0||this.state.camera.includes(id))return;if(cameraReady(i,performance.now()-this.liveEpoch)){this.state.camera.push(id);this.message=this.t('定格成功！其餘住客繼續郁，慢慢捉時機。','Pose held! The others keep moving. Take your time.');this.dataIn.feedback.play('place');}else{this.message=this.t('未望鏡頭，等綠圈再試，唔扣分。','Wait for the green ring and try again. No penalty.');}update();},()=>{if(this.state.camera.length!==6)return;if(!reducedMotion()){const flash=document.createElement('div');flash.className='camera-flash';flash.setAttribute('aria-hidden','true');document.body.append(flash);setTimeout(()=>flash.remove(),320);}this.state.photo={order:['ember','dou','nemu','luno','rollo','yuzu'],poses:{luno:-1,dou:0,ember:0,rollo:0,yuzu:1,nemu:0}};this.finish();},this.liveEpoch);return;
         }
         if (this.dataIn.episode === 'midnight-knock') {
             timelineWidget(stage, panel, ui, this.state.timeline, this.selectedItem, pick, (state, message) => { this.state.timeline = state; this.message = message ?? ''; update(); }, () => this.finish());
@@ -516,9 +513,8 @@ export class EpisodeScene extends Phaser.Scene {
             pipesWidget(stage, panel, ui, this.state.pipes, (state, message) => { this.state.pipes = state; this.message = message ?? ''; update(); }, () => this.finish());
             return;
         }
-        if (this.dataIn.episode === 'lost-letters') {
-            mailWidget(stage, panel, ui, this.state.mail, this.selectedItem, pick, (state, message) => { this.state.mail = state; this.message = message ?? ''; update(); }, () => this.finish());
-            return;
+        if(this.dataIn.episode==='lost-letters'){
+            const view=echoWidget(stage,panel,ui,this.state.echo,n=>{if(this.echoPlaying||!this.echoOpen)return;const old=this.state.echo.round,result=echoTap(this.state.echo,n);this.state.echo=result.state;this.message=result.wrong?this.t('次序未啱，今輪重新試，之前過咗嘅會保留。','Try this round again. Earlier rounds are safe.'):this.t('接到！繼續下一位。','Got it! Who comes next?');if(result.wrong)this.dataIn.feedback.play('error');else this.dataIn.feedback.play('place');if(this.state.echo.round!==old)this.echoOpen=false;if(this.state.echo.round===3)this.finish();else update();},()=>{if(this.echoPlaying)return;this.echoPlaying=true;this.echoOpen=false;this.state.echo.input=[];this.persist();view.phase('watching');const root=this.root;const notes=echoRounds[this.state.echo.round]??[];notes.forEach((n,i)=>{this.echoTimers.push(this.time.delayedCall(200+i*780,()=>{if(root!==this.root)return;view.flash(n,true);this.dataIn.feedback.play('place');}));this.echoTimers.push(this.time.delayedCall(720+i*780,()=>{if(root===this.root)view.flash(n,false);}));});this.echoTimers.push(this.time.delayedCall(250+notes.length*780,()=>{if(root!==this.root)return;this.echoPlaying=false;this.echoOpen=true;view.phase('answer');}));});view.phase(this.echoOpen?'answer':'idle');return;
         }
         if (this.dataIn.episode === 'lift-balance') {
             balanceWidget(stage, panel, ui, this.state.lift, this.selectedItem, id => { this.selectedItem = id; this.message = this.t('已選行李，再點左右台。', 'Bag selected. Choose a platform.'); this.render(); }, side => {
@@ -535,11 +531,11 @@ export class EpisodeScene extends Phaser.Scene {
                     this.selectedItem = undefined;
                 update();
             }, id => { this.state.lift = unloadBag(this.state.lift, id); this.selectedItem = id; update(); }, () => {
-                if (liftSolved(this.state.lift))
-                    this.finish();
+                if (liftSolved(this.state.lift)){this.moving=true;stage.classList.add('lift-departing');this.game.canvas.setAttribute('aria-busy','true');this.time.delayedCall(reducedMotion()?1:1500,()=>{this.moving=false;this.finish();});}
                 else {
                     this.message = this.t('要六件全裝好、兩邊重量一樣，而且易碎箱在左台。', 'Load all six, balance the weights and put the fragile bag on the left.');
                     this.render();
+                    const lift=this.root?.querySelector<HTMLElement>('.lift-machine');if(lift)animateElement(lift,[{translate:'0 0'},{translate:'-5px 0',offset:.25},{translate:'4px 0',offset:.65},{translate:'0 0'}],300);
                 }
             });
             return;
@@ -583,7 +579,7 @@ export class EpisodeScene extends Phaser.Scene {
                 this.message = this.t('五份都要放入去，唔可以重疊。', 'Fit all five gifts without overlap.');
                 this.render();
             }
-        });
+        },piece=>{this.state.parcels=placeGift(this.state.parcels,piece);this.selectedItem=undefined;this.message=this.t('放好手信！','Gift placed!');this.dataIn.feedback.play('place');update();});
     }
     private finish() {
         if(this.won||navigationBusy())return;

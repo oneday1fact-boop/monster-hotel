@@ -10,10 +10,10 @@ describe('first-night guidance', () => {
     expect(tutorialView(1, [1], false, {})).toBeUndefined();
     expect(tutorialView(1, [], true, {})).toBeUndefined();
   });
-  it('teaches the actual werewolf requirement and highlights its unique room', () => {
+  it('teaches the gesture without revealing a room answer', () => {
     const view = tutorialView(1, [], false, {}, 'luno')!;
     expect(view.step).toBe('place'); expect(view.guestId).toBe('luno');
-    expect(view.roomId).toBe(solve(firstLevel)[0].luno);
+    expect(view.roomId).toBe('');
   });
   it('handles a wrong room without changing the player assignment', () => {
     const assignment = { luno: 'B01' }; const before = { ...assignment };
