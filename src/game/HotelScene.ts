@@ -1,5 +1,4 @@
 import { coverLife } from './coverLife';
-import { liveActor } from './liveWidgets';
 import { icon } from './icons';
 import { installButtonFeel, navigate, navigationBusy, cancelNavigation, tapShimmer, prefersQuietMotion } from './gameFeel';
 import { photoWallContent } from './photoWall';
@@ -152,10 +151,9 @@ export class HotelScene extends Phaser.Scene {
 
   private reception() {
     drawReception(this, this.screen==='title'?{...this.save,equipped:[]}:this.save, false, this.screen==='title'?'morning':lobbyAmbience(this.save));
-    if(this.screen==='title')return;
+    if(this.screen==='title'||this.screen==='lobby')return;
     if (this.save.storyNight) drawToyBasket(this, 258, 436, .85);
-    const latest = [...chapterIds].reverse().find(id => id >= 4 && this.save.stories?.[id as 4|5|6]);
-    const arrivals = this.screen === 'lobby' && latest ? chapterLevels[latest].guests : this.level.guests;
+    const arrivals = this.level.guests;
     arrivals.forEach((guest, index) => {
       const x = [100, 201, 303, 390][index]; const y = [386, 396, 382, 402][index];
       const actor = this.monster(x, y, guest).setScale(index === 2 ? .69 : .78);
@@ -182,7 +180,7 @@ export class HotelScene extends Phaser.Scene {
   }
   private title() {
     this.screen = 'title'; this.base(this.t.title); this.reception();
-    this.hud?.append(coverLife(this.save.episodes?.includes('storm-arrival')??false));this.hud?.coverLogo();this.walletBadge();
+    this.hud?.append(coverLife(this.save.episodes?.includes('storm-arrival')??false,this.save.episodes?.includes('clockwork-guest')??false));this.hud?.coverLogo();this.walletBadge();
     const place=document.createElement('div');place.className='cover-start-position';const play=document.createElement('button');play.className='game-primary-button cover-start';play.dataset.action='start-game';play.textContent=this.locale==='en'?'Play':'開始遊戲';play.onclick=()=>navigate('cover:play',()=>this.lobby());place.append(play);this.hud?.append(place);
   }
   private lobby() {
@@ -190,7 +188,7 @@ export class HotelScene extends Phaser.Scene {
     const menu=document.createElement('nav');menu.className='lobby-menu';
     const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=()=>navigate(`lobby:${action}`,callback);menu.append(b);};
     add(this.locale==='en'?'Puzzles':'解謎挑戰','challenges',()=>this.selection(),true);
-    add(this.locale==='en'?'Shop':this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());add(this.locale==='en'?'Memories':'酒店相牆','photos',()=>this.photoWall());this.hud?.append(menu);if(this.save.episodes?.includes('storm-arrival')){const guest=document.createElement('div');guest.className='new-resident';guest.setAttribute('role','img');guest.setAttribute('aria-label',this.locale==='en'?'New guest Nimbus':'新住客小雷');guest.append(liveActor('stormling'),Object.assign(document.createElement('span'),{textContent:this.locale==='en'?'Nimbus':'小雷'}));this.hud?.append(guest);}
+    add(this.locale==='en'?'Shop':this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());add(this.locale==='en'?'Memories':'酒店相牆','photos',()=>this.photoWall());this.hud?.append(menu);this.hud?.append(coverLife(this.save.episodes?.includes('storm-arrival')??false,this.save.episodes?.includes('clockwork-guest')??false));
   }
   private walletBadge(){const b=document.createElement('div');b.className='wallet-badge';b.append(icon('coin'),Object.assign(document.createElement('strong'),{textContent:String(this.save.coins)}));b.setAttribute('aria-label',`${this.save.coins} ${this.t.coins}`);this.hud?.append(b);}
   private photoWall(){

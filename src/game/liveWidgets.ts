@@ -4,7 +4,7 @@ interface UI {
     button(label: string, run: () => void, primary?: boolean): HTMLButtonElement;
     t(zh: string, en: string): string;
 }
-export function liveActor(kind: string) { const e = document.createElement('span'); e.className = 'live-actor';e.dataset.kind=kind;e.setAttribute('aria-hidden','true'); e.style.setProperty('--live-phase', `${-(performance.now()%2900)}ms`);e.style.setProperty('--idle-phase',`${-(performance.now()%4200)}ms`); e.style.setProperty('--actor-art', `url('/art/${kind}-poses.${kind==='stormling'?'svg':'png'}')`); e.innerHTML = '<span class="live-shadow"></span><span class="live-body"></span><span class="live-spark">✦</span>'; return e; }
+export function liveActor(kind: string) { const e = document.createElement('span'); e.className = 'live-actor';e.dataset.kind=kind;e.setAttribute('aria-hidden','true'); e.style.setProperty('--live-phase', `${-(performance.now()%2900)}ms`);e.style.setProperty('--idle-phase',`${-(performance.now()%4200)}ms`); e.style.setProperty('--actor-art', `url('/art/${kind}-poses.${kind==='stormling'||kind==='cheshire'?'svg':'png'}')`); e.innerHTML = '<span class="live-shadow"></span><span class="live-body"></span><span class="live-spark">✦</span>'; return e; }
 export function echoWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, state: EchoState, tap: (n: number) => void, watch: () => void) {
     const board = document.createElement('div');
     board.className = 'echo-board';

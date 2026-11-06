@@ -1,3 +1,5 @@
+import {freshClocks,validClocks,turnClocks,clocksSolved,type ClockState} from '../domain/clockwork';
+import {clockworkWidget} from './clockworkWidget';
 import {languageToggle} from './languageToggle';
 import { freshWind, validWind, windBells, glideWind, windSolved, type WindState } from '../domain/windGuest';
 import { windGuestWidget } from './windGuestWidget';
@@ -38,6 +40,7 @@ type Data = {
     onExit(save: Save, locale: Locale, destination?: 'lobby' | 'map' | 'next'): void;
 };
 type Draft = {
+    clocks:ClockState;
     wind: WindState;
     clues: EvidenceId[];
     road: number[];
@@ -56,7 +59,7 @@ type Draft = {
     lockGuesses: Rune[][];
     photo: PhotoState;
 };
-const fresh = (): Draft => ({ wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
+const fresh = (): Draft => ({ clocks:freshClocks(), wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
@@ -98,6 +101,7 @@ export class EpisodeScene extends Phaser.Scene {
             const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
             if (d) {
+                if(validClocks(d.clocks))this.state.clocks=d.clocks;
                 if(validWind(d.wind))this.state.wind=d.wind;
                 if(validEcho(d.echo))this.state.echo=d.echo.round===3?freshEcho():d.echo;
                 if(validCamera(d.camera))this.state.camera=d.camera;
@@ -138,6 +142,7 @@ export class EpisodeScene extends Phaser.Scene {
         }
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
         if(this.dataIn.episode==='storm-arrival'&&this.dataIn.save.episodes?.includes('storm-arrival')&&windSolved(this.state.wind))this.state.wind=freshWind();
+        if(this.dataIn.episode==='clockwork-guest'&&this.dataIn.save.episodes?.includes('clockwork-guest')&&clocksSolved(this.state.clocks.hands))this.state.clocks=freshClocks();
         if(this.dataIn.episode==='cake-case'&&this.dataIn.save.episodes?.includes('cake-case')&&laundrySolved(this.state.laundry))this.state.laundry=[...initialLaundry];
     }
     private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'lost-letters' || this.dataIn.episode === 'group-photo' ? 2 : this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
@@ -455,6 +460,13 @@ export class EpisodeScene extends Phaser.Scene {
         const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
         const update = () => { this.persist(); this.render(); };
         const pick = (id: string) => { this.selectedItem = id || undefined; this.render(); };
+        if(this.dataIn.episode==='clockwork-guest'){
+            clockworkWidget(stage,panel,ui,this.state.clocks,()=>{this.state.clocks.started=true;update();},knob=>{
+                const old=[...this.state.clocks.hands];this.state.clocks.history=[...this.state.clocks.history.slice(-255),old];this.state.clocks.hands=turnClocks(old,knob);this.message='';this.persist();
+                this.state.clocks.hands.forEach((n,i)=>{const house=stage.querySelector<HTMLElement>(`[data-clock="${i}"]`);if(!house)return;house.dataset.hand=String(n);house.classList.toggle('clock-aligned',n===0);house.setAttribute('aria-label',this.t(`鐘 ${i+1}：${n===0?12:n*3} 點`,`Clock ${i+1}: ${n===0?12:n*3} o'clock`));house.style.setProperty('--hand-angle',`${n*90}deg`);if(n!==old[i]){const hand=house.querySelector<HTMLElement>('.clock-hand')!;const delta=knob===0&&i===1||knob===2&&i===3?-90:90;animateElement(hand,[{transform:`rotate(${old[i]*90}deg)`},{transform:`rotate(${old[i]*90+delta}deg)`}],330,{easing:'cubic-bezier(.2,.8,.2,1)'});}});
+                const gear=panel.querySelector<HTMLElement>(`[data-clock-knob="${knob}"] .brass-gear`);if(gear)animateElement(gear,[{rotate:'0deg'},{rotate:'90deg'}],330);panel.querySelectorAll('.clock-hint').forEach(e=>e.classList.remove('clock-hint'));panel.querySelector<HTMLButtonElement>('[data-action=undo-clocks]')!.disabled=false;stage.querySelectorAll('.clock-linked').forEach(e=>e.classList.remove('clock-linked'));
+            },()=>{const before=this.state.clocks.history.pop();if(before){this.state.clocks.hands=before;this.message=this.t('已撤回，試另一個齒輪。','Undone. Try another gear.');update();}},()=>{if(clocksSolved(this.state.clocks.hands))this.finish();else{this.message=this.t('仲有指針未對準金星，留意兩隻鐘會一齊轉。','Some hands still miss the gold star. Each gear turns two clocks.');this.render();}});return;
+        }
         if(this.dataIn.episode==='storm-arrival'){
             windGuestWidget(stage,panel,ui,this.state.wind,()=>{this.state.wind.started=true;update();},d=>{
                 const old=this.state.wind,next=glideWind(old,d);if(!next.path.length){this.message=this.t('呢邊有牆擋住，試另一個風向。','A wall blocks that direction. Try another wind.');this.render();return;}

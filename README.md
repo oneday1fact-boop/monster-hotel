@@ -1,6 +1,6 @@
 # Monster Hotel: Midnight Check-in
 
-Offline-first landscape Android puzzle game built from scratch with TypeScript, Phaser 3, Vite and Capacitor. All characters, illustrations and sound are original or locally synthesized; fonts are bundled under OFL licenses. No live ads, analytics or public publication.
+Offline-first landscape Android puzzle game built from scratch with TypeScript, Phaser 3, Vite and Capacitor. Character art, illustrations and sound are original or locally synthesized; Grin is an original adaptation of the public-domain Cheshire Cat; fonts are bundled under OFL licenses. No live ads, analytics or public publication.
 
 ## Installation and development
 
@@ -15,6 +15,14 @@ npm run test:browser
 ```
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
+
+## Version 1.15: one shared lineup and a public-domain story guest
+
+Cover and lobby now use the same continuous character renderer, positions and sizing; Nimbus no longer jumps to a separate right-hand resident badge. The line has four guests initially, five after Nimbus, and six after Grin’s chapter. Landscape and portrait fallback layouts keep menus clear and honor reduced motion.
+
+Append **Grin checks in: the cuckoo clocks** after Nimbus. The original mint-coloured Cheshire guest is based on Carroll’s public-domain novel, with newly drawn SVG artwork, dialogue and animation. See [source/design notes](docs/public-domain-guests.zh-Hant.md). Four linked clocks and three gears have a shortest eight-turn solution, free undo and adaptive hints. A wrong answer never spends currency. Drafts survive reload; first completion earns 500 coins once and permanently unlocks Grin on both cover and lobby. The 64 reachable boards were checked for solvability. Shadow theatre and pillow bounce remain **designs only**, now featuring Grin in [the updated plan](docs/next-three-games.zh-Hant.md).
+
+Android 1.15 / versionCode 16. Run `MONSTER_SOFTWARE_TEST=1 npx playwright test e2e/cheshire.spec.ts` for shared lineup, completion, persistence, bilingual layouts and reduced motion. Existing saves, decorations and photograph collection remain compatible.
 
 ## Version 1.14: earned cover companion and a small laundry tune
 

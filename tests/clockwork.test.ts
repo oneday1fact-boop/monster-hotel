@@ -1,0 +1,7 @@
+import {describe,it,expect} from 'vitest';
+import {clockStart,clockLinks,turnClocks,clocksSolved,clockHint,freshClocks,validClocks} from '../src/domain/clockwork';
+describe('linked cuckoo clocks',()=>{
+ it('has a shortest eight-turn introduction without changing unrelated clocks',()=>{let hands=[...clockStart] as number[];let moves=0;while(!clocksSolved(hands)&&moves<20){hands=turnClocks(hands,clockHint(hands)!);moves++;}expect(moves).toBe(8);expect(hands).toEqual([0,0,0,0]);expect(turnClocks(clockStart,0)).toEqual([2,0,3,3]);});
+ it('all reachable positions remain solvable after a mistaken turn',()=>{const queue=[[...clockStart] as number[]],seen=new Set([clockStart.join()]);for(let i=0;i<queue.length;i++){let h=queue[i],steps=0;while(!clocksSolved(h)&&steps++<16)h=turnClocks(h,clockHint(h)!);expect(clocksSolved(h)).toBe(true);for(let k=0;k<clockLinks.length;k++){const n=turnClocks(queue[i],k);if(!seen.has(n.join())){seen.add(n.join());queue.push(n);}}}expect(seen.size).toBe(64);});
+ it('accepts genuine undo history and rejects forged or corrupt drafts',()=>{const s=freshClocks();expect(validClocks(s)).toBe(true);s.history.push([...s.hands]);s.hands=turnClocks(s.hands,1);expect(validClocks(s)).toBe(true);expect(validClocks({...s,hands:[0,0,0,0]})).toBe(false);expect(validClocks({...s,hands:[0,0,0,4]})).toBe(false);expect(turnClocks(clockStart,9)).toEqual(clockStart);expect(clocksSolved([])).toBe(false);expect(clockHint([0,0,0,0])).toBeUndefined();});
+});
