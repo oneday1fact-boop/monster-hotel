@@ -1,6 +1,6 @@
 export const episodeCopy = {
     'zh-Hant': {
-        'clockwork-guest':{title:'笑影入住：停唔到嘅咕咕鐘',goal:'四支針指向金星，令咕咕鳥安靜。',instruction:'三個齒輪各連住兩隻鐘。留意轉向，可撤回；四針向上再確認。',ending:'四隻咕咕鳥安靜落嚟！笑影收起隱形尾巴，領取房匙正式入住。封面同大廳都會見到佢同朋友排埋一齊。'},
+        'clockwork-guest':{title:'維尼入住：停唔到嘅咕咕鐘',goal:'四支針指向金星，令咕咕鳥安靜。',instruction:'三個齒輪各連住兩隻鐘。留意轉向，可撤回；四針向上再確認。',ending:'四隻咕咕鳥安靜落嚟！維尼抱起蜜糖罐，領取房匙正式入住。封面同大廳都會見到佢同朋友排埋一齊。'},
         'storm-arrival':{title:'暴雨夜，小雷迷路了',goal:'收齊三片風鈴，再帶新住客小雷到右上大廳。',instruction:'按風向，小雷會一直滑到牆邊；途中可收碎片。唔使鬥快，可撤回。',ending:'風鈴重新響起，小雷終於放鬆！燈燈遞上熱茶同乾毛巾，旅館迎來一位怕嚇親朋友、其實好溫柔嘅小雲獸。'},
         'cake-case': { title: '幽靈洗衣房', goal: '移開衣籃，將星星被單送到右邊出口。', instruction: '揀物件再按箭嘴；只沿擺放方向移一格。', ending: '星星被單送返出嚟！小豆摺好暖笠笠嘅被單，今晚每位住客都可以安心瞓。' },
         'luggage-run': { title: '行李大暴走', goal: '滑動路磚，接通旅行箱入口同小柚出口。', instruction: '只有一格空位。點旁邊路磚，上下左右滑一格；路接好先出發。', ending: '旅行箱終於返到小柚身邊！佢打開箱，送大家一盒旅行手信。' },
@@ -16,7 +16,7 @@ export const episodeCopy = {
         'group-photo':{title:'怪物大合照',goal:'捉住客望鏡頭嘅一刻，六位定格先拍合照。',instruction:'綠圈亮起時點住客定格，六位準備好再按快門。',ending:'咔嚓！六位旅館朋友都影到，相片已收藏。返大廳嘅酒店相牆可以隨時重溫。'},
     },
     en: {
-        'clockwork-guest':{title:'Grin checks in: the cuckoo clocks',goal:'Point all four hands up at the gold stars.',instruction:'Each gear turns two clocks. Watch the directions. Undo freely; check when all hands point up.',ending:'The cuckoos finally settle! Grin the Cheshire Cat takes his room key and joins his friends on both the cover and lobby.'},
+        'clockwork-guest':{title:'Pooh checks in: the cuckoo clocks',goal:'Point all four hands up at the gold stars.',instruction:'Each gear turns two clocks. Watch the directions. Undo freely; check when all hands point up.',ending:'The cuckoos finally settle! Winnie-the-Pooh takes his room key and joins his friends on both the cover and lobby.'},
         'storm-arrival':{title:'A stormy arrival',goal:'Collect three chime pieces, then guide Nimbus to the top-right lobby.',instruction:'Wind blows to the next wall. Collect chimes along the way. Undo freely.',ending:'The chime rings again and Nimbus relaxes. Ember brings tea and a dry towel. Your new cloud guest only thundered because he was nervous!'},
         'cake-case': { title: 'The ghost laundry', goal: 'Free the star quilt at the right-hand exit.', instruction: 'Select an item, then slide one cell along its length.', ending: 'The star quilt is free! Dou folds the warm bedding so every hotel guest can sleep snugly.' },
         'luggage-run': { title: 'Runaway luggage', goal: 'Slide road tiles to connect the suitcase entrance to Yuzu’s exit.', instruction: 'There is one empty slot. Tap a tile beside it to slide one step. Connect the roads, then press Go.', ending: 'The suitcase reaches Yuzu! She opens it and shares a box of treats from her travels.' },

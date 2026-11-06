@@ -1,6 +1,6 @@
 # Monster Hotel: Midnight Check-in
 
-Offline-first landscape Android puzzle game built from scratch with TypeScript, Phaser 3, Vite and Capacitor. Character art, illustrations and sound are original or locally synthesized; Grin is an original adaptation of the public-domain Cheshire Cat; fonts are bundled under OFL licenses. No live ads, analytics or public publication.
+Offline-first landscape Android puzzle game built from scratch with TypeScript, Phaser 3, Vite and Capacitor. Character art, illustrations and sound are original or locally synthesized; Pooh uses newly drawn art based on the 1926 novel (US public domain; other territories require separate review); fonts are bundled under OFL licenses. No live ads, analytics or public publication.
 
 ## Installation and development
 
@@ -15,6 +15,12 @@ npm run test:browser
 ```
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
+
+## Version 1.16: Winnie-the-Pooh replaces Grin
+
+The new guest is now Winnie-the-Pooh / 維尼 throughout the arrival introduction, clock game, completion, animated cover and lobby. Newly drawn honey-brown teddy artwork has no clothing, a stitched belly and a blue-grey honey pot. The story centres on quiet clocks and afternoon tea. See [source and territory notes](docs/public-domain-guests.zh-Hant.md): removing a red shirt alone is not a global copyright clearance.
+
+Keep `clockwork-guest` IDs, drafts, unlocks and one-time rewards unchanged: a player who already earned Grin receives Pooh automatically without replay or extra coins. Shadow theatre and pillow bounce remain designs only, with Pooh replacing Grin in their plans. Android 1.16 / versionCode 17. Run `MONSTER_SOFTWARE_TEST=1 npx playwright test e2e/pooh.spec.ts`; `npm run review:record` records the actual replacement and completion against port 5188.
 
 ## Version 1.15: one shared lineup and a public-domain story guest
 

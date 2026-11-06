@@ -1,9 +1,9 @@
 import type {EpisodeId} from '../domain/episodes';
 import {liveActor} from './liveWidgets';
-const guests={grin:'cheshire',nimbus:'stormling',luno:'werewolf',dou:'jiangshi',ember:'lantern',rollo:'mummy',yuzu:'fox',nemu:'baku'} as const;
+const guests={pooh:'pooh',nimbus:'stormling',luno:'werewolf',dou:'jiangshi',ember:'lantern',rollo:'mummy',yuzu:'fox',nemu:'baku'} as const;
 type GuestId=keyof typeof guests;
 const stories:Record<EpisodeId,{act:string;cast:GuestId[];room:string;prop:string}>={
- 'clockwork-guest':{act:'welcome',cast:['grin','nimbus','rollo'],room:'elegant',prop:'key'},
+ 'clockwork-guest':{act:'welcome',cast:['pooh','nimbus','rollo'],room:'elegant',prop:'key'},
  'storm-arrival':{act:'tea',cast:['nimbus','ember'],room:'hearth',prop:'tea'},
  'cake-case':{act:'laundry',cast:['dou','rollo'],room:'linen',prop:'quilt'},
  'luggage-run':{act:'arrival',cast:['yuzu','rollo'],room:'elegant',prop:'luggage'},
