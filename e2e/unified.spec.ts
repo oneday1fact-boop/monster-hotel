@@ -131,11 +131,13 @@ test('opening-night room assignment introduces guests first, then all nine event
         await expect(page.locator('.episode-screen')).toHaveAttribute('data-episode', episodes[i]);
         await solve(page, episodes[i]);
         expect((await saved(page)).coins).toBe(50 + (i + 1) * 500);
-        await page.getByRole('button', { name: episodes[i] === 'lost-letters' ? '返回旅館' : '下一關', exact: true }).click();
+        await page.getByRole('button', { name: '下一關', exact: true }).click();
         await ready(page);
     }
+    await expect(page.locator('.episode-screen')).toHaveAttribute('data-episode','scent-room');
+    await page.getByRole('button',{name:'返回大廳',exact:true}).click();
     await page.locator('[data-action=challenges]').click();
-    await expect(page.locator('.challenge-node')).toHaveCount(2);
+    await expect(page.locator('.challenge-node')).toHaveCount(4);
     await page.getByRole('button', { name: '上一頁', exact: true }).click();
     await page.getByRole('button', { name: '上一頁', exact: true }).click();
     await expect(page.locator('.challenge-node').first()).toHaveAttribute('data-challenge', 'puzzle-1');
@@ -231,7 +233,7 @@ for (const size of [{ width: 844, height: 480 }, { width: 915, height: 412 }, { 
             await fits(page);
             await solve(page, id);
             await fits(page);
-            await page.getByRole('button', { name: id === 'lost-letters' ? '返回旅館' : '下一關', exact: true }).click();
+            await page.getByRole('button', { name: id === 'lost-letters' ? '返回大廳' : '下一關', exact: true }).click();
             await ready(page);
         }
     });

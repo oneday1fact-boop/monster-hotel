@@ -15,10 +15,10 @@ it('retains legacy achievements and awards only the new first completions', () =
         expect(completeEpisode(s, id).reward).toBe(0);
     }
     expect(s.completed).toEqual([1, 2, 20]);
-    expect(s.coins).toBe(5499);
-    expect(challengeProgress(s)).toBe(10);
+    expect(s.coins).toBe(6999);
+    expect(challengeProgress(s)).toBe(13);
     expect(challengeUnlocked(s, 'puzzle-20')).toBe(false);
-    expect(complete(s, 1).coins).toBe(5499);
+    expect(complete(s, 1).coins).toBe(6999);
 });
 it('filters unknown saved stage IDs without clearing old progress', () => { const s: Save = { version: 1, completed: [], coins: 0 }; expect(completeEpisode(s, 'dream-door').reward).toBe(0); vi.stubGlobal('localStorage', { getItem: () => JSON.stringify({ ...s, episodes: ['cake-case', 'unknown', 'cake-case'], completed: [1, 20] }) }); expect(readSave()).toMatchObject({ episodes: ['cake-case'], completed: [1, 20] }); });
 it('requires the actual complete evidence set and supported suspect', () => { expect(accusation(['footprints'], 'rollo')).toBe(false); expect(accusation(evidenceIds, 'yuzu')).toBe(false); expect(accusation([...evidenceIds].reverse(), 'rollo')).toBe(true); });
@@ -51,6 +51,6 @@ it('the new route can fund all cosmetics and preserves legacy scenery ownership'
         s = purchase(s, item.id).wallet;
     for (const scene of ['night', 'autumn', 'winter'] as const)
         s = buyScene(s, scene).wallet;
-    expect(s.coins).toBe(3130);
+    expect(s.coins).toBe(4630);
     expect(ownedScenes({ coins: 0, ambience: 'winter' })).toContain('winter');
 });

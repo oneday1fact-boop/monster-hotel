@@ -1,5 +1,5 @@
 /** Small compositor animations preserve an item's identity across DOM rerenders. */
-const tracked = ['data-laundry-piece', 'data-event', 'data-gift-cell', 'data-mirror', 'data-pipe'];
+const tracked = ['data-laundry-piece', 'data-event', 'data-gift-cell', 'data-mirror', 'data-pipe', 'data-photo-figure'];
 export function capturePuzzle(root?: HTMLElement) { const positions = new Map<string, DOMRect>(); if (root)
     for (const attr of tracked)
         for (const e of Array.from(root.querySelectorAll<HTMLElement>(`[${attr}]`)))
@@ -14,7 +14,7 @@ export function animatePuzzle(root: HTMLElement, old: ReturnType<typeof captureP
                 continue;
             const now = e.getBoundingClientRect(), dx = before.x - now.x, dy = before.y - now.y;
             if (Math.abs(dx) + Math.abs(dy) > 2 && before.width === now.width && before.height === now.height)
-                e.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'translate(0,0)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
+                { const base=getComputedStyle(e).transform;const suffix=base==='none'?'':base;e.animate([{ transform: `translate(${dx}px,${dy}px) ${suffix}` }, { transform: `translate(0,0) ${suffix}` }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' }); }
         }
     const beam = root.querySelector<HTMLElement>('.lift-beam');
     if (beam && old.beam && old.beam !== beam.style.transform)
@@ -30,6 +30,6 @@ export const episodeHosts: Record<string, {
     ];
     activity: string;
 }> = {
-    'cake-case': { kind: 'jiangshi', name: ['小豆', 'Dou'], activity: 'fold' }, 'luggage-run': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'walk' }, 'dream-door': { kind: 'baku', name: ['夢夢', 'Nemu'], activity: 'dream' }, 'lift-balance': { kind: 'mummy', name: ['卷卷', 'Rollo'], activity: 'lift' }, 'moon-mirrors': { kind: 'werewolf', name: ['月毛', 'Luno'], activity: 'moon' }, 'gift-box': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'wrap' }, 'midnight-knock': { kind: 'mummy', name: ['卷卷', 'Rollo'], activity: 'listen' }, 'spring-pipes': { kind: 'lantern', name: ['燈燈', 'Ember'], activity: 'steam' }, 'lost-letters': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'wave' }
+    'scent-room':{kind:'lantern',name:['燈燈','Ember'],activity:'steam'},'key-cabinet':{kind:'mummy',name:['卷卷','Rollo'],activity:'listen'},'group-photo':{kind:'fox',name:['小柚','Yuzu'],activity:'wave'},'cake-case': { kind: 'jiangshi', name: ['小豆', 'Dou'], activity: 'fold' }, 'luggage-run': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'walk' }, 'dream-door': { kind: 'baku', name: ['夢夢', 'Nemu'], activity: 'dream' }, 'lift-balance': { kind: 'mummy', name: ['卷卷', 'Rollo'], activity: 'lift' }, 'moon-mirrors': { kind: 'werewolf', name: ['月毛', 'Luno'], activity: 'moon' }, 'gift-box': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'wrap' }, 'midnight-knock': { kind: 'mummy', name: ['卷卷', 'Rollo'], activity: 'listen' }, 'spring-pipes': { kind: 'lantern', name: ['燈燈', 'Ember'], activity: 'steam' }, 'lost-letters': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'wave' }
 };
 export function episodeCompanion(id: string, english: boolean) { const host = episodeHosts[id], span = document.createElement('span'); span.className = 'episode-companion'; span.dataset.activity = host.activity; span.style.setProperty('--companion-art', `url('/art/${host.kind}-poses.png')`); span.setAttribute('role', 'img'); span.setAttribute('aria-label', host.name[english ? 1 : 0]); span.innerHTML = '<span class="companion-shadow"></span><span class="companion-body"></span><span class="companion-spark" aria-hidden="true">✦</span>'; return span; }

@@ -1,0 +1,56 @@
+import { test, expect, type Page } from '@playwright/test';
+import { ready, saved, saveKey } from './helpers';
+const old = ['cake-case', 'luggage-run', 'dream-door', 'lift-balance', 'moon-mirrors', 'gift-box', 'midnight-knock', 'spring-pipes', 'lost-letters'];
+const route = ['puzzle-1', ...old, 'scent-room', 'key-cabinet', 'group-photo'];
+const scentMoves = [[0, 3], [2, 0], [1, 2], [1, 3], [0, 1], [2, 0], [2, 3], [1, 2], [0, 1], [0, 3]];
+async function boot(p: Page, extra: string[] = []) { await p.addInitScript(({ key, episodes }) => { if (!localStorage.getItem(key))
+    localStorage.setItem(key, JSON.stringify({ version: 1, completed: [1], coins: 4550, episodes })); }, { key: saveKey, episodes: [...old, ...extra] }); await p.emulateMedia({ reducedMotion: 'reduce' }); await p.goto('/'); await ready(p); }
+async function lobby(p: Page) { const s = p.viewportSize()!; await p.mouse.click(590 * s.width / 844, 330 * s.height / 480); }
+async function choose(p: Page, id: string) { await p.locator('[data-action=challenges]').click(); const want = Math.floor(route.indexOf(id) / 4), current = Number((await p.locator('.fixed-page-nav span').innerText()).split('/')[0]) - 1; for (let i = 0; i < Math.abs(want - current); i++)
+    await p.getByRole('button', { name: want > current ? '下一頁' : '上一頁', exact: true }).click(); await p.locator(`.challenge-node[data-challenge=${id}]`).click(); await ready(p); }
+async function open(p: Page, id: string) { await lobby(p); await choose(p, id); }
+async function fits(p: Page) { expect(await p.evaluate(() => { const bad: string[] = []; for (const e of document.querySelectorAll<HTMLElement>('.episode-panel,.episode-footer,.scent-bottles,.scent-actions,.code-workbench,.code-entry,.code-history,.code-log,.photo-layout,.photo-requests,.photo-names,.memory-wall,.lobby-menu,.sheet-body')) {
+    if (e.getClientRects().length && (e.scrollHeight > e.clientHeight + 2 || e.scrollWidth > e.clientWidth + 2))
+        bad.push(e.className + ': ' + e.scrollWidth + 'x' + e.scrollHeight + '/' + e.clientWidth + 'x' + e.clientHeight);
+} for (const b of document.querySelectorAll<HTMLElement>('.episode-screen button,.details-overlay button,.lobby-menu button')) {
+    const r = b.getBoundingClientRect();
+    if (b.getClientRects().length && (r.x < -1 || r.y < -1 || r.right > innerWidth + 1 || r.bottom > innerHeight + 1))
+        bad.push(b.textContent || 'button');
+} return bad; })).toEqual([]); }
+async function scent(p: Page) { for (const [a, b] of scentMoves) {
+    await p.locator(`[data-scent-bottle="${a}"]`).click();
+    await p.locator(`[data-scent-bottle="${b}"]`).click();
+    await ready(p);
+} await p.locator('[data-action=check-scent]').click(); await expect(p.locator('.episode-finish')).toBeVisible(); }
+async function guess(p: Page, runes: string[]) { for (const [i, r] of runes.entries()) {
+    await p.locator(`[data-code-slot="${i}"]`).click();
+    await p.locator(`[data-rune=${r}]`).click();
+} await p.locator('[data-action=check-code]').click(); }
+async function photo(p: Page) { const wanted = ['ember', 'dou', 'nemu', 'luno', 'rollo', 'yuzu']; for (let i = 0; i < 6; i++) {
+    const current = await p.locator('[data-photo-guest]').evaluateAll(es => es.map(e => e.getAttribute('data-photo-guest')));
+    if (current[i] !== wanted[i]) {
+        await p.locator(`[data-photo-guest=${current[i]}]`).click();
+        await p.locator(`[data-photo-guest=${wanted[i]}]`).click();
+    }
+} for (const [id, n] of [['luno', 2], ['yuzu', 1]] as const) {
+    await p.locator(`[data-photo-guest=${id}]`).click();
+    for (let k = 0; k < n; k++)
+        await p.locator('[data-action=turn-photo]').click();
+    await p.locator(`[data-photo-guest=${id}]`).click();
+} await expect(p.locator('.photo-count')).toContainText('6/6'); await fits(p); await p.locator('[data-action=shoot-photo]').click(); await expect(p.locator('.episode-finish')).toBeVisible(); }
+test('three new games unlock in sequence and the earned photograph persists on the hotel wall', async ({ page }) => { test.setTimeout(180000); const errors: string[] = []; page.on('pageerror', e => errors.push(e.message)); await boot(page); await open(page, 'scent-room'); await scent(page); expect((await saved(page)).coins).toBe(5050); await page.getByRole('button', { name: '下一關', exact: true }).click(); await guess(page, ['flower', 'moon', 'star']); await expect(page.locator('.episode-finish')).toBeVisible(); await page.getByRole('button', { name: '下一關', exact: true }).click(); await photo(page); expect((await saved(page)).coins).toBe(6050); expect((await saved(page)).photos.party.order).toEqual(['ember', 'dou', 'nemu', 'luno', 'rollo', 'yuzu']); await page.getByRole('button', { name: '返回旅館', exact: true }).click(); await page.locator('[data-action=photos]').click(); await expect(page.locator('[data-saved-photo=party]')).toBeVisible(); await expect(page.locator('.photo-face')).toHaveCount(0); await fits(page); await page.reload(); await ready(page); await lobby(page); await page.locator('[data-action=photos]').click(); await expect(page.locator('[data-saved-photo=party]')).toBeVisible(); expect(errors).toEqual([]); });
+test('perfume preserves illegal attempts, supports undo and resumes a partial bottle', async ({ page }) => { await boot(page); await open(page, 'scent-room'); await page.locator('[data-scent-bottle="0"]').click(); await page.locator('[data-scent-bottle="1"]').click(); await expect(page.getByRole('status')).toContainText('只可'); await page.locator('[data-scent-bottle="3"]').click(); await ready(page); await page.reload(); await ready(page); await open(page, 'scent-room'); await expect(page.locator('[data-scent-bottle="3"] .scent-layer:not(.is-empty)')).toHaveCount(1); await page.locator('[data-action=undo-scent]').click(); await expect(page.locator('[data-scent-bottle="3"] .scent-layer:not(.is-empty)')).toHaveCount(0); expect((await saved(page)).coins).toBe(4550); await scent(page); });
+test('cabinet feedback, duplicate rejection and fixed-page attempt history survive reload', async ({ page }) => { await boot(page, ['scent-room']); await open(page, 'key-cabinet'); for (const g of [['leaf', 'moon', 'star'], ['leaf', 'moon', 'flame'], ['flower', 'star', 'moon']])
+    await guess(page, g); await expect(page.locator('.code-pages')).toContainText('2/2'); await fits(page); await page.locator('[data-code-page=prev]').click(); await expect(page.locator('.code-attempt')).toHaveCount(2); await page.reload(); await ready(page); await open(page, 'key-cabinet'); await expect(page.locator('.code-pages')).toContainText('2/2'); await page.locator('[data-action=check-code]').click(); await expect(page.getByRole('status')).toContainText('已經試過'); expect((await saved(page)).coins).toBe(4550); await page.getByRole('button', { name: '重新開始', exact: true }).click(); await guess(page, ['flower', 'moon', 'star']); await expect(page.locator('.episode-finish')).toBeVisible(); });
+test('a photo draft cannot unlock the memory wall before the shutter is pressed', async ({ page }) => { await boot(page, ['scent-room', 'key-cabinet']); await lobby(page); await page.locator('[data-action=photos]').click(); await expect(page.locator('.memory-locked')).toBeVisible(); await page.getByRole('button', { name: '關閉', exact: true }).click(); await choose(page, 'group-photo'); await expect(page.locator('[data-action=shoot-photo]')).toBeDisabled(); await page.locator('[data-photo-guest=luno]').click(); await page.locator('[data-action=turn-photo]').click(); await page.reload(); await ready(page); await open(page, 'group-photo'); expect((await saved(page)).photos).toBeUndefined(); await page.getByRole('button', { name: '重新開始', exact: true }).click(); await photo(page); });
+for (const size of [{ width: 844, height: 480 }, { width: 915, height: 412 }, { width: 640, height: 320 }, { width: 390, height: 844 }])
+    test(`new games and photo collection fit ${size.width}x${size.height}`, async ({ page }) => { test.setTimeout(180000); await page.setViewportSize(size); await boot(page); await open(page, 'scent-room'); await fits(page); await scent(page); await fits(page); await page.getByRole('button', { name: '下一關', exact: true }).click(); await fits(page); await guess(page, ['leaf', 'moon', 'star']); await fits(page); await page.getByRole('button', { name: '重新開始', exact: true }).click(); await guess(page, ['flower', 'moon', 'star']); await page.getByRole('button', { name: '下一關', exact: true }).click(); await fits(page); await photo(page); await fits(page); await page.getByRole('button', { name: '返回旅館', exact: true }).click(); await page.locator('[data-action=photos]').click(); await fits(page); });
+test('English compact new-game instructions and the memory wall stay usable', async ({ page }) => { test.setTimeout(150000); await page.setViewportSize({ width: 640, height: 320 }); await boot(page, ['scent-room', 'key-cabinet']); await open(page, 'scent-room'); await page.getByRole('button', { name: '語言', exact: true }).click(); await page.getByRole('button', { name: 'English', exact: true }).click(); await fits(page); for (const id of ['key-cabinet', 'group-photo']) {
+    await page.getByRole('button', { name: 'Level map', exact: true }).click();
+    const wanted = Math.floor(route.indexOf(id) / 4), current = Number((await page.locator('.fixed-page-nav span').innerText()).split('/')[0]) - 1;
+    for (let i = 0; i < Math.abs(wanted - current); i++)
+        await page.getByRole('button', { name: wanted > current ? 'Next' : 'Previous', exact: true }).click();
+    await page.locator(`.challenge-node[data-challenge=${id}]`).click();
+    await ready(page);
+    await fits(page);
+} await page.getByRole('button', { name: 'Lobby', exact: true }).click(); await page.locator('[data-action=photos]').click(); await fits(page); });

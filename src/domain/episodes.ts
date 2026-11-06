@@ -1,5 +1,5 @@
 /** Pure rules for evidence, one-gap sliding roads and picture comparison. */
-export const episodeIds = ['cake-case', 'luggage-run', 'dream-door', 'lift-balance', 'moon-mirrors', 'gift-box', 'midnight-knock', 'spring-pipes', 'lost-letters'] as const;
+export const episodeIds = ['cake-case', 'luggage-run', 'dream-door', 'lift-balance', 'moon-mirrors', 'gift-box', 'midnight-knock', 'spring-pipes', 'lost-letters', 'scent-room', 'key-cabinet', 'group-photo'] as const;
 export type EpisodeId = typeof episodeIds[number];
 export const isEpisode = (id: unknown): id is EpisodeId => episodeIds.some(x => x === id);
 export const evidenceIds = ['footprints', 'icing', 'ribbon'] as const;

@@ -1,3 +1,5 @@
+import { photoWallContent } from './photoWall';
+import { fitPhotoFrames } from './guestPuzzleWidgets';
 import { celebrateReward } from './rewardFx';
 import Phaser from 'phaser';
 import {arrivalIntroduction} from './arrivalIntro';
@@ -53,6 +55,7 @@ export class HotelScene extends Phaser.Scene {
   private selected?: string;
   private message = '';
   private locale: Locale = readLocale();
+  private albumRoot?: HTMLElement;
   private rewardFx?: () => void;
   private screen: 'title' | 'lobby' | 'play' | 'win' | 'selection' = 'title';
   private hintStage = 0;
@@ -96,6 +99,7 @@ export class HotelScene extends Phaser.Scene {
   private resizeViewport() {
     const width = this.scale.width; const height = this.scale.height;
     if (width === this.viewportWidth && height === this.viewportHeight) return;
+    if(this.albumRoot?.isConnected)fitPhotoFrames(this.albumRoot);
     this.viewportWidth = width; this.viewportHeight = height;
     const m = viewportMetrics(width, height);
     this.cameras.main.setViewport(0, 0, width, height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
@@ -109,6 +113,7 @@ export class HotelScene extends Phaser.Scene {
     return this.add.text(x, y, text, { fontFamily: 'GameNumbers, GameRounded, "Noto Sans TC", sans-serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
   }
   private base(label: string) {
+    this.albumRoot=undefined;
     this.rewardFx?.(); this.rewardFx = undefined;
     this.hud?.destroy(); this.hud = undefined;
     this.dismissDetails?.(); this.dismissDetails = undefined;
@@ -175,7 +180,11 @@ export class HotelScene extends Phaser.Scene {
     const menu=document.createElement('nav');menu.className='lobby-menu';
     const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=callback;menu.append(b);};
     add(this.locale==='en'?'Puzzles':'解謎挑戰','challenges',()=>this.selection(),true);
-    add(this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());this.hud?.append(menu);
+    add(this.locale==='en'?'Shop':this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());add(this.locale==='en'?'Memories':'酒店相牆','photos',()=>this.photoWall());this.hud?.append(menu);
+  }
+  private photoWall(){
+    const root=photoWallContent(this.save,this.locale);this.albumRoot=root;
+    this.details({kind:'card',title:this.locale==='en'?'Hotel memory wall':'酒店相牆',eyebrow:'',sections:[],close:this.ht.back,content:root},()=>{this.albumRoot=undefined;});fitPhotoFrames(root);
   }
   private launchChallenge(node:Challenge) {
     if(!challengeUnlocked(this.save,node.id))return;this.game.canvas.dataset.challenge=node.id;this.dismissDetails?.();this.dismissDetails=undefined;

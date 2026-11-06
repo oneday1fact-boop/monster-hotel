@@ -9,6 +9,9 @@ export const episodeCopy = {
         'midnight-knock': { title: '午夜走廊嘅敲門聲', goal: '根據三位住客嘅記憶，排好五件事。', instruction: '點事件，再點另一格交換；由左至右係先後次序。', ending: '原來敲門嘅係送熱茶嘅卷卷！大家記返先後次序，終於放心飲杯茶。' },
         'spring-pipes': { title: '溫泉突然唔夠暖', goal: '暖好兩池，水管唔漏。', instruction: '點水管順時針轉，再開水檢查。', ending: '暖水同時流入兩個浴池！燈燈掛起小燈，住客一齊享受春日溫泉。' },
         'lost-letters': { title: '一封寄錯房嘅信', goal: '用信封提示，將四封信各送俾一位住客。', instruction: '點信，再點收件人；每人一封，要連其他信一齊推理。', ending: '四封信都送啱！原來係朋友寄嚟嘅派對邀請，旅館又多咗幾個新約定。' },
+        'scent-room':{title:'燈燈嘅香氛調配室',goal:'將三種香味分開，各自裝滿一瓶。',instruction:'點來源瓶，再點目的瓶；只倒同味頂層。',ending:'三款香氛調好！燈燈放好薄荷、薰衣同柑橘香，溫泉房又多咗一份舒服氣氛。'},
+        'key-cabinet':{title:'鎖匙櫃嘅秘密',goal:'用五款鎖匙，推理三個鎖孔。',instruction:'揀鎖孔再揀圖案，試開後比較啱位同錯位。',ending:'鎖匙櫃開返！卷卷搵到派對相機嘅鎖匙，約齊住客一齊影張大合照。'},
+        'group-photo':{title:'怪物大合照',goal:'跟住客要求排位，六張面都要見到。',instruction:'點兩名換位；前排姿勢要左、中、右。',ending:'咔嚓！六位旅館朋友都影到，相片已收藏。返大廳嘅酒店相牆可以隨時重溫。'},
     },
     en: {
         'cake-case': { title: 'The ghost laundry', goal: 'Free the star quilt at the right-hand exit.', instruction: 'Select an item, then slide one cell along its length.', ending: 'The star quilt is free! Dou folds the warm bedding so every hotel guest can sleep snugly.' },
@@ -20,5 +23,8 @@ export const episodeCopy = {
         'midnight-knock': { title: 'A knock at midnight', goal: 'Put five events in order.', instruction: 'Select two cards to swap. Read left to right.', ending: 'Rollo was bringing warm tea! With the sequence restored, everyone relaxes over a cup.' },
         'spring-pipes': { title: 'The chilly hot springs', goal: 'Warm both baths. No leaks.', instruction: 'Tap pipes to turn clockwise.', ending: 'Warm water reaches both baths! Ember lights the lanterns for a peaceful spring soak.' },
         'lost-letters': { title: 'Letters at the wrong door', goal: 'One letter per guest.', instruction: 'Use all four clues. Select a letter, then a guest.', ending: 'Every invitation reaches its owner. The hotel friends have another party to plan!' },
+        'scent-room':{title:'Ember’s perfume studio',goal:'Fill one bottle with each of the three scents.',instruction:'Select a source, then a destination. Only matching top layers pour.',ending:'Mint, lavender and citrus are ready. Ember gives the spa a comforting new scent.'},
+        'key-cabinet':{title:'The secret key cabinet',goal:'Find the three-key code using five symbols.',instruction:'Select a slot, choose a key, then compare exact and misplaced matches.',ending:'The cabinet opens! Rollo finds the party camera key and gathers the hotel friends.'},
+        'group-photo':{title:'The monster group photo',goal:'Meet the guests’ requests. Show all six faces.',instruction:'Swap names. Front poses: left, centre, right.',ending:'Click! All six friends fit in the picture. Your photo is saved on the lobby’s memory wall.'},
     }
 } as const;
