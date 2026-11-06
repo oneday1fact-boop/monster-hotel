@@ -56,6 +56,7 @@ export class EpisodeScene extends Phaser.Scene {
     private dimensions = '';
     private selectedItem?: string;
     private rotation = 0;
+    private roadHistory: number[][] = [];
     private hintTarget?: DifferenceId;
     constructor() { super('episode'); }
     init(data: Data) {
@@ -63,6 +64,7 @@ export class EpisodeScene extends Phaser.Scene {
         this.state = fresh();
         this.selectedItem = undefined;
         this.rotation = 0;
+        this.roadHistory = [];
         this.hintTarget = undefined;
         this.message = '';
         this.won = false;
@@ -204,7 +206,7 @@ export class EpisodeScene extends Phaser.Scene {
             stage.classList.add('episode-celebrate');
             const finish = document.createElement('div');
             finish.className = 'episode-finish';
-            finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.message = ''; this.persist(); this.render(); }));
+            finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh(); this.roadHistory = []; this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.message = ''; this.persist(); this.render(); }));
             panel.replaceChildren(finish);
         }
         else if (this.dataIn.episode === 'cake-case')
@@ -248,6 +250,7 @@ export class EpisodeScene extends Phaser.Scene {
                     return;
                 }
                 const blank = board.querySelector<HTMLElement>(`[data-tile="${this.state.road.indexOf(-1)}"]`)!;
+                this.roadHistory.push([...this.state.road]);
                 this.state.road = next;
                 this.persist();
                 this.moving = true;
@@ -288,6 +291,17 @@ export class EpisodeScene extends Phaser.Scene {
         const note = document.createElement('p');
         note.textContent = this.t('每塊路磚唔會旋轉，只有空位旁邊嘅一塊可以滑動。路口要真正相接先行到。', 'Tiles do not rotate. Slide one neighboring tile into the gap. Road ends must actually meet.');
         panel.append(note);
+        const undo = this.button(this.t('↶ 撤銷上一步', '↶ Undo last move'), () => {
+            const previous = this.roadHistory.pop();
+            if (!previous) return;
+            this.state.road = previous;
+            this.message = this.t('已撤銷，可以重新諗條路。', 'Move undone. Try another route.');
+            this.persist();
+            this.render();
+        });
+        undo.dataset.action = 'undo-road';
+        undo.disabled = this.roadHistory.length === 0;
+        panel.append(undo);
         const go = this.button(this.t('行李出發！', 'Send luggage!'), () => {
             const path = roadPath(this.state.road);
             if (!path.length) {
