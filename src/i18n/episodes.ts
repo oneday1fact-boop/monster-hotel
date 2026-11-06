@@ -1,6 +1,6 @@
 export const episodeCopy = {
     'zh-Hant': {
-        'cake-case': { title: '生日蛋糕失蹤事件', goal: '搵出邊位搬走咗蛋糕。', instruction: '觀察實物、比較輪紋，再連結證據解釋原因。', ending: '原來卷卷怕蛋糕融化，偷偷搬去陰涼地下室！大家一齊準備驚喜派對。' },
+        'cake-case': { title: '幽靈洗衣房', goal: '移開衣籃，將星星被單送到右邊出口。', instruction: '揀物件再按箭嘴；只沿擺放方向移一格。', ending: '星星被單送返出嚟！小豆摺好暖笠笠嘅被單，今晚每位住客都可以安心瞓。' },
         'luggage-run': { title: '行李大暴走', goal: '滑動路磚，接通旅行箱入口同小柚出口。', instruction: '只有一格空位。點旁邊路磚，上下左右滑一格；路接好先出發。', ending: '旅行箱終於返到小柚身邊！佢打開箱，送大家一盒旅行手信。' },
         'dream-door': { title: '現實與夢境找不同', goal: '幫夢夢比較兩幅房間圖，找出五個不同。', instruction: '留意掛飾、花紋同方向；兩邊都可以點，有需要可用提示。', ending: '五個不同都搵到！夢夢幫住客分清現實同夢境，安心瞓返一覺。' },
         'lift-balance': { title: '升降機唔肯郁', goal: '將六件行李平衡裝上兩邊。', instruction: '點行李，再點左右台；點已裝行李可取回。', ending: '升降機平穩升起！卷卷安全送到派對用品，連易碎嘅小茶杯都冇事。' },
@@ -11,7 +11,7 @@ export const episodeCopy = {
         'lost-letters': { title: '一封寄錯房嘅信', goal: '用信封提示，將四封信各送俾一位住客。', instruction: '點信，再點收件人；每人一封，要連其他信一齊推理。', ending: '四封信都送啱！原來係朋友寄嚟嘅派對邀請，旅館又多咗幾個新約定。' },
     },
     en: {
-        'cake-case': { title: 'The missing birthday cake', goal: 'Find who moved the cake.', instruction: 'Inspect, match tracks, explain why.', ending: 'Rollo moved the cake to the cool basement to stop it melting! Everyone helps finish the surprise party.' },
+        'cake-case': { title: 'The ghost laundry', goal: 'Free the star quilt at the right-hand exit.', instruction: 'Select an item, then slide one cell along its length.', ending: 'The star quilt is free! Dou folds the warm bedding so every hotel guest can sleep snugly.' },
         'luggage-run': { title: 'Runaway luggage', goal: 'Slide road tiles to connect the suitcase entrance to Yuzu’s exit.', instruction: 'There is one empty slot. Tap a tile beside it to slide one step. Connect the roads, then press Go.', ending: 'The suitcase reaches Yuzu! She opens it and shares a box of treats from her travels.' },
         'dream-door': { title: 'Reality & dream: spot the differences', goal: 'Help Nemu find five differences between the two room pictures.', instruction: 'Compare ornaments, patterns and angles. Tap either picture; a hint is available.', ending: 'All five differences found! Nemu helps the guest tell reality from dreams and sleep peacefully.' },
         'lift-balance': { title: 'The stubborn lift', goal: 'Balance six bags across two platforms.', instruction: 'Select a bag, then a platform. Tap a loaded bag to take it back.', ending: 'The lift rises smoothly! Rollo delivers the party supplies with every fragile cup safe.' },

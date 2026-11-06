@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { readPreferences, type Preferences } from './preferences';
-export type Cue = 'tap' | 'place' | 'error' | 'success' | 'purchase';
+export type Cue = 'tap' | 'place' | 'error' | 'success' | 'purchase' | 'harvest';
 const melody = [246.94, 293.66, 369.99, 440, 369.99, 293.66, 220, 293.66];
 /** Original offline score and cues. Audio starts only in response to a user gesture. */
 export class Feedback {
@@ -72,7 +72,7 @@ export class Feedback {
   }
   play(cue: Cue) {
     if (!this.preferences.sound || document.hidden || !this.effectsGain || !this.context) return;
-    const notes = { tap: [440], place: [523.25, 659.25], error: [220, 164.81], success: [523.25, 659.25, 783.99, 1046.5], purchase: [659.25, 880, 1046.5] }[cue];
+    const notes = { tap: [440], place: [523.25, 659.25], error: [220, 164.81], success: [523.25, 659.25, 783.99, 1046.5], purchase: [659.25, 880, 1046.5], harvest: [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98] }[cue];
     notes.forEach((frequency, index) => this.tone(frequency, cue === 'tap' ? 0.09 : 0.22, index * 0.1, this.effectsGain!));
   }
   async pulse(cue: Cue) {

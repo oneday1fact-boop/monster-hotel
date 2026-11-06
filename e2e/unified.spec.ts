@@ -38,14 +38,13 @@ async function firstNight(p: Page) {
 }
 async function solve(p: Page, id: string) {
     if (id === 'cake-case') {
-        for (const c of ['footprints', 'icing', 'ribbon'])
-            await p.locator(`[data-evidence=${c}]`).click();
-        await p.locator('[data-wheel=rollo]').click();
-        await p.locator('[data-proof=heat]').click();
-        await p.locator('[data-proof=melt]').click();
-        await p.locator('[data-action=link-evidence]').click();
+        const pieces = ['quilt', 'rack', 'basket', 'sheets', 'towels', 'hamper', 'coats'];
+        for (const [i, d] of [[0, 1], [2, -1], [2, -1], [4, -1], [3, -1], [5, 1], [5, 1], [6, 1], [6, 1], [0, 1], [0, 1]]) {
+            await p.locator(`[data-laundry-piece=${pieces[i]}]`).click();
+            await p.locator(`[data-slide="${[4, 5, 6].includes(i) ? d === 1 ? '↓' : '↑' : d === 1 ? '→' : '←'}"]`).click();
+        }
         await fits(p);
-        await p.locator('[data-suspect=rollo]').click();
+        await p.locator('[data-action=check-laundry]').click();
     }
     else if (id === 'luggage-run') {
         for (const i of roadMoves)
@@ -107,7 +106,7 @@ async function solve(p: Page, id: string) {
 async function fits(p: Page) {
     expect(await p.evaluate(() => {
         const bad: string[] = [];
-        for (const el of document.querySelectorAll<HTMLElement>('.arrival-introduction,.arrival-guests,.arrival-guest,.classic-wishes,.episode-screen,.episode-panel,.episode-finish,.episode-footer,.comparison-stage,.comparison-picture,.road-board,.lift-stock,.lift-machine,.lift-pan,.moon-board,.gift-board,.gift-palette,.gift-actions,.wheel-comparison,.case-observations,.case-proofs,.timeline-board,.witnesses,.spring-board,.mail-board,.mail-letters,.mail-guests,.sheet-body,.boutique,.challenge-map')) {
+        for (const el of document.querySelectorAll<HTMLElement>('.arrival-introduction,.arrival-guests,.arrival-guest,.classic-wishes,.episode-screen,.episode-panel,.episode-finish,.episode-footer,.comparison-stage,.comparison-picture,.road-board,.lift-stock,.lift-machine,.lift-pan,.moon-board,.gift-board,.gift-palette,.gift-actions,.laundry-board,.laundry-controls,.timeline-board,.witnesses,.spring-board,.mail-board,.mail-letters,.mail-guests,.sheet-body,.boutique,.challenge-map')) {
             if (!el.getClientRects().length)
                 continue;
             if (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2)
@@ -142,49 +141,37 @@ test('opening-night room assignment introduces guests first, then all nine event
     await expect(page.locator('.challenge-node').first()).toHaveAttribute('data-challenge', 'puzzle-1');
     await page.locator('[data-challenge=cake-case]').click();
     // Reopening resumes the completed draft; explicitly restart to replay all phases.
-    await page.getByRole('button', {name:'重新開始',exact:true}).click();
+    await page.getByRole('button', { name: '重新開始', exact: true }).click();
     await solve(page, 'cake-case');
     expect((await saved(page)).coins).toBe(4550);
     expect(errors).toEqual([]);
 });
-test('physical cake evidence leads to track comparison and a causal explanation; drafts resume', async ({ page }) => {
+test('ghost laundry replaces the investigation, rejects blocked slides and resumes its own draft', async ({ page }) => {
     await boot(page);
     await open(page, 'cake-case');
-    await expect(page.locator('.evidence-object')).toHaveCount(3);
-    await page.locator('[data-action=inspect-window]').click();
-    await expect(page.locator('.evidence-count')).toContainText('0/3');
-    await page.locator('[data-evidence=icing]').click();
-    await fits(page);
+    await expect(page.locator('.episode-top h1')).toHaveText('幽靈洗衣房');
+    await expect(page.locator('[data-laundry-piece]')).toHaveCount(7);
+    await expect(page.locator('[data-evidence]')).toHaveCount(0);
+    await page.locator('[data-action=check-laundry]').click();
+    await expect(page.getByRole('status')).toContainText('右邊出口');
+    await page.locator('[data-slide="←"]').click();
+    await expect(page.getByRole('status')).toContainText('擋住');
+    await page.locator('[data-slide="→"]').click();
+    await expect(page.locator('[data-laundry-piece=quilt]')).toHaveAttribute('data-position', '1');
     await page.reload();
     await ready(page);
     await open(page, 'cake-case');
-    await expect(page.locator('[data-evidence=icing]')).toHaveClass(/is-collected/);
-    await page.locator('[data-evidence=footprints]').click();
-    await page.locator('[data-evidence=ribbon]').click();
-    await expect(page.locator('[data-case-phase=wheels]')).toBeVisible();
-    await fits(page);
-    await page.locator('[data-wheel=luno]').click();
-    await expect(page.getByRole('status')).toContainText('唔吻合');
-    await page.locator('[data-wheel=rollo]').click();
-    await fits(page);
-    await page.reload();
-    await ready(page);
-    await open(page, 'cake-case');
-    await expect(page.locator('[data-case-phase=reason]')).toBeVisible();
-    await expect(page.locator('[data-suspect=rollo]')).toBeDisabled();
-    await page.locator('[data-proof=heat]').click();
-    await page.locator('[data-proof=ribbon]').click();
-    await page.locator('[data-action=link-evidence]').click();
-    await expect(page.getByRole('status')).toContainText('未解釋點解');
+    await expect(page.locator('[data-laundry-piece=quilt]')).toHaveAttribute('data-position', '1');
     expect((await saved(page)).coins).toBe(50);
-    await page.locator('[data-proof=ribbon]').click();
-    await page.locator('[data-proof=melt]').click();
-    await page.locator('[data-action=link-evidence]').click();
-    await page.locator('[data-suspect=yuzu]').click();
-    await expect(page.getByRole('status')).toContainText('再對照');
-    await page.locator('[data-suspect=rollo]').click();
-    await expect(page.locator('.episode-finish')).toBeVisible();
+    await page.getByRole('button', { name: '重新開始', exact: true }).click();
+    await solve(page, 'cake-case');
     expect((await saved(page)).coins).toBe(550);
+    await expect(page.locator('.reward-harvest')).toHaveAttribute('data-reward-amount', '500');
+    await expect(page.locator('[data-harvest-wallet]')).toHaveText('550');
+    await page.getByRole('button', { name: '再玩本關', exact: true }).click();
+    await solve(page, 'cake-case');
+    expect((await saved(page)).coins).toBe(550);
+    await expect(page.locator('.reward-harvest')).toHaveCount(0);
 });
 test('larger roads keep fifteen visible pieces and one gap, reject jumps and resume legal moves', async ({ page }) => {
     test.setTimeout(90000);
@@ -315,15 +302,38 @@ test('mail needs all four clues together and returns an occupied mailbox letter 
     await solve(page, 'lost-letters');
     expect((await saved(page)).coins).toBe(4550);
 });
-test('new inference controls remain readable in English on a short phone', async ({page})=>{
- test.setTimeout(180000);await page.setViewportSize({width:640,height:320});
- await boot(page,{...caseSave,episodes,coins:4550});await open(page,'cake-case');
- await page.getByRole('button',{name:'語言',exact:true}).click();await page.getByRole('button',{name:'English',exact:true}).click();await fits(page);
- for(const id of ['footprints','icing','ribbon'])await page.locator(`[data-evidence=${id}]`).click();await fits(page);
- await page.locator('[data-wheel=rollo]').click();await fits(page);
- for(const id of ['midnight-knock','spring-pipes','lost-letters']){
-  await page.getByRole('button',{name:'Level map',exact:true}).click();
-  const target=page.locator(`.challenge-node[data-challenge=${id}]`),want=Math.floor(['puzzle-1',...episodes].indexOf(id)/4),current=Number((await page.locator('.fixed-page-nav span').innerText()).split('/')[0])-1;
-  for(let n=0;n<Math.abs(want-current);n++)await page.getByRole('button',{name:want>current?'Next':'Previous',exact:true}).click();await target.click();await ready(page);await fits(page);
- }
+test('new controls remain readable in English on a short phone', async ({ page }) => {
+    test.setTimeout(180000);
+    await page.setViewportSize({ width: 640, height: 320 });
+    await boot(page, { ...caseSave, episodes, coins: 4550 });
+    await open(page, 'cake-case');
+    await page.getByRole('button', { name: '語言', exact: true }).click();
+    await page.getByRole('button', { name: 'English', exact: true }).click();
+    await fits(page);
+    for (const id of ['midnight-knock', 'spring-pipes', 'lost-letters']) {
+        await page.getByRole('button', { name: 'Level map', exact: true }).click();
+        const target = page.locator(`.challenge-node[data-challenge=${id}]`), want = Math.floor(['puzzle-1', ...episodes].indexOf(id) / 4), current = Number((await page.locator('.fixed-page-nav span').innerText()).split('/')[0]) - 1;
+        for (let n = 0; n < Math.abs(want - current); n++)
+            await page.getByRole('button', { name: want > current ? 'Next' : 'Previous', exact: true }).click();
+        await target.click();
+        await ready(page);
+        await fits(page);
+    }
+});
+test('coins burst then collect without blocking input; companion poses respect reduced motion', async ({ page }) => {
+    await boot(page);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await open(page, 'cake-case');
+    const body = page.locator('.companion-body');
+    expect(await body.evaluate(e => getComputedStyle(e).animationName)).toContain('companion-poses');
+    await solve(page, 'cake-case');
+    await expect(page.locator('.harvest-coin')).toHaveCount(36);
+    await expect(page.locator('.reward-harvest')).toHaveCSS('pointer-events', 'none');
+    await expect(page.locator('[data-harvest-wallet]')).toHaveText('550', { timeout: 4000 });
+    // The next-level button works while the nonblocking receipt is still visible.
+    expect((await saved(page)).coins).toBe(550);
+    await page.getByRole('button', { name: '下一關', exact: true }).click();
+    await expect(page.locator('.reward-harvest')).toHaveCount(0);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(page.locator('.companion-body')).toHaveCSS('animation-name', 'none');
 });

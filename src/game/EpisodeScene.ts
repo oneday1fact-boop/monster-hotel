@@ -1,3 +1,7 @@
+import { initialLaundry, validLaundry } from '../domain/laundry';
+import { laundryWidget } from './laundryWidget';
+import { celebrateReward } from './rewardFx';
+import { capturePuzzle, animatePuzzle, episodeCompanion } from './puzzleMotion';
 import Phaser from 'phaser';
 import { evidenceIds, accusation, initialRoad, validRoad, slideRoad, roadPath, roadPorts, roadSize, comparisonProps, differences, markDifference, differencesComplete, type EpisodeId, type EvidenceId, type DifferenceId } from '../domain/episodes';
 import { afterChallenge, completeEpisode } from '../domain/campaign';
@@ -15,8 +19,8 @@ import { savePreferences } from '../platform/preferences';
 import { iconButton } from './icons';
 import { guestById } from '../domain/puzzle';
 import { liftBags, validLift, loadBag, unloadBag, liftWeight, liftSolved, initialMirrors, validMirrors, turnMirror, traceMoon, gifts, giftShape, giftCells, validGifts, placeGift, giftsSolved, type LiftState, type GiftPlacement } from '../domain/hotelPuzzles';
-import { freshCake, validCake, casePhase, initialTimeline, validTimeline, initialPipes, validPipes, validMail, type CakeState, type TimelineId, type MailState } from '../domain/mysteries';
-import { cakeWidget, timelineWidget, pipesWidget, mailWidget } from './mysteryWidgets';
+import { initialTimeline, validTimeline, initialPipes, validPipes, validMail, type TimelineId, type MailState } from '../domain/mysteries';
+import { timelineWidget, pipesWidget, mailWidget } from './mysteryWidgets';
 import { balanceWidget, mirrorsWidget, giftsWidget } from './puzzleWidgets';
 type Data = {
     episode: EpisodeId;
@@ -32,12 +36,12 @@ type Draft = {
     lift: LiftState;
     mirrors: number[];
     parcels: GiftPlacement[];
-    cake: CakeState;
+    laundry: number[];
     timeline: TimelineId[];
     pipes: number[];
     mail: MailState;
 };
-const fresh = (): Draft => ({ clues: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], cake: freshCake(), timeline: [...initialTimeline], pipes: [...initialPipes], mail: {} });
+const fresh = (): Draft => ({ clues: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {} });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
@@ -46,6 +50,7 @@ export class EpisodeScene extends Phaser.Scene {
     private message = '';
     private won = false;
     private reward = 0;
+    private rewardFx?: () => void;
     private moving = false;
     private storageFailed = false;
     private dimensions = '';
@@ -69,8 +74,8 @@ export class EpisodeScene extends Phaser.Scene {
             const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
             if (d) {
-                if (validCake(d.cake))
-                    this.state.cake = d.cake;
+                if (validLaundry(d.laundry))
+                    this.state.laundry = d.laundry;
                 if (validTimeline(d.timeline))
                     this.state.timeline = d.timeline;
                 if (validPipes(d.pipes))
@@ -94,10 +99,10 @@ export class EpisodeScene extends Phaser.Scene {
         }
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
     }
-    private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'cake-case' ? 3 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
+    private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
     private get en() { return this.dataIn.locale === 'en'; }
     private t(zh: string, en: string) { return this.en ? en : zh; }
-    create() { this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.root?.remove(); this.modal?.(); this.time.removeAllEvents(); }); this.render(); }
+    create() { this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.rewardFx?.(); this.root?.remove(); this.modal?.(); this.time.removeAllEvents(); }); this.render(); }
     update() {
         const d = `${this.scale.width}:${this.scale.height}`;
         if (d !== this.dimensions) {
@@ -135,21 +140,10 @@ export class EpisodeScene extends Phaser.Scene {
         const id = this.dataIn.episode;
         const theme = id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
         drawReception(this, this.dataIn.save, false, theme);
-        if (id === 'cake-case') {
-            const key = casePhase(this.state.cake) === 'reason' ? 'room-basement' : 'room-hearth';
-            const texture = this.textures.get(key), source = texture.source[0], frame = `episode-${Math.round(box.w * m.x / (box.h * m.y) * 10000)}`;
-            if (!texture.has(frame)) {
-                const crop = proportionalCrop(source.width, source.height, box.w * m.x, box.h * m.y);
-                texture.add(frame, 0, Math.floor(crop.x), Math.floor(crop.y), Math.floor(crop.width), Math.floor(crop.height));
-            }
-            this.add.image(box.x + box.w / 2, box.y + box.h / 2, key, frame).setDisplaySize(box.w, box.h);
-        }
-        const host = id === 'luggage-run' || id === 'gift-box' || id === 'lost-letters' ? 'yuzu' : id === 'moon-mirrors' ? 'luno' : id === 'lift-balance' || id === 'midnight-knock' ? 'rollo' : id === 'spring-pipes' ? 'ember' : 'nemu';
-        const guests = id === 'cake-case' ? [guestById('rollo'), guestById('ember')] : [guestById(host)];
+        const host = id === 'cake-case' ? 'dou' : id === 'luggage-run' || id === 'gift-box' || id === 'lost-letters' ? 'yuzu' : id === 'moon-mirrors' ? 'luno' : id === 'lift-balance' || id === 'midnight-knock' ? 'rollo' : id === 'spring-pipes' ? 'ember' : 'nemu';
+        const guests = [guestById(host)];
         if (this.won)
-            guests.forEach((g, i) => drawMonster(this, id === 'cake-case' ? box.x + box.w * (.18 + i * .35) : box.x + box.w * .5, id === 'cake-case' ? box.y + box.h * .8 : box.y + box.h * .75, g, 'room').setScale(.85).setData('viewportAspect', true));
-        if (id === 'cake-case' && this.won)
-            this.add.image(310, 250, 'episode-props', 'cake').setDisplaySize(110, 125);
+            guests.forEach((g, i) => drawMonster(this, box.x + box.w * .5, box.y + box.h * .75, g, 'room').setScale(.85).setData('viewportAspect', true));
     }
     private button(label: string, action: () => void, primary = false) {
         const b = document.createElement('button');
@@ -167,12 +161,14 @@ export class EpisodeScene extends Phaser.Scene {
         if (this.moving)
             return;
         this.persist();
+        this.rewardFx?.();
         this.root?.remove();
         this.modal?.();
         this.scene.stop();
         this.dataIn.onExit(this.dataIn.save, this.dataIn.locale, destination);
     }
     private render() {
+        const motion = capturePuzzle(this.root);
         this.root?.remove();
         document.documentElement.lang = this.dataIn.locale;
         this.game.canvas.setAttribute('aria-busy', 'false');
@@ -212,7 +208,7 @@ export class EpisodeScene extends Phaser.Scene {
             panel.replaceChildren(finish);
         }
         else if (this.dataIn.episode === 'cake-case')
-            this.detective(stage, panel);
+            this.laundry(stage, panel);
         else if (this.dataIn.episode === 'luggage-run')
             this.routing(stage, panel);
         else if (this.dataIn.episode === 'dream-door')
@@ -223,15 +219,18 @@ export class EpisodeScene extends Phaser.Scene {
         footer.className = 'episode-footer';
         const status = document.createElement('p');
         status.setAttribute('role', 'status');
-        status.textContent = this.message || (this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('可以慢慢諗，唔使鬥快。', 'Take your time. There is no timer.'));
+        const message = document.createElement('span');
+        message.textContent = this.message || (this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('可以慢慢諗，唔使鬥快。', 'Take your time. There is no timer.'));
+        status.append(episodeCompanion(this.dataIn.episode, this.en), message);
         footer.append(status, this.button(this.t('重新開始', 'Start over'), () => { this.state = fresh(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.message = ''; this.persist(); this.render(); }));
         root.append(footer);
         document.body.append(root);
         this.paint();
+        animatePuzzle(root, motion);
     }
-    private detective(stage: HTMLElement, panel: HTMLElement) {
+    private laundry(stage: HTMLElement, panel: HTMLElement) {
         const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
-        cakeWidget(stage, panel, ui, this.state.cake, (state, message) => { this.state.cake = state; this.message = message ?? ''; this.persist(); this.render(); }, () => this.finish());
+        laundryWidget(stage, panel, ui, this.state.laundry, Number(this.selectedItem ?? 0), n => { this.selectedItem = String(n); this.render(); }, (state, message) => { this.state.laundry = state; this.message = message ?? ''; this.persist(); this.render(); }, () => this.finish());
     }
     private routing(stage: HTMLElement, panel: HTMLElement) {
         const board = document.createElement('div');
@@ -483,7 +482,8 @@ export class EpisodeScene extends Phaser.Scene {
             }
         });
     }
-    private finish() { const result = completeEpisode(this.dataIn.save, this.dataIn.episode); this.dataIn.save = result.save; this.reward = result.reward; this.storageFailed = !writeSave(result.save) || this.storageFailed; this.won = true; this.moving = false; this.message = this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('首次完成獎勵已儲存；重玩唔會重複派獎。', 'First-completion reward saved. Replays do not award coins again.'); this.dataIn.feedback.play('purchase'); this.persist(); this.render(); }
+    private finish() { const result = completeEpisode(this.dataIn.save, this.dataIn.episode); this.dataIn.save = result.save; this.reward = result.reward; this.storageFailed = !writeSave(result.save) || this.storageFailed; this.won = true; this.moving = false; this.message = this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('首次完成獎勵已儲存；重玩唔會重複派獎。', 'First-completion reward saved. Replays do not award coins again.'); if (!this.reward)
+        this.dataIn.feedback.play('success'); this.persist(); this.render(); this.rewardFx?.(); this.rewardFx = celebrateReward(this.reward, this.dataIn.save.coins, this.dataIn.locale, () => { this.dataIn.feedback.play('harvest'); void this.dataIn.feedback.pulse('purchase'); }); }
     private language() { this.modal?.(); this.modal = showDetails({ kind: 'language', title: this.t('語言', 'Language'), eyebrow: '', close: this.t('返回', 'Back'), sections: [], content: languageContent(this.dataIn.locale, locale => { this.modal?.(); this.modal = undefined; this.dataIn.locale = locale; saveLocale(locale); this.render(); }) }, () => { this.modal = undefined; }); }
     private settings() { this.modal?.(); this.modal = showDetails({ kind: 'settings', title: this.t('設定', 'Settings'), eyebrow: '', close: this.t('返回', 'Back'), sections: [], content: settingsContent(this.dataIn.locale, this.dataIn.feedback.preferences, p => { this.dataIn.feedback.setPreferences(p); return savePreferences(p); }, () => this.dataIn.feedback.play('place'), () => this.language()) }, () => { this.modal = undefined; }); }
 }

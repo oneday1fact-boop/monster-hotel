@@ -1,3 +1,4 @@
+import { celebrateReward } from './rewardFx';
 import Phaser from 'phaser';
 import {arrivalIntroduction} from './arrivalIntro';
 import { displayDensity } from './display';
@@ -52,6 +53,7 @@ export class HotelScene extends Phaser.Scene {
   private selected?: string;
   private message = '';
   private locale: Locale = readLocale();
+  private rewardFx?: () => void;
   private screen: 'title' | 'lobby' | 'play' | 'win' | 'selection' = 'title';
   private hintStage = 0;
   private arriving?: string;
@@ -79,7 +81,7 @@ export class HotelScene extends Phaser.Scene {
     this.load.image('reception-art', '/art/reception.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
-  create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
+  create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.rewardFx?.(); this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
   update() {
     this.resizeViewport();
     const m = viewportMetrics(this.scale.width, this.scale.height);
@@ -107,6 +109,7 @@ export class HotelScene extends Phaser.Scene {
     return this.add.text(x, y, text, { fontFamily: 'GameNumbers, GameRounded, "Noto Sans TC", sans-serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
   }
   private base(label: string) {
+    this.rewardFx?.(); this.rewardFx = undefined;
     this.hud?.destroy(); this.hud = undefined;
     this.dismissDetails?.(); this.dismissDetails = undefined;
     this.setBusy(false);
@@ -128,7 +131,7 @@ export class HotelScene extends Phaser.Scene {
   }
   private button(y: number, label: string, callback: () => void, width = 310, x = 422) {
     this.add.image(x, y, 'ui-gold-button').setDisplaySize(width, 64);
-    this.text(x, y - 2, label, 18, '#553047');
+    this.text(x, y - 2, label, this.screen === 'title' ? 27 : 22, '#553047');
     this.add.zone(x, y, width, 48).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.feedback.play('tap'); callback(); });
   }
 
@@ -164,14 +167,14 @@ export class HotelScene extends Phaser.Scene {
   private title() {
     this.screen = 'title'; this.base(this.t.title); this.reception();
     this.hud?.coverLogo();
-    this.button(330, this.t.open, () => this.lobby(), 294, 590);
+    this.button(330, this.locale === 'en' ? 'Play' : '開始遊戲', () => this.lobby(), 210, 590);
   }
   private lobby() {
     this.screen='lobby';this.base(this.t.welcome);this.reception();
     this.text(590,133,this.t.welcome,27,'#fff0c6');this.text(590,181,`${this.save.coins} ${this.t.coins}  ·  ${this.locale==='en'?'Cleared':'已完成'} ${challengeProgress(this.save)}`,18,'#fff0c6');
     const menu=document.createElement('nav');menu.className='lobby-menu';
     const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=callback;menu.append(b);};
-    add(this.locale==='en'?'Puzzle challenges':'解謎挑戰','challenges',()=>this.selection(),true);
+    add(this.locale==='en'?'Puzzles':'解謎挑戰','challenges',()=>this.selection(),true);
     add(this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());this.hud?.append(menu);
   }
   private launchChallenge(node:Challenge) {
@@ -386,6 +389,7 @@ export class HotelScene extends Phaser.Scene {
   }
   private assign(guest: string, room: string) { this.arriving = guest; this.feedback.play('place'); void this.feedback.pulse('place'); this.assignment = place(this.assignment, guest, room); this.selected = undefined; this.message = ''; this.play(); }
   private win() {
+    this.rewardFx?.();
     this.screen = 'win';
     this.base(this.t.win);
     this.text(422, 128, '✦  ✦  ✦', 38, '#f2cc83');
@@ -396,5 +400,6 @@ export class HotelScene extends Phaser.Scene {
     if(next)this.button(398,this.locale==='en'?'Next challenge':'下一關',()=>this.launchChallenge(next));
     else this.text(422,395,this.locale==='en'?'More challenges are on the way!':'更多關卡陸續加入！',20,'#f2cc83');
     this.button(450, this.ct.return, () => this.selection(), 210);
+    this.rewardFx = celebrateReward(this.earnedCoins, this.save.coins, this.locale, () => { this.feedback.play('harvest'); void this.feedback.pulse('purchase'); });
   }
 }

@@ -16,19 +16,15 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
-## Version 1.7: investigate, reconstruct and deduce
+## Version 1.8: ghost laundry and satisfying harvests
 
-The ten-stage route keeps the first-night room assignment, 4×4 luggage roads, subtle picture differences, balanced lift, moon mirrors and gift packing. The missing-cake case now has three connected phases: inspect physical traces, compare trolley tread patterns, then link high room temperature with melted icing before identifying the mover. Unrelated objects and incorrect comparisons give specific feedback without collecting evidence or awarding coins.
+The ten-stage route now replaces the missing-cake investigation with **Ghost Laundry**, a 5×4 sliding furniture puzzle. Seven differently shaped laundry items move along their own axes; free the star quilt at the right-hand exit. A breadth-first search verifies an eleven-single-cell minimum solution. It is a new game, with no investigation or evidence screens.
 
-Three new playable episodes follow the previous route:
+The cover uses a shorter **Play / 開始遊戲** button with larger lettering; the standalone lobby buttons are narrower too. Every first completion now presents a gold coin burst, automatic collection into a wallet, an animated balance and a local reward chime. Currency is awarded once by the domain before the visual effect. Replays with zero earned coins never show a harvest. Effects do not intercept touches, are bounded and are removed on scene exit; reduced motion uses a static receipt.
 
-- **A knock at midnight:** exchange five event cards to satisfy three witness memories about order, adjacency and spacing. All 120 permutations are checked; one sequence fits.
-- **The chilly hot springs:** rotate a nine-pipe branching network to supply two baths, connect every pipe and close all leaks. Water and bath warmth update live.
-- **Letters at the wrong door:** use four incomplete addresses and illustrated guest profiles together. One letter per guest creates a unique deduction across all four clues, rather than four independent matches.
+Each event has an original four-pose guest companion with a small activity effect. Timeline swaps and laundry pieces move smoothly, lift platforms tilt with interpolated motion, and light rays, packed gifts, warm baths and mail portraits have richer feedback. The two difference pictures remain static so decorative animation cannot create false differences. Existing four-room guest activities remain.
 
-All puzzle drafts resume offline. Events award 500 coins once, the first room stage 50: 4,550 coins across ten stages. Existing achievements, coins, story outcomes, decorations and scenery remain compatible. Only the redesigned cake draft resets; an already completed cake keeps its achievement and cannot award coins again. No timers, paid retries, live ads or real-money purchases.
-
-The spring cover, standalone lobby buttons, coin-purchased scenery, visible decoration sets and fixed-page menus remain. English and Traditional Chinese, original artwork and locally synthesized audio ship offline.
+Progress, coins, purchases, the other eight event games and offline/bilingual play are retained. The replacement keeps the legacy `cake-case` completion ID internally, preserving prior awards and unlocks; its old draft is replaced by v4 laundry state. The route still awards 4,550 coins once across ten stages. No timers, paid retries or live ads.
 
 ## Android development build
 
@@ -57,8 +53,8 @@ Output: `artifacts/monster-hotel-midnight-check-in-debug.apk`. This is a sideloa
 
 ## Verification and review
 
-Validated: 135 unit checks and 33 distinct browser flows passed in batches. Run `npm test`, `npm run build` and `npm run test:browser`. Coverage includes causal investigation gates, exhaustive timeline and mail solutions, pipe leaks and connectivity, compatible progress and one-time rewards, draft resume, bilingual controls and fixed-screen phone layouts. Physical Android performance and haptics still require device testing. Phaser’s production bundle produces a size warning; it is bundled offline.
+Validated: 137 unit checks and 34 distinct browser flows passed in batches. Run `npm test`, `npm run build` and `npm run test:browser`. Coverage includes the minimum laundry solution, illegal slides, compatible saves and one-time awards, coin collection and nonblocking navigation, reduced-motion companions, bilingual fixed-screen layouts and the entire ten-stage route. Physical Android performance and haptics still require device testing. Phaser’s production bundle produces a size warning; it ships offline.
 
-With a game server on port 5175, run `npm run review:record` to produce real in-game PNG screenshots plus H.264 MP4 and animated GIF review files under `artifacts/`. Recording requires Chromium, Playwright’s FFmpeg support and system ffmpeg. The current recording uses a documented returning-player save (the previous seven stages completed), replays the redesigned investigation and completes the three new stages through actual controls. No puzzle solution state is injected.
+With a game server on port 5175, run `npm run review:record` to produce real in-game PNG screenshots plus H.264 MP4 and animated GIF review files under `artifacts/`. Recording requires Chromium, Playwright’s FFmpeg support and system ffmpeg. The current recording starts from a fresh save and completes all ten games through their real controls, including the first-completion harvests. No puzzle or wallet state is injected.
 
-See [inference expansion](docs/inference-expansion.zh-Hant.md), [moderate difficulty revision](docs/moderate-puzzles.zh-Hant.md) and [previous playtest clarity revision](docs/playtest-clarity.zh-Hant.md). Older milestone documents are historical; the current behavior above and [version 1.3 notes](docs/unified-challenges.zh-Hant.md) supersede the former separate storybook and free scenery selection.
+See [laundry and harvest revision](docs/laundry-harvest.zh-Hant.md), [previous inference expansion](docs/inference-expansion.zh-Hant.md), [moderate difficulty revision](docs/moderate-puzzles.zh-Hant.md) and [previous playtest clarity revision](docs/playtest-clarity.zh-Hant.md). Older milestone documents are historical; the current behavior above and [version 1.3 notes](docs/unified-challenges.zh-Hant.md) supersede the former separate storybook and free scenery selection.
