@@ -16,6 +16,14 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.12: responsive guests and completion scenes
+
+Each of the twelve episode puzzles now has an original animated completion vignette: returning the quilt, rolling luggage, sealing gifts, sharing tea, lighting the moon window, enjoying the spa, dancing, perfume, unlocking the cabinet and the group photograph. These are presentation only: saves/rewards commit first and Next/Replay remain immediately usable. Reduced motion uses a static illustration.
+
+The six guest kinds have distinct idle gestures and thinking/pleased/puzzled responses. Pose timing survives DOM updates. Episode backgrounds now persist across puzzle input and repaint only on scene entry or viewport changes, preserving their animation lifecycle and avoiding repeated reconstruction. No difficulty, economy, save-format or campaign changes.
+
+Android 1.12 / versionCode 13. New checks: `MONSTER_SOFTWARE_TEST=1 npx playwright test e2e/animation-life.spec.ts`. Physical Android performance and haptics still require a device playtest.
+
 ## Version 1.11: livelier, retryable hotel games
 
 The opening night now needs three visible relational clues rather than simple one-to-one amenity matching. Laundry pieces slide with cloth follow-through. Runaway Luggage stays 4×4, starts eight moves from its authored route, and has persisted undo/redo. Difference markers are smaller while touch targets stay generous. The lift carries two original passengers and actually travels after a valid load.

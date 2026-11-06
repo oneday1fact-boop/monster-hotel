@@ -1,3 +1,5 @@
+import { completionTheatre } from './completionTheatre';
+import { reactGuests } from './characterMotion';
 import { echoWidget, livePhotoWidget, liveActor } from './liveWidgets';
 import { echoRounds, freshEcho, validEcho, echoTap, cameraGuests, cameraReady, validCamera, type EchoState } from '../domain/liveGames';
 import { navigate, navigationBusy, revealFeedback, motion as animateElement } from './gameFeel';
@@ -16,13 +18,11 @@ import { writeSave, type Save } from '../platform/save';
 import type { Feedback } from '../platform/feedback';
 import { proportionalCrop, viewportMetrics } from './viewport';
 import { drawReception } from './reception';
-import { drawMonster } from './drawMonster';
 import { reducedMotion } from './art';
 import { showDetails } from './details';
 import { settingsContent, languageContent } from './hotelMenus';
 import { savePreferences } from '../platform/preferences';
 import { iconButton } from './icons';
-import { guestById } from '../domain/puzzle';
 import { liftBags, validLift, loadBag, unloadBag, liftWeight, liftSolved, initialMirrors, validMirrors, turnMirror, traceMoon, gifts, giftShape, giftCells, validGifts, placeGift, giftsSolved, type LiftState, type GiftPlacement } from '../domain/hotelPuzzles';
 import { initialTimeline, validTimeline, initialPipes, validPipes, validMail, type TimelineId, type MailState } from '../domain/mysteries';
 import { timelineWidget, pipesWidget, mailWidget } from './mysteryWidgets';
@@ -70,6 +70,8 @@ export class EpisodeScene extends Phaser.Scene {
     private moving = false;
     private storageFailed = false;
     private dimensions = '';
+    private paintStamp='';
+    private paintCount=0;
     private selectedItem?: string;
     private rotation = 0;
     private historyPage = -1;
@@ -87,7 +89,7 @@ export class EpisodeScene extends Phaser.Scene {
         this.reward = 0;
         this.moving = false;
         this.storageFailed = false;
-        this.dimensions = '';
+        this.dimensions = '';this.paintStamp='';this.paintCount=0;
         try {
             const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
@@ -166,20 +168,17 @@ export class EpisodeScene extends Phaser.Scene {
     private paint() {
         if (this.root)
             fitPhotoFrames(this.root);
+        const stamp=`${this.scale.width}:${this.scale.height}:${this.dataIn.episode}`;
+        if(stamp===this.paintStamp)return;this.paintStamp=stamp;this.game.canvas.dataset.scenePaints=String(++this.paintCount);
         this.tweens.killAll();
         this.children.removeAll(true);
         const m = viewportMetrics(this.scale.width, this.scale.height);
         this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
         this.dimensions = `${this.scale.width}:${this.scale.height}`;
-        const rect = this.root?.querySelector('.episode-stage')?.getBoundingClientRect();
-        const box = rect && rect.width && rect.height ? { x: rect.x * 844 / window.innerWidth, y: rect.y * 480 / window.innerHeight, w: rect.width * 844 / window.innerWidth, h: rect.height * 480 / window.innerHeight } : { x: 12, y: 74, w: 510, h: 336 };
         const id = this.dataIn.episode;
         const theme = id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
         drawReception(this, this.dataIn.save, false, theme);
-        const host = id === 'scent-room' ? 'ember' : id === 'key-cabinet' ? 'rollo' : id === 'group-photo' ? 'yuzu' : id === 'cake-case' ? 'dou' : id === 'luggage-run' || id === 'gift-box' || id === 'lost-letters' ? 'yuzu' : id === 'moon-mirrors' ? 'luno' : id === 'lift-balance' || id === 'midnight-knock' ? 'rollo' : id === 'spring-pipes' ? 'ember' : 'nemu';
-        const guests = [guestById(host)];
-        if (this.won)
-            guests.forEach((g, i) => drawMonster(this, box.x + box.w * .5, box.y + box.h * .75, g, 'room').setScale(.85).setData('viewportAspect', true));
+
     }
     private button(label: string, action: () => void, primary = false) {
         const b = document.createElement('button');
@@ -188,7 +187,9 @@ export class EpisodeScene extends Phaser.Scene {
         b.onclick = () => {
             if (this.moving)
                 return;
+            const before=JSON.stringify(this.state),oldMessage=this.message,oldSelection=this.selectedItem;
             action();
+            if(!this.won&&this.root?.isConnected){const changed=before!==JSON.stringify(this.state);reactGuests(this.root,changed?'pleased':oldSelection!==this.selectedItem?'thinking':oldMessage!==this.message?'puzzled':'thinking');}
         };
         return b;
     }
@@ -234,7 +235,7 @@ export class EpisodeScene extends Phaser.Scene {
         layout.append(stage, panel);
         root.append(layout);
         if (this.won) {
-            stage.classList.add('episode-celebrate');
+            stage.classList.add('episode-celebrate');stage.append(completionTheatre(this.dataIn.episode));
             const finish = document.createElement('div');
             finish.className = 'episode-finish';
             finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
@@ -261,7 +262,7 @@ export class EpisodeScene extends Phaser.Scene {
         this.paint();
         this.refreshLive();
         animatePuzzle(root, motion);
-        if(this.message){const host=root.querySelector<HTMLElement>('.goal-mascot');if(host)animateElement(host,[{translate:'0 0',rotate:'0deg'},{translate:'0 -7px',rotate:'-5deg',offset:.4},{translate:'0 0',rotate:'0deg'}],320);}
+
         if(this.message)revealFeedback(root.querySelector<HTMLElement>('.episode-footer [role=status]>span:last-child')??undefined);
     }
     private laundry(stage: HTMLElement, panel: HTMLElement) {
@@ -579,7 +580,7 @@ export class EpisodeScene extends Phaser.Scene {
                 this.message = this.t('五份都要放入去，唔可以重疊。', 'Fit all five gifts without overlap.');
                 this.render();
             }
-        },piece=>{this.state.parcels=placeGift(this.state.parcels,piece);this.selectedItem=undefined;this.message=this.t('放好手信！','Gift placed!');this.dataIn.feedback.play('place');update();});
+        },piece=>{this.state.parcels=placeGift(this.state.parcels,piece);this.selectedItem=undefined;this.message=this.t('放好手信！','Gift placed!');this.dataIn.feedback.play('place');update();reactGuests(this.root,'pleased');});
     }
     private finish() {
         if(this.won||navigationBusy())return;
