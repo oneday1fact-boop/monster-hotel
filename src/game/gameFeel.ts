@@ -1,7 +1,7 @@
 /** Shared mobile interaction polish. No game state, awards or storage are changed here. */
 export const prefersQuietMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
 const running=new Set<Animation>();
-export function motion(element:HTMLElement,frames:Keyframe[],duration=140,options:KeyframeAnimationOptions={}){
+export function motion(element:Element,frames:Keyframe[],duration=140,options:KeyframeAnimationOptions={}){
  if(prefersQuietMotion()||typeof element.animate!=='function')return undefined;
  const a=element.animate(frames,{duration,easing:'cubic-bezier(.2,.8,.2,1)',...options});running.add(a);void a.finished.then(()=>running.delete(a),()=>running.delete(a));return a;
 }

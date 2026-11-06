@@ -1,6 +1,6 @@
 # Monster Hotel: Midnight Check-in
 
-Offline-first landscape Android puzzle game built from scratch with TypeScript, Phaser 3, Vite and Capacitor. Character art, illustrations and sound are original or locally synthesized; Pooh uses newly drawn art based on the 1926 novel (US public domain; other territories require separate review); fonts are bundled under OFL licenses. No live ads, analytics or public publication.
+Offline-first landscape Android puzzle game built from scratch with TypeScript, Phaser 3, Vite and Capacitor. Character art, illustrations and sound are original or locally synthesized; Momo is an original yellow honey bear; previous Pooh-inspired revisions are documented below; fonts are bundled under OFL licenses. No live ads, analytics or public publication.
 
 ## Installation and development
 
@@ -15,6 +15,16 @@ npm run test:browser
 ```
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
+
+## Version 1.18: three playable afternoon-tea games and separated completion guests
+
+Append **Honey pots at the door**, **Shadows at teatime** and **Pillow bounce tea party** after the clock chapter, making eighteen active stages. Honey is a six-by-six walking/pushing puzzle with a thirteen-step shortest solution, saved undo and adaptive hints. Shadow puppets support drag previews, position/depth buttons, undo and a reproducible outline. Pillow bounce uses fixed 120 Hz simulation, two angle-controlled pillows, two chimes and a basket; four of 162 settings win. Failed shots are free and leave a comparison trail. All three have bilingual instructions, saved drafts, one-time 500-coin rewards and animated endings.
+
+Fix completion scenes with three guests: the old general-sibling CSS placed every guest after the first at the same right edge. Three-guest scenes now have three separate slots with vertical entrances, so Nimbus and Rollo no longer overlap. Keep existing two-, four- and six-guest arrangements. Tests check real animation and multiple phone sizes, not only the final pose.
+
+The bear is now named **Momo / 蜜寶**, with new yellow 2D original art, simple eyes and a mint neckerchief. The earlier Disney-likeness generation request was rejected; this alternative is explicitly not that likeness. Keep legacy `pooh` asset identifiers and `clockwork-guest` save IDs to preserve unlocks. Existing prices, photographs, currency and progression remain intact. Android 1.18 / versionCode 19.
+
+Run `MONSTER_SOFTWARE_TEST=1 npx playwright test e2e/tea-games.spec.ts e2e/pooh.spec.ts`. `npm run review:record` records actual completion of all four recent chapters against port 5190 and verifies saved rewards. The [chapter document](docs/pooh-next-three.zh-Hant.md) now distinguishes implemented rules from earlier designs.
 
 ## Version 1.17: warm original bear art and three chapter designs
 

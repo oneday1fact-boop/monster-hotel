@@ -3,6 +3,9 @@ import {liveActor} from './liveWidgets';
 const guests={pooh:'pooh',nimbus:'stormling',luno:'werewolf',dou:'jiangshi',ember:'lantern',rollo:'mummy',yuzu:'fox',nemu:'baku'} as const;
 type GuestId=keyof typeof guests;
 const stories:Record<EpisodeId,{act:string;cast:GuestId[];room:string;prop:string}>={
+ 'honey-pots':{act:'honey',cast:['pooh','rollo','nimbus'],room:'basement',prop:'tea'},
+ 'shadow-tea':{act:'shadow',cast:['pooh','ember','nimbus'],room:'elegant',prop:'moon'},
+ 'pillow-bounce':{act:'picnic',cast:['pooh','luno','nimbus'],room:'hearth',prop:'star'},
  'clockwork-guest':{act:'welcome',cast:['pooh','nimbus','rollo'],room:'elegant',prop:'key'},
  'storm-arrival':{act:'tea',cast:['nimbus','ember'],room:'hearth',prop:'tea'},
  'cake-case':{act:'laundry',cast:['dou','rollo'],room:'linen',prop:'quilt'},
@@ -33,7 +36,7 @@ const shapes:Record<string,string>={
 };
 /** Presentation only. Completion/rewards are committed before this runs; navigation never waits for it. */
 export function completionTheatre(id:EpisodeId){
- const story=stories[id],root=document.createElement('div');root.className='completion-theatre';root.dataset.act=story.act;root.setAttribute('aria-hidden','true');root.style.setProperty('--theatre-room',`url('/art/rooms/${story.room}.png')`);
+ const story=stories[id],root=document.createElement('div');root.className='completion-theatre';root.dataset.act=story.act;root.dataset.castCount=String(story.cast.length);root.setAttribute('aria-hidden','true');root.style.setProperty('--theatre-room',`url('/art/rooms/${story.room}.png')`);
  const backdrop=document.createElement('div');backdrop.className='theatre-backdrop';root.append(backdrop);
  const path=document.createElement('span');path.className='theatre-path';root.append(path);
  story.cast.forEach((id,i)=>{const place=document.createElement('div');place.className='theatre-guest';place.dataset.guest=id;place.style.setProperty('--cast-index',String(i));place.style.setProperty('--cast-left',`${4+(i%3)*32}%`);place.style.setProperty('--cast-bottom',`${7+(i<3?36:0)}%`);place.append(liveActor(guests[id]));root.append(place);});

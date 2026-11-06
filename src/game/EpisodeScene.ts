@@ -1,3 +1,5 @@
+import {freshHoney,validHoney,stepHoney,honeySolved,freshShadow,validShadow,shadowSolved,freshBounce,validBounce,simulateBounce,type HoneyState,type ShadowBoard,type BounceConfig} from '../domain/teaGames';
+import {honeyWidget,shadowWidget,bounceWidget,sampleBall} from './teaWidgets';
 import {freshClocks,validClocks,turnClocks,clocksSolved,type ClockState} from '../domain/clockwork';
 import {clockworkWidget} from './clockworkWidget';
 import {languageToggle} from './languageToggle';
@@ -40,6 +42,7 @@ type Data = {
     onExit(save: Save, locale: Locale, destination?: 'lobby' | 'map' | 'next'): void;
 };
 type Draft = {
+    honey:HoneyState; shadow:ShadowBoard; shadowHistory:ShadowBoard[]; bounce:BounceConfig; bounceHistory:BounceConfig[]; bounceLast?:BounceConfig;
     clocks:ClockState;
     wind: WindState;
     clues: EvidenceId[];
@@ -59,7 +62,7 @@ type Draft = {
     lockGuesses: Rune[][];
     photo: PhotoState;
 };
-const fresh = (): Draft => ({ clocks:freshClocks(), wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
+const fresh = (): Draft => ({ honey:freshHoney(),shadow:freshShadow(),shadowHistory:[],bounce:freshBounce(),bounceHistory:[], clocks:freshClocks(), wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
@@ -101,6 +104,12 @@ export class EpisodeScene extends Phaser.Scene {
             const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
             if (d) {
+                if(validHoney(d.honey))this.state.honey=d.honey;
+                if(validShadow(d.shadow))this.state.shadow=d.shadow;
+                if(Array.isArray(d.shadowHistory)&&d.shadowHistory.length<=40&&d.shadowHistory.every(validShadow))this.state.shadowHistory=d.shadowHistory;
+                if(validBounce(d.bounce))this.state.bounce=d.bounce;
+                if(validBounce(d.bounceLast))this.state.bounceLast=d.bounceLast;
+                if(Array.isArray(d.bounceHistory)&&d.bounceHistory.length<=40&&d.bounceHistory.every(validBounce))this.state.bounceHistory=d.bounceHistory;
                 if(validClocks(d.clocks))this.state.clocks=d.clocks;
                 if(validWind(d.wind))this.state.wind=d.wind;
                 if(validEcho(d.echo))this.state.echo=d.echo.round===3?freshEcho():d.echo;
@@ -143,6 +152,8 @@ export class EpisodeScene extends Phaser.Scene {
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
         if(this.dataIn.episode==='storm-arrival'&&this.dataIn.save.episodes?.includes('storm-arrival')&&windSolved(this.state.wind))this.state.wind=freshWind();
         if(this.dataIn.episode==='clockwork-guest'&&this.dataIn.save.episodes?.includes('clockwork-guest')&&clocksSolved(this.state.clocks.hands))this.state.clocks=freshClocks();
+        if(this.dataIn.episode==='honey-pots'&&this.dataIn.save.episodes?.includes('honey-pots')&&honeySolved(this.state.honey)){this.state.honey=freshHoney();this.persist();}
+        if(this.dataIn.episode==='shadow-tea'&&this.dataIn.save.episodes?.includes('shadow-tea')&&shadowSolved(this.state.shadow)){this.state.shadow=freshShadow();this.state.shadowHistory=[];this.persist();}
         if(this.dataIn.episode==='cake-case'&&this.dataIn.save.episodes?.includes('cake-case')&&laundrySolved(this.state.laundry))this.state.laundry=[...initialLaundry];
     }
     private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'lost-letters' || this.dataIn.episode === 'group-photo' ? 2 : this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
@@ -189,7 +200,7 @@ export class EpisodeScene extends Phaser.Scene {
         this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
         this.dimensions = `${this.scale.width}:${this.scale.height}`;
         const id = this.dataIn.episode;
-        const theme = id === 'storm-arrival' || id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
+        const theme = id === 'shadow-tea' || id === 'storm-arrival' || id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
         drawReception(this, this.dataIn.save, false, theme);
 
     }
@@ -252,7 +263,7 @@ export class EpisodeScene extends Phaser.Scene {
             const finish = document.createElement('div');
             finish.className = 'episode-finish';
             finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
-            if(this.dataIn.episode==='group-photo'){const tools=document.createElement('div');tools.className='photo-finish-tools';tools.append(finish.lastElementChild!,this.button(this.t('返回旅館','Return to hotel'),()=>this.exit()));finish.append(tools);}
+            if(this.dataIn.episode==='group-photo'||this.dataIn.episode==='clockwork-guest'){const tools=document.createElement('div');tools.className='photo-finish-tools';tools.append(finish.lastElementChild!,this.button(this.t('返回旅館','Return to hotel'),()=>this.exit()));finish.append(tools);}
             panel.replaceChildren(finish);
         }
         else if (this.dataIn.episode === 'cake-case')
@@ -457,9 +468,23 @@ export class EpisodeScene extends Phaser.Scene {
         }
     }
     private extraPuzzle(stage: HTMLElement, panel: HTMLElement) {
-        const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
+        const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en),say:(message:string)=>{this.message=message;this.render();} };
         const update = () => { this.persist(); this.render(); };
         const pick = (id: string) => { this.selectedItem = id || undefined; this.render(); };
+        if(this.dataIn.episode==='honey-pots'){
+            honeyWidget(stage,panel,ui,this.state.honey,d=>{const old=this.state.honey,next=stepHoney(old,d);if(next.at===old.at){this.message=this.t('前面推唔郁，試吓繞去另一邊。','Blocked. Try walking around the pot.');this.render();return;}this.state.honey={...next,history:[...old.history.slice(-511),{at:old.at,pots:[...old.pots]}]};this.message='';update();},()=>{const old=this.state.honey.history.pop();if(old){this.state.honey={...old,history:this.state.honey.history};update();}},()=>{if(honeySolved(this.state.honey))this.finish();else{this.message=this.t('兩個金色杯墊都要放上蜜罐。','Put a pot on both gold coasters.');this.render();}});return;
+        }
+        if(this.dataIn.episode==='shadow-tea'){
+            shadowWidget(stage,panel,ui,this.state.shadow,Math.max(0,Math.min(2,Number(this.selectedItem??0))),n=>{this.selectedItem=String(n);this.render();},(n,v)=>{if(this.state.shadow[n]!==v){this.state.shadowHistory=[...this.state.shadowHistory.slice(-39),[...this.state.shadow]];this.state.shadow=this.state.shadow.map((old,i)=>i===n?v:old);this.message='';}update();},()=>{const old=this.state.shadowHistory.pop();if(old){this.state.shadow=old;update();}},!!this.state.shadowHistory.length,()=>{if(shadowSolved(this.state.shadow))this.finish();else{this.message=this.t('留意耳朵、身形同尾巴嘅大小同重疊。','Compare the ears, body and tail: size and overlap both matter.');this.render();}});return;
+        }
+        if(this.dataIn.episode==='pillow-bounce'){
+            bounceWidget(stage,panel,ui,this.state.bounce,this.state.bounceLast,next=>{this.state.bounceHistory=[...this.state.bounceHistory.slice(-39),{...this.state.bounce,pillows:[...this.state.bounce.pillows]}];this.state.bounce=next;this.message='';update();},()=>{const old=this.state.bounceHistory.pop();if(old){this.state.bounce=old;update();}},!!this.state.bounceHistory.length,(ball,board)=>{
+                const config={...this.state.bounce,pillows:[...this.state.bounce.pillows]},result=simulateBounce(config);if(!result.frames.length)return;this.state.bounceLast=config;this.persist();const started=performance.now();let seenPads=0,scanned=0,heardMask=0;panel.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=true);board.classList.add('is-firing');
+                this.liveTick=now=>{const elapsed=now-started,frame=sampleBall(result.frames,reducedMotion()?result.frames.length/0.12:elapsed);ball.setAttribute('cx',String(frame.x));ball.setAttribute('cy',String(frame.y));board.querySelectorAll('[data-bounce-bell]').forEach((e,i)=>e.classList.toggle('bell-rung',!!(frame.mask&(1<<i))));if(frame.mask!==heardMask){heardMask=frame.mask;this.dataIn.feedback.play('place');}for(;scanned<Math.min(result.frames.length,Math.floor(elapsed*.12)+1);scanned++){const hit=result.frames[scanned];if(hit.pad<0||(seenPads&(1<<hit.pad)))continue;seenPads|=1<<hit.pad;const pad=board.querySelector<SVGElement>(`[data-bounce-pad="${hit.pad}"]`);const cushion=pad?.querySelector('rect');if(cushion&&!reducedMotion())animateElement(cushion,[{scale:'1 .8'},{scale:'1 1'}],250);}
+                    if(reducedMotion()?elapsed>220:elapsed>=result.frames.length/0.12+(result.won?300:180)){this.liveTick=undefined;if(result.won)this.finish();else{this.message=this.t('試調一個角度再發射；虛線係上一發。要用到兩個枕頭同敲齊兩個風鈴。','Try changing one angle. The dotted line shows your last try. Use both pillows and ring both chimes.');this.render();}}
+                };
+            });return;
+        }
         if(this.dataIn.episode==='clockwork-guest'){
             clockworkWidget(stage,panel,ui,this.state.clocks,()=>{this.state.clocks.started=true;update();},knob=>{
                 const old=[...this.state.clocks.hands];this.state.clocks.history=[...this.state.clocks.history.slice(-255),old];this.state.clocks.hands=turnClocks(old,knob);this.message='';this.persist();
