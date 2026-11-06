@@ -182,7 +182,7 @@ export class HotelScene extends Phaser.Scene {
   }
   private title() {
     this.screen = 'title'; this.base(this.t.title); this.reception();
-    this.hud?.append(coverLife());this.hud?.coverLogo();this.walletBadge();
+    this.hud?.append(coverLife(this.save.episodes?.includes('storm-arrival')??false));this.hud?.coverLogo();this.walletBadge();
     const place=document.createElement('div');place.className='cover-start-position';const play=document.createElement('button');play.className='game-primary-button cover-start';play.dataset.action='start-game';play.textContent=this.locale==='en'?'Play':'開始遊戲';play.onclick=()=>navigate('cover:play',()=>this.lobby());place.append(play);this.hud?.append(place);
   }
   private lobby() {

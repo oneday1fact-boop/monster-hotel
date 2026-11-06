@@ -9,7 +9,7 @@ it('laundry items cannot overlap, leave the room, jump or rotate', () => {
     expect(validLaundry([0, 1, 3, 1, 0, 0, 0])).toBe(false);
     expect(validLaundry([0, 1])).toBe(false);
 });
-it('the authored laundry board needs eleven single-cell slides at minimum', () => {
+it('the authored laundry board needs twelve single-cell slides at minimum', () => {
     const open: [
         number[],
         number
@@ -30,7 +30,7 @@ it('the authored laundry board needs eleven single-cell slides at minimum', () =
                 }
             }
     }
-    expect(distance).toBe(11);
+    expect(distance).toBe(12);
     let board: number[] = [...initialLaundry];
     for (const [i, d] of laundrySolution) {
         const next = slideLaundry(board, i, d);
@@ -39,3 +39,5 @@ it('the authored laundry board needs eleven single-cell slides at minimum', () =
     }
     expect(laundrySolved(board)).toBe(true);
 });
+
+it('still accepts the previous valid laundry draft without resetting progress',()=>{expect(validLaundry([0,1,3,1,2,0,0])).toBe(true);});

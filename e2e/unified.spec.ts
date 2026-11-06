@@ -41,7 +41,7 @@ async function firstNight(p: Page) {
 async function solve(p: Page, id: string) {
     if (id === 'cake-case') {
         const pieces = ['quilt', 'rack', 'basket', 'sheets', 'towels', 'hamper', 'coats'];
-        for (const [i, d] of [[0, 1], [2, -1], [2, -1], [4, -1], [3, -1], [5, 1], [5, 1], [6, 1], [6, 1], [0, 1], [0, 1]]) {
+        for (const [i, d] of [[0, 1], [2, -1], [2, -1], [3, -1], [4, -1], [3, -1], [5, 1], [5, 1], [6, 1], [6, 1], [0, 1], [0, 1]]) {
             await p.locator(`[data-laundry-piece=${pieces[i]}]`).click();
             await p.locator(`[data-slide="${[4, 5, 6].includes(i) ? d === 1 ? '↓' : '↑' : d === 1 ? '→' : '←'}"]`).click();
         }

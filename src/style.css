@@ -488,3 +488,10 @@ button.is-pressed:active{transform:none}
 .cover-guest--mummy .cover-skin--head{animation-duration:6.8s}
 .wind-controls .game-secondary-button,.laundry-controls .game-secondary-button{border-image-width:8px 18px;padding:4px}
 .language-choice{display:flex;align-items:center;justify-content:center}.language-choice .language-quick{gap:24px}.language-choice .language-quick button{width:clamp(100px,18vw,180px);height:66px;font-size:25px;border-radius:20px}
+/* The earned fifth guest joins the same continuous cover queue without covering Play. */
+.cover-life--friends .cover-guest{left:calc(3% + var(--cover-index)*11%);width:clamp(96px,24vh,180px);height:clamp(96px,24vh,180px)}
+.cover-guest--stormling .cover-puppet{animation:cover-cloud 5.7s ease-in-out infinite;animation-delay:var(--cover-phase)}
+@keyframes cover-cloud{0%,100%{transform:translateY(-2px) rotate(-2deg) scale(1)}45%{transform:translateY(-11px) rotate(2deg) scale(1.015)}75%{transform:translateY(-5px) rotate(-1deg)}}
+@media(max-height:370px){.cover-life--friends .cover-guest{width:clamp(78px,24vh,150px);height:clamp(78px,24vh,150px)}}
+@media(orientation:portrait){.cover-life--friends .cover-guest{left:calc(2% + var(--cover-index)*19%);bottom:30%;width:min(18vw,90px);height:min(18vw,90px)}}
+@media(prefers-reduced-motion:reduce){.cover-guest--stormling .cover-puppet{animation:none!important}}

@@ -16,6 +16,14 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.14: earned cover companion and a small laundry tune
+
+Nimbus joins the animated cover only after `storm-arrival` is completed. The five-guest lineup uses the existing saved achievement, continuous motion and responsive spacing that keeps Play clear; reduced motion remains static. Existing four-guest covers are unchanged for players who have not met him.
+
+Laundry keeps the same rules and seven objects, with two starting positions adjusted. Its BFS-verified minimum increases from eleven to twelve one-cell moves. Unfinished legacy drafts remain valid; completed solved replays start the revised board. Currency and completion records are preserved.
+
+The next three chapters are **designs only**, documented in [the design draft](docs/next-three-games.zh-Hant.md): coupled cuckoo clocks, a shadow theatre and a pillow-bounce ball puzzle. They are not playable in this APK. Android 1.14 / versionCode 15.
+
 ## Version 1.13: a new guest in the storm
 
 Append **A stormy arrival** after the group photograph. Nimbus (小雷) is an original shy cloud creature with a lightning forelock, pastel paws and a tiny chime collar, illustrated as a four-pose scalable SVG atlas. He arrives during a rainstorm, worried that his nervous thunder will frighten the other guests.

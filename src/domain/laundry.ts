@@ -5,8 +5,8 @@ export const laundryPieces = [
     { id: 'towels', axis: 'v', length: 2, fixed: 0 }, { id: 'hamper', axis: 'v', length: 2, fixed: 4 },
     { id: 'coats', axis: 'v', length: 2, fixed: 3 },
 ] as const;
-export const initialLaundry = [0, 1, 3, 1, 2, 0, 0] as const;
-export const laundrySolution = [[0, 1], [2, -1], [2, -1], [4, -1], [3, -1], [5, 1], [5, 1], [6, 1], [6, 1], [0, 1], [0, 1]] as const;
+export const initialLaundry = [0, 0, 3, 2, 2, 0, 0] as const;
+export const laundrySolution = [[0, 1], [2, -1], [2, -1], [3, -1], [4, -1], [3, -1], [5, 1], [5, 1], [6, 1], [6, 1], [0, 1], [0, 1]] as const;
 export function laundryCells(state: readonly number[], index: number) { const p = laundryPieces[index]; return Array.from({ length: p.length }, (_, n) => p.axis === 'h' ? { x: state[index] + n, y: p.fixed } : { x: p.fixed, y: state[index] + n }); }
 export function validLaundry(v: unknown): v is number[] { if (!Array.isArray(v) || v.length !== laundryPieces.length)
     return false; const occupied = new Set<number>(); for (let i = 0; i < v.length; i++) {

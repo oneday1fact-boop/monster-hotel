@@ -8,7 +8,7 @@ import { echoRounds, freshEcho, validEcho, echoTap, cameraGuests, cameraReady, v
 import { navigate, navigationBusy, revealFeedback, motion as animateElement } from './gameFeel';
 import { initialScent, validScent, validPartialCode, placeRune, validGuesses, codeSolved, validPhoto, freshPhoto, photoGuests, swapPhoto, turnPhoto, photoSolved, type ScentBoard, type Rune, type PhotoState, type PhotoGuest } from '../domain/guestPuzzles';
 import { scentWidget, scentPourEffect, codeWidget, photoWidget, fitPhotoFrames } from './guestPuzzleWidgets';
-import { initialLaundry, validLaundry } from '../domain/laundry';
+import { initialLaundry, validLaundry, laundrySolved } from '../domain/laundry';
 import { laundryWidget } from './laundryWidget';
 import { celebrateReward } from './rewardFx';
 import { capturePuzzle, animatePuzzle, episodeCompanion, episodeHosts } from './puzzleMotion';
@@ -138,6 +138,7 @@ export class EpisodeScene extends Phaser.Scene {
         }
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
         if(this.dataIn.episode==='storm-arrival'&&this.dataIn.save.episodes?.includes('storm-arrival')&&windSolved(this.state.wind))this.state.wind=freshWind();
+        if(this.dataIn.episode==='cake-case'&&this.dataIn.save.episodes?.includes('cake-case')&&laundrySolved(this.state.laundry))this.state.laundry=[...initialLaundry];
     }
     private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'lost-letters' || this.dataIn.episode === 'group-photo' ? 2 : this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
     private get en() { return this.dataIn.locale === 'en'; }
