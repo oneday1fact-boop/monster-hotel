@@ -16,6 +16,16 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.13: a new guest in the storm
+
+Append **A stormy arrival** after the group photograph. Nimbus (小雷) is an original shy cloud creature with a lightning forelock, pastel paws and a tiny chime collar, illustrated as a four-pose scalable SVG atlas. He arrives during a rainstorm, worried that his nervous thunder will frighten the other guests.
+
+The new 6×5 wind-glide puzzle uses fixed walls, three visible chime pieces and four wind directions. A gust slides Nimbus until a wall stops him; pieces are collected along the path. The authored shortest route takes ten gusts. Undo and state-aware BFS hints are free, with no timer. Draft/undo history survives reload; interrupted final moves recover completion once. First completion earns the usual 500 coins, and Nimbus remains visible in the lobby thereafter.
+
+The same update corrects the laundry prop depth, moves the lobby controls right, replaces stretched horizontal skins with fixed-cap vector plates, and adds direct 中/EN controls. The spring cover uses continuous layers from the original character artwork (head/body/tail motion) plus 24 falling petals, with no sprite-frame swapping. Reduced motion keeps it static.
+
+Existing progress, photographs, currency and prices are preserved. The preceding photo ending keeps a convenient hotel-return control alongside Next/Replay. Android 1.13 / versionCode 14. New checks: `MONSTER_SOFTWARE_TEST=1 npx playwright test e2e/nimbus.spec.ts`. `npm run review:record` records actual story, gameplay, arrival and persistence against port 5188. The recording fixture only completes previous chapters.
+
 ## Version 1.12: responsive guests and completion scenes
 
 Each of the twelve episode puzzles now has an original animated completion vignette: returning the quilt, rolling luggage, sealing gifts, sharing tea, lighting the moon window, enjoying the spa, dancing, perfume, unlocking the cabinet and the group photograph. These are presentation only: saves/rewards commit first and Next/Replay remain immediately usable. Reduced motion uses a static illustration.

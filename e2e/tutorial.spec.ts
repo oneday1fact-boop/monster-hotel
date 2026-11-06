@@ -37,7 +37,7 @@ test('language, dialogs, reset and viewport changes retain usable guidance', asy
   await load(page); await enter(page); await page.mouse.click(queueX[0], queueY);
   await page.getByRole('button', { name: '設定', exact: true }).click(); await expect(page.locator('.tutorial-coach')).toBeHidden(); await page.keyboard.press('Escape');
   await expect(page.locator('.tutorial-coach')).toHaveAttribute('data-step', 'place');
-  await page.getByRole('button', { name: '語言', exact: true }).click(); await page.getByRole('button', { name: 'English', exact: true }).click();
+  await page.getByRole('button', { name: 'English', exact: true }).click();
   await expect(page.getByRole('region', { name: 'First-night guide' })).toContainText('moonlight');
   for (const size of [{ width: 915, height: 412 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(size); const box = (await page.locator('.tutorial-coach').boundingBox())!;

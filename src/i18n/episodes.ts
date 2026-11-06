@@ -1,5 +1,6 @@
 export const episodeCopy = {
     'zh-Hant': {
+        'storm-arrival':{title:'暴雨夜，小雷迷路了',goal:'收齊三片風鈴，再帶新住客小雷到右上大廳。',instruction:'按風向，小雷會一直滑到牆邊；途中可收碎片。唔使鬥快，可撤回。',ending:'風鈴重新響起，小雷終於放鬆！燈燈遞上熱茶同乾毛巾，旅館迎來一位怕嚇親朋友、其實好溫柔嘅小雲獸。'},
         'cake-case': { title: '幽靈洗衣房', goal: '移開衣籃，將星星被單送到右邊出口。', instruction: '揀物件再按箭嘴；只沿擺放方向移一格。', ending: '星星被單送返出嚟！小豆摺好暖笠笠嘅被單，今晚每位住客都可以安心瞓。' },
         'luggage-run': { title: '行李大暴走', goal: '滑動路磚，接通旅行箱入口同小柚出口。', instruction: '只有一格空位。點旁邊路磚，上下左右滑一格；路接好先出發。', ending: '旅行箱終於返到小柚身邊！佢打開箱，送大家一盒旅行手信。' },
         'dream-door': { title: '現實與夢境找不同', goal: '幫夢夢比較兩幅房間圖，找出五個不同。', instruction: '留意掛飾、花紋同方向；兩邊都可以點，有需要可用提示。', ending: '五個不同都搵到！夢夢幫住客分清現實同夢境，安心瞓返一覺。' },
@@ -14,6 +15,7 @@ export const episodeCopy = {
         'group-photo':{title:'怪物大合照',goal:'捉住客望鏡頭嘅一刻，六位定格先拍合照。',instruction:'綠圈亮起時點住客定格，六位準備好再按快門。',ending:'咔嚓！六位旅館朋友都影到，相片已收藏。返大廳嘅酒店相牆可以隨時重溫。'},
     },
     en: {
+        'storm-arrival':{title:'A stormy arrival',goal:'Collect three chime pieces, then guide Nimbus to the top-right lobby.',instruction:'Wind blows to the next wall. Collect chimes along the way. Undo freely.',ending:'The chime rings again and Nimbus relaxes. Ember brings tea and a dry towel. Your new cloud guest only thundered because he was nervous!'},
         'cake-case': { title: 'The ghost laundry', goal: 'Free the star quilt at the right-hand exit.', instruction: 'Select an item, then slide one cell along its length.', ending: 'The star quilt is free! Dou folds the warm bedding so every hotel guest can sleep snugly.' },
         'luggage-run': { title: 'Runaway luggage', goal: 'Slide road tiles to connect the suitcase entrance to Yuzu’s exit.', instruction: 'There is one empty slot. Tap a tile beside it to slide one step. Connect the roads, then press Go.', ending: 'The suitcase reaches Yuzu! She opens it and shares a box of treats from her travels.' },
         'dream-door': { title: 'Reality & dream: spot the differences', goal: 'Help Nemu find five differences between the two room pictures.', instruction: 'Compare ornaments, patterns and angles. Tap either picture; a hint is available.', ending: 'All five differences found! Nemu helps the guest tell reality from dreams and sleep peacefully.' },

@@ -1,3 +1,4 @@
+import {languageToggle} from './languageToggle';
 import type {Save} from '../platform/save';
 import {ambiences,type Ambience} from '../domain/ambience';
 import {ownedScenes,scenePrices} from '../domain/sceneryShop';
@@ -36,13 +37,6 @@ export function settingsContent(locale: Locale, preferences: Preferences, update
   const note = document.createElement('p'); note.className = 'visually-hidden'; note.textContent = t.audioNote;
   const status = document.createElement('p'); status.className = 'settings-status'; status.setAttribute('role', 'status'); actions.append(lang, test); content.append(tiles, actions, note, status); return content;
 }
-export function languageContent(locale: Locale, choose: (locale: Locale) => void): HTMLElement {
-  const content = document.createElement('div'); content.className = 'language-tiles';
-  for (const choice of ['zh-Hant', 'en'] as const) {
-    const button = document.createElement('button'); button.className = `language-tile ${choice === locale ? 'is-selected' : ''}`; button.setAttribute('aria-pressed', String(choice === locale));
-    const glyph = document.createElement('span'); glyph.className = 'language-glyph'; glyph.textContent = choice === 'en' ? 'A' : '漢'; glyph.setAttribute('aria-hidden', 'true');
-    const name = document.createElement('strong'); name.textContent = choice === 'en' ? 'English' : '繁體中文';
-    button.append(glyph, name); if (choice === locale) button.append(icon('check')); button.onclick = () => choose(choice); content.append(button);
-  }
-  return content;
+export function languageContent(locale:Locale,choose:(locale:Locale)=>void):HTMLElement{
+ const content=document.createElement('div');content.className='language-tiles language-choice';content.append(languageToggle(locale,choose));return content;
 }

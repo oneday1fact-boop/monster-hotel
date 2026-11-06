@@ -1,9 +1,10 @@
+import {languageToggle} from './languageToggle';
 import { createTutorialCoach } from './tutorialCoach';
 import { icon, iconButton } from './icons';
 import { ui, type Locale } from '../i18n/catalog';
 import { campaignUI } from '../i18n/rules';
 import { hotelUI } from '../i18n/hotel';
-export function createHUD(options: { locale: Locale; playing: boolean; night: number; settings: () => void; language: () => void; home: () => void; hint: () => void; clues: () => void; check: () => void; reset: () => void; skipTutorial: () => void }) {
+export function createHUD(options: { locale: Locale; setLocale:(locale:Locale)=>void; playing: boolean; night: number; settings: () => void; language: () => void; home: () => void; hint: () => void; clues: () => void; check: () => void; reset: () => void; skipTutorial: () => void }) {
   const t = ui[options.locale]; const c = campaignUI[options.locale];
   const root = document.createElement('nav'); root.className = 'game-hud'; root.setAttribute('aria-label', options.locale === 'en' ? 'Game controls' : '遊戲操作');
   // Keep overlay gestures out of Phaser's window-level mouse/touch listeners.
@@ -12,7 +13,8 @@ export function createHUD(options: { locale: Locale; playing: boolean; night: nu
   const left = document.createElement('div'); left.className = 'hud-cluster';
   if (options.playing) { const hint = iconButton('bulb', t.hint, options.hint); hint.dataset.action = 'hint'; left.append(iconButton('home', c.return, options.home), hint, iconButton('book', c.clues, options.clues)); }
   const right = document.createElement('div'); right.className = 'hud-cluster';
-  right.append(iconButton('globe', options.locale === 'en' ? 'Language' : '語言', options.language), iconButton('gear', hotelUI[options.locale].settings, options.settings));
+  right.append(languageToggle(options.locale,options.setLocale));
+  right.append(iconButton('gear', hotelUI[options.locale].settings, options.settings));
   const badge = document.createElement('div'); badge.className = 'night-badge';
   if (options.playing) { badge.append(icon('moon'), document.createTextNode(String(options.night).padStart(2, '0'))); }
   top.append(left, badge, right); root.append(top);

@@ -206,7 +206,6 @@ test('paired pictures mark the matching region on both sides, ignore repeat and 
     await expect(page.locator('.difference-target.is-found')).toHaveCount(2);
     await page.locator('[data-world=real] [data-difference=key]').click();
     await expect(page.locator('.difference-count')).toHaveText('已找到 1 / 5');
-    await page.getByRole('button', { name: '語言', exact: true }).click();
     await page.getByRole('button', { name: 'English', exact: true }).click();
     await page.reload();
     await ready(page);
@@ -287,7 +286,6 @@ test('new controls remain readable in English on a short phone', async ({ page }
     await page.setViewportSize({ width: 640, height: 320 });
     await boot(page, { ...caseSave, episodes, coins: 4550 });
     await open(page, 'cake-case');
-    await page.getByRole('button', { name: '語言', exact: true }).click();
     await page.getByRole('button', { name: 'English', exact: true }).click();
     await fits(page);
     for (const id of ['midnight-knock', 'spring-pipes', 'lost-letters']) {

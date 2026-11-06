@@ -1,3 +1,6 @@
+import {languageToggle} from './languageToggle';
+import { freshWind, validWind, windBells, glideWind, windSolved, type WindState } from '../domain/windGuest';
+import { windGuestWidget } from './windGuestWidget';
 import { completionTheatre } from './completionTheatre';
 import { reactGuests } from './characterMotion';
 import { echoWidget, livePhotoWidget, liveActor } from './liveWidgets';
@@ -35,6 +38,7 @@ type Data = {
     onExit(save: Save, locale: Locale, destination?: 'lobby' | 'map' | 'next'): void;
 };
 type Draft = {
+    wind: WindState;
     clues: EvidenceId[];
     road: number[];
     roadPast: number[][]; roadFuture: number[][]; echo: EchoState; camera: string[];
@@ -52,7 +56,7 @@ type Draft = {
     lockGuesses: Rune[][];
     photo: PhotoState;
 };
-const fresh = (): Draft => ({ clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
+const fresh = (): Draft => ({ wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
@@ -94,6 +98,7 @@ export class EpisodeScene extends Phaser.Scene {
             const raw = localStorage.getItem(this.key);
             const d = JSON.parse(raw ?? 'null');
             if (d) {
+                if(validWind(d.wind))this.state.wind=d.wind;
                 if(validEcho(d.echo))this.state.echo=d.echo.round===3?freshEcho():d.echo;
                 if(validCamera(d.camera))this.state.camera=d.camera;
                 for(const field of ['roadPast','roadFuture'] as const)if(validRoad(d.road)&&validRoadStack(d[field],d.road))this.state[field]=d[field];
@@ -132,14 +137,16 @@ export class EpisodeScene extends Phaser.Scene {
             }
         }
         catch { /* A changed or corrupt puzzle draft never clears the wallet. */ }
+        if(this.dataIn.episode==='storm-arrival'&&this.dataIn.save.episodes?.includes('storm-arrival')&&windSolved(this.state.wind))this.state.wind=freshWind();
     }
     private get key() { return `midnight-check-in.episode.${this.dataIn.episode}.v${this.dataIn.episode === 'lost-letters' || this.dataIn.episode === 'group-photo' ? 2 : this.dataIn.episode === 'cake-case' ? 4 : this.dataIn.episode === 'luggage-run' || this.dataIn.episode === 'dream-door' ? 3 : 1}`; }
     private get en() { return this.dataIn.locale === 'en'; }
     private t(zh: string, en: string) { return this.en ? en : zh; }
     create() { this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.rewardFx?.(); this.root?.remove(); this.modal?.(); this.time.removeAllEvents(); }); this.render(); }
+    private recoverWind(){if(this.dataIn.episode==='storm-arrival'&&!this.won&&!this.moving&&windSolved(this.state.wind)&&!navigationBusy())this.finish();}
     private refreshLive(){this.liveTick?.(performance.now());}
     update() {
-        this.refreshLive();
+        this.refreshLive();this.recoverWind();
         const d = `${this.scale.width}:${this.scale.height}`;
         if (d !== this.dimensions) {
             this.dimensions = d;
@@ -176,7 +183,7 @@ export class EpisodeScene extends Phaser.Scene {
         this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height).setOrigin(0, 0).setScroll(0, 0).setZoom(m.x, m.y);
         this.dimensions = `${this.scale.width}:${this.scale.height}`;
         const id = this.dataIn.episode;
-        const theme = id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
+        const theme = id === 'storm-arrival' || id === 'moon-mirrors' || id === 'midnight-knock' ? 'night' : id === 'luggage-run' || id === 'lost-letters' ? 'autumn' : 'morning';
         drawReception(this, this.dataIn.save, false, theme);
 
     }
@@ -217,7 +224,7 @@ export class EpisodeScene extends Phaser.Scene {
         const copy = episodeCopy[this.dataIn.locale][this.dataIn.episode];
         const top = document.createElement('header');
         top.className = 'episode-top';
-        top.append(iconButton('home', this.t('返回大廳', 'Lobby'), () => this.exit()), Object.assign(document.createElement('h1'), { textContent: copy.title }), iconButton('book', this.t('關卡地圖', 'Level map'), () => this.exit('map')), iconButton('globe', this.t('語言', 'Language'), () => this.language()), iconButton('gear', this.t('設定', 'Settings'), () => this.settings()));
+        top.append(iconButton('home', this.t('返回大廳', 'Lobby'), () => this.exit()), Object.assign(document.createElement('h1'), { textContent: copy.title }), iconButton('book', this.t('關卡地圖', 'Level map'), () => this.exit('map')), languageToggle(this.dataIn.locale,locale=>{if(this.moving||locale===this.dataIn.locale)return;this.dataIn.locale=locale;saveLocale(locale);this.render();}),iconButton('gear', this.t('設定', 'Settings'), () => this.settings()));
         root.append(top);
         const layout = document.createElement('div');
         layout.className = !this.won && (this.dataIn.episode === 'dream-door' || this.dataIn.episode === 'key-cabinet') ? 'episode-layout episode-layout--differences' : 'episode-layout';
@@ -239,6 +246,7 @@ export class EpisodeScene extends Phaser.Scene {
             const finish = document.createElement('div');
             finish.className = 'episode-finish';
             finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
+            if(this.dataIn.episode==='group-photo'){const tools=document.createElement('div');tools.className='photo-finish-tools';tools.append(finish.lastElementChild!,this.button(this.t('返回旅館','Return to hotel'),()=>this.exit()));finish.append(tools);}
             panel.replaceChildren(finish);
         }
         else if (this.dataIn.episode === 'cake-case')
@@ -446,6 +454,16 @@ export class EpisodeScene extends Phaser.Scene {
         const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
         const update = () => { this.persist(); this.render(); };
         const pick = (id: string) => { this.selectedItem = id || undefined; this.render(); };
+        if(this.dataIn.episode==='storm-arrival'){
+            windGuestWidget(stage,panel,ui,this.state.wind,()=>{this.state.wind.started=true;update();},d=>{
+                const old=this.state.wind,next=glideWind(old,d);if(!next.path.length){this.message=this.t('呢邊有牆擋住，試另一個風向。','A wall blocks that direction. Try another wind.');this.render();return;}
+                this.state.wind={started:true,at:next.at,mask:next.mask,history:[...old.history.slice(-255),{at:old.at,mask:old.mask}]};this.persist();this.moving=true;this.game.canvas.setAttribute('aria-busy','true');
+                const actor=stage.querySelector<HTMLElement>('.wind-traveler'),board=stage.querySelector<HTMLElement>('.wind-board');const duration=reducedMotion()?1:Math.min(650,200+next.path.length*85);
+                if(actor&&board&&!reducedMotion()){const rect={width:board.clientWidth,height:board.clientHeight};animateElement(actor,[old.at,...next.path].map((at,i,all)=>({translate:`${((at%6)-(old.at%6))*rect.width/6}px ${(Math.floor(at/6)-Math.floor(old.at/6))*rect.height/5}px`,offset:i/(all.length-1)})),duration,{easing:'linear'});}
+                next.path.forEach((at,i)=>{const bell=windBells.findIndex(b=>b===at);if(bell>=0&&!(old.mask&(1<<bell)))this.time.delayedCall(duration*(i+1)/next.path.length,()=>{const cell=board?.querySelector<HTMLElement>(`[data-wind-cell="${at}"]`);if(cell){cell.classList.add('is-collected');cell.textContent='✧';}this.dataIn.feedback.play('place');});});
+                this.time.delayedCall(duration,()=>{this.moving=false;this.message=next.mask!==old.mask?this.t('收好風鈴碎片！小雷冇咁驚喇。','A chime piece! Nimbus feels a little braver.'):this.t('留意停點，搵齊風鈴再入大廳。','Plan your stopping points. Collect every piece before the lobby.');if(windSolved(this.state.wind))this.finish();else this.render();});
+            },()=>{const before=this.state.wind.history.pop();if(before){this.state.wind={...this.state.wind,...before};this.message=this.t('已撤回，可以試另一條路。','Undone. Try a different route.');update();}});return;
+        }
         if (this.dataIn.episode === 'scent-room') {
             scentWidget(stage, panel, ui, this.state.scent, this.selectedItem === undefined ? undefined : Number(this.selectedItem), n => { this.selectedItem = n === undefined ? undefined : String(n); this.render(); }, (board, from, to) => {
                 const color = this.state.scent[from].at(-1)!;

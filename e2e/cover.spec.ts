@@ -16,7 +16,7 @@ test('bilingual rounded cover logo stays upper-centred and loads offline', async
     expect(b.x).toBeGreaterThanOrEqual(0); expect(b.x + b.width).toBeLessThan(size.width);
   }
   await page.setViewportSize({ width: 844, height: 480 }); await context.setOffline(true);
-  await page.getByRole('button', { name: '語言', exact: true }).click(); await expect(logo).toBeHidden();
+  await expect(logo).toBeVisible();
   await page.getByRole('button', { name: 'English', exact: true }).click(); await expect(logo).toBeVisible();
   await expect(page.locator('.cover-logo')).toHaveCount(1);
   await page.mouse.click(650, 365); await expect(page.locator('canvas')).toHaveAttribute('aria-label', 'Welcome, keeper');

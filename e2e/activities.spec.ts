@@ -11,8 +11,7 @@ test('all four residents keep performing their activities across a complete cycl
   for (let i = 0; i < 4; i++) await assign(page, i);
   // Recreate residents with motion enabled, retaining their room assignments.
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.getByRole('button', { name: '語言', exact: true }).click();
-  await page.getByRole('button', { name: '繁體中文', exact: true }).click();
+  await page.getByRole('button', { name: 'English', exact: true }).click();await page.getByRole('button', { name: '繁體中文', exact: true }).click();
   const solution = solve(firstLevel)[0];
   const clips = firstLevel.guests.map(guest => {
     const point = residentPoint(firstLevel.rooms.find(room => room.id === solution[guest.id])!);
