@@ -1,3 +1,4 @@
+import { navigate, navigationBusy, revealFeedback } from './gameFeel';
 import { initialScent, validScent, validPartialCode, placeRune, validGuesses, codeSolved, validPhoto, freshPhoto, photoGuests, swapPhoto, turnPhoto, photoSolved, type ScentBoard, type Rune, type PhotoState, type PhotoGuest } from '../domain/guestPuzzles';
 import { scentWidget, scentPourEffect, codeWidget, photoWidget, fitPhotoFrames } from './guestPuzzleWidgets';
 import { initialLaundry, validLaundry } from '../domain/laundry';
@@ -173,20 +174,16 @@ export class EpisodeScene extends Phaser.Scene {
         b.onclick = () => {
             if (this.moving)
                 return;
-            this.dataIn.feedback.play('tap');
             action();
         };
         return b;
     }
     private exit(destination: 'lobby' | 'map' | 'next' = 'lobby') {
-        if (this.moving)
-            return;
-        this.persist();
-        this.rewardFx?.();
-        this.root?.remove();
-        this.modal?.();
-        this.scene.stop();
-        this.dataIn.onExit(this.dataIn.save, this.dataIn.locale, destination);
+        if(this.moving)return;
+        navigate(`episode:${this.dataIn.episode}:${destination}`,()=>{
+            this.persist();this.rewardFx?.();this.root?.remove();this.modal?.();this.scene.stop();
+            this.dataIn.onExit(this.dataIn.save,this.dataIn.locale,destination);
+        });
     }
     private render() {
         const motion = capturePuzzle(this.root);
@@ -248,6 +245,7 @@ export class EpisodeScene extends Phaser.Scene {
         document.body.append(root);
         this.paint();
         animatePuzzle(root, motion);
+        if(this.message)revealFeedback(root.querySelector<HTMLElement>('.episode-footer [role=status]>span:last-child')??undefined);
     }
     private laundry(stage: HTMLElement, panel: HTMLElement) {
         const ui = { button: (label: string, run: () => void, primary = false) => this.button(label, run, primary), t: (zh: string, en: string) => this.t(zh, en) };
@@ -588,24 +586,16 @@ export class EpisodeScene extends Phaser.Scene {
         });
     }
     private finish() {
-        if (this.dataIn.episode === 'group-photo') {
-            if (!photoSolved(this.state.photo))
-                return;
-            this.dataIn.save = { ...this.dataIn.save, photos: { ...this.dataIn.save.photos, party: { order: [...this.state.photo.order], poses: { ...this.state.photo.poses } } } };
+        if(this.won||navigationBusy())return;
+        if(this.dataIn.episode==='group-photo'){
+            if(!photoSolved(this.state.photo))return;
+            this.dataIn.save={...this.dataIn.save,photos:{...this.dataIn.save.photos,party:{order:[...this.state.photo.order],poses:{...this.state.photo.poses}}}};
         }
-        const result = completeEpisode(this.dataIn.save, this.dataIn.episode);
-        this.dataIn.save = result.save;
-        this.reward = result.reward;
-        this.storageFailed = !writeSave(result.save) || this.storageFailed;
-        this.won = true;
-        this.moving = false;
-        this.message = this.storageFailed ? this.t('未能儲存，只限本次遊玩。', 'Not saved · This session only.') : this.t('首次完成獎勵已儲存；重玩唔會重複派獎。', 'First-completion reward saved. Replays do not award coins again.');
-        if (!this.reward)
-            this.dataIn.feedback.play('success');
-        this.persist();
-        this.render();
-        this.rewardFx?.();
-        this.rewardFx = celebrateReward(this.reward, this.dataIn.save.coins, this.dataIn.locale, () => { this.dataIn.feedback.play('harvest'); void this.dataIn.feedback.pulse('purchase'); });
+        const result=completeEpisode(this.dataIn.save,this.dataIn.episode);this.dataIn.save=result.save;this.reward=result.reward;
+        this.storageFailed=!writeSave(result.save)||this.storageFailed;this.won=true;this.moving=false;
+        this.message=this.storageFailed?this.t('未能儲存，只限本次遊玩。','Not saved · This session only.'):this.t('首次完成獎勵已儲存；重玩唔會重複派獎。','First-completion reward saved. Replays do not award coins again.');
+        if(!this.reward)this.dataIn.feedback.play('success');this.persist();
+        navigate(`victory:${this.dataIn.episode}`,()=>{this.render();this.rewardFx?.();this.rewardFx=celebrateReward(this.reward,this.dataIn.save.coins,this.dataIn.locale,()=>{this.dataIn.feedback.play('harvest');void this.dataIn.feedback.pulse('purchase');});});
     }
     private language() { this.modal?.(); this.modal = showDetails({ kind: 'language', title: this.t('語言', 'Language'), eyebrow: '', close: this.t('返回', 'Back'), sections: [], content: languageContent(this.dataIn.locale, locale => { this.modal?.(); this.modal = undefined; this.dataIn.locale = locale; saveLocale(locale); this.render(); }) }, () => { this.modal = undefined; }); }
     private settings() { this.modal?.(); this.modal = showDetails({ kind: 'settings', title: this.t('設定', 'Settings'), eyebrow: '', close: this.t('返回', 'Back'), sections: [], content: settingsContent(this.dataIn.locale, this.dataIn.feedback.preferences, p => { this.dataIn.feedback.setPreferences(p); return savePreferences(p); }, () => this.dataIn.feedback.play('place'), () => this.language()) }, () => { this.modal = undefined; }); }

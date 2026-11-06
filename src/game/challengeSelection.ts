@@ -1,3 +1,4 @@
+import { revealCollection } from './gameFeel';
 import {challenges,challengeComplete,challengeUnlocked,challengeProgress,challengeTitle,nextChallenge,type Challenge} from '../domain/campaign';
 import type {Save} from '../platform/save';
 import type {Locale} from '../i18n/catalog';
@@ -11,6 +12,6 @@ export function showChallengeSelection(locale:Locale,save:Save,choose:(node:Chal
   b.disabled=!challengeUnlocked(save,node.id);b.setAttribute('aria-label',`${locale==='en'?'Level':'第'} ${challenges.indexOf(node)+1}${locale==='en'?'':'關'} · ${challengeTitle(node,locale)}`);
   const number=document.createElement('strong');number.textContent=String(challenges.indexOf(node)+1).padStart(2,'0');const label=document.createElement('span');label.textContent=challengeTitle(node,locale);const state=document.createElement('small');state.textContent=challengeComplete(save,node)?'★':b.disabled?'🔒':node.kind==='episode'?'♥':'✦';b.append(number,label,state);b.onclick=()=>choose(node);grid.append(b);
  }prev.disabled=page===0;next.disabled=(page+1)*capacity>=challenges.length;info.textContent=`${page+1} / ${Math.ceil(challenges.length/capacity)} · ${locale==='en'?'Cleared':'已完成'} ${challengeProgress(save)}`;};
- prev.onclick=()=>{page--;render();};next.onclick=()=>{page++;render();};nav.append(prev,info,next);root.append(grid,nav);render();
+ prev.onclick=()=>{page--;render();revealCollection(grid);};next.onclick=()=>{page++;render();revealCollection(grid);};nav.append(prev,info,next);root.append(grid,nav);render();
  return showDetails({kind:'card',title:locale==='en'?'Puzzle challenges':'解謎挑戰',eyebrow:'',close:locale==='en'?'Back':'返回',sections:[],content:root},back);
 }

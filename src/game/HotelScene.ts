@@ -1,3 +1,4 @@
+import { installButtonFeel, navigate, navigationBusy, cancelNavigation, tapShimmer, prefersQuietMotion } from './gameFeel';
 import { photoWallContent } from './photoWall';
 import { fitPhotoFrames } from './guestPuzzleWidgets';
 import { celebrateReward } from './rewardFx';
@@ -55,6 +56,7 @@ export class HotelScene extends Phaser.Scene {
   private selected?: string;
   private message = '';
   private locale: Locale = readLocale();
+  private disposeFeel?: () => void;
   private albumRoot?: HTMLElement;
   private rewardFx?: () => void;
   private screen: 'title' | 'lobby' | 'play' | 'win' | 'selection' = 'title';
@@ -84,7 +86,7 @@ export class HotelScene extends Phaser.Scene {
     this.load.image('reception-art', '/art/reception.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
-  create() { registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.rewardFx?.(); this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
+  create() { this.disposeFeel=installButtonFeel(()=>{this.feedback.play('tap');void this.feedback.pulse('ui');});registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.disposeFeel?.();cancelNavigation();this.rewardFx?.(); this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
   update() {
     this.resizeViewport();
     const m = viewportMetrics(this.scale.width, this.scale.height);
@@ -93,7 +95,7 @@ export class HotelScene extends Phaser.Scene {
       const obj = object as Phaser.GameObjects.Text | Phaser.GameObjects.Container | Phaser.GameObjects.Arc;
       let base = obj.getData('viewportScale') as { x: number; y: number } | undefined;
       if (!base) { base = { x: obj.scaleX, y: obj.scaleY }; obj.setData('viewportScale', base); }
-      obj.setScale(base.x * m.aspectX, base.y * m.aspectY);
+      const press = obj.getData('pressFactor') ?? 1;obj.setScale(base.x * m.aspectX * press, base.y * m.aspectY * press);
     }
   }
   private resizeViewport() {
@@ -135,9 +137,14 @@ export class HotelScene extends Phaser.Scene {
     this.game.canvas.setAttribute('aria-label', this.screen === 'play' ? `${levelTitle(this.level.id, this.locale)}. ${dollhouseUI[this.locale].instructions}` : label);
   }
   private button(y: number, label: string, callback: () => void, width = 310, x = 422) {
-    this.add.image(x, y, 'ui-gold-button').setDisplaySize(width, 64);
-    this.text(x, y - 2, label, this.screen === 'title' ? 27 : 22, '#553047');
-    this.add.zone(x, y, width, 48).setInteractive({ useHandCursor: true }).on('pointerdown', () => { this.feedback.play('tap'); callback(); });
+    const art=this.add.image(x,y,'ui-gold-button').setDisplaySize(width,64);
+    const text=this.text(x,y-2,label,this.screen==='title'?27:22,'#553047');
+    const zone=this.add.zone(x,y,width,48).setInteractive({useHandCursor:true});
+    const original={x:art.scaleX,y:art.scaleY},press={value:1};let held=false;
+    const pose=(value:number,duration:number)=>{this.tweens.killTweensOf(press);if(prefersQuietMotion()){press.value=value;art.setAlpha(value<1?.85:1);return;}this.tweens.add({targets:press,value,duration,ease:value===1?'Back.easeOut':'Sine.easeOut',onUpdate:()=>{if(art.active)art.setScale(original.x*press.value,original.y*press.value);if(text.active)text.setData('pressFactor',press.value);}});};
+    zone.on('pointerdown',()=>{held=true;pose(.95,65);});
+    zone.on('pointerout',()=>{held=false;pose(1,130);});
+    zone.on('pointerup',(pointer:Phaser.Input.Pointer)=>{if(!held)return;held=false;pose(1,150);this.feedback.play('tap');void this.feedback.pulse('ui');const event=pointer.event as MouseEvent;tapShimmer(Number.isFinite(event.clientX)?event.clientX:x*innerWidth/844,Number.isFinite(event.clientY)?event.clientY:y*innerHeight/480);navigate(`canvas:${this.screen}:${label}`,callback);});
   }
 
   private reception() {
@@ -178,7 +185,7 @@ export class HotelScene extends Phaser.Scene {
     this.screen='lobby';this.base(this.t.welcome);this.reception();
     this.text(590,133,this.t.welcome,27,'#fff0c6');this.text(590,181,`${this.save.coins} ${this.t.coins}  ·  ${this.locale==='en'?'Cleared':'已完成'} ${challengeProgress(this.save)}`,18,'#fff0c6');
     const menu=document.createElement('nav');menu.className='lobby-menu';
-    const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=callback;menu.append(b);};
+    const add=(label:string,action:string,callback:()=>void,primary=false)=>{const b=document.createElement('button');b.className=primary?'game-primary-button':'game-secondary-button';b.dataset.action=action;b.textContent=label;b.onclick=()=>navigate(`lobby:${action}`,callback);menu.append(b);};
     add(this.locale==='en'?'Puzzles':'解謎挑戰','challenges',()=>this.selection(),true);
     add(this.locale==='en'?'Shop':this.ht.shop,'shop',()=>this.shop());add(this.locale==='en'?'Cover':'返回封面','cover',()=>this.title());add(this.locale==='en'?'Memories':'酒店相牆','photos',()=>this.photoWall());this.hud?.append(menu);
   }
@@ -186,7 +193,8 @@ export class HotelScene extends Phaser.Scene {
     const root=photoWallContent(this.save,this.locale);this.albumRoot=root;
     this.details({kind:'card',title:this.locale==='en'?'Hotel memory wall':'酒店相牆',eyebrow:'',sections:[],close:this.ht.back,content:root},()=>{this.albumRoot=undefined;});fitPhotoFrames(root);
   }
-  private launchChallenge(node:Challenge) {
+  private launchChallenge(node:Challenge) { navigate(`challenge:${node.id}`,()=>this.enterChallenge(node)); }
+  private enterChallenge(node:Challenge) {
     if(!challengeUnlocked(this.save,node.id))return;this.game.canvas.dataset.challenge=node.id;this.dismissDetails?.();this.dismissDetails=undefined;
     if(node.kind==='puzzle'){this.startNight(node.puzzle);return;}
     this.hud?.visible(false);this.scene.launch('episode',{episode:node.episode,locale:this.locale,feedback:this.feedback,save:this.save,onExit:(save:Save,locale:Locale,destination='lobby')=>{
@@ -203,7 +211,7 @@ export class HotelScene extends Phaser.Scene {
     if (!challengeUnlocked(this.save,`puzzle-${id}`)) return;
     const level = levels.find(l => l.id === id); if (!level) return;
     this.level = level; this.assignment = {}; this.message = ''; this.selected = undefined; this.hintStage = 0; this.queueArrival = true;
-    if(id===1&&!this.save.completed.includes(1)){this.lobby();this.input.enabled=false;this.hud?.visible(false);this.dismissDetails=showDetails({kind:'card',title:this.locale==='en'?'The hotel’s opening night':'旅館開門第一晚',eyebrow:'',close:this.locale==='en'?'Back':'返回',sections:[],content:arrivalIntroduction(this.locale,()=>{this.dismissDetails?.();this.dismissDetails=undefined;this.play();})},()=>{this.lobby();this.selection();});return;}this.play();
+    if(id===1&&!this.save.completed.includes(1)){this.lobby();this.input.enabled=false;this.hud?.visible(false);this.dismissDetails=showDetails({kind:'card',title:this.locale==='en'?'The hotel’s opening night':'旅館開門第一晚',eyebrow:'',close:this.locale==='en'?'Back':'返回',sections:[],content:arrivalIntroduction(this.locale,()=>navigate('welcome:play',()=>{this.dismissDetails?.();this.dismissDetails=undefined;this.play();}))},()=>{this.lobby();this.selection();});return;}this.play();
   }
   private monster(x: number, y: number, guest: Guest, activity: 'queue' | 'room' = 'queue') {
     return drawMonster(this, x, y, guest, activity).setData('viewportAspect', true);
@@ -300,11 +308,12 @@ export class HotelScene extends Phaser.Scene {
     if (!saved) this.hud?.show(tutorialUI[this.locale].session);
   }
   private checkGuests() {
+    if(this.screen!=='play'||navigationBusy())return;
     const result = validate(this.level, this.assignment);
     if (result.valid) {
       if (this.level.id === 1 && !this.tutorialDismissed) this.finishTutorial();
       this.feedback.play('success'); void this.feedback.pulse('success'); const before = this.save.coins;
-      this.save = complete(this.save, this.level.id); this.earnedCoins = this.save.coins - before; this.win();
+      this.save = complete(this.save, this.level.id); this.earnedCoins = this.save.coins - before; navigate('classic:win',()=>this.win());
     } else {
       this.feedback.play('error'); void this.feedback.pulse('error'); this.message = result.reason === 'incomplete' ? this.t.incomplete : result.reason === 'rule' ? this.ct.retry : this.t.mismatch; this.play();
     }

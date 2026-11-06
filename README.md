@@ -16,6 +16,14 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.10: mobile interaction feedback
+
+Shared touch and keyboard controls now press, rebound and emit a small bounded gold glint. Full-screen sheets fade in/out; route changes use a short crossfade with a fallback for Android WebViews without View Transitions. Switches slide, route pages stagger in, and changed puzzle selections briefly brighten without blocking repeated input. Reduced-motion settings skip these effects.
+
+Navigation suppresses repeated outgoing actions while allowing nested next-stage transitions. First-completion rewards still save once before presentation; currency, collection and puzzle rules are unchanged. Raising mechanics remain deferred. Android versionCode is 11.
+
+Run `npx playwright test e2e/game-feel.spec.ts` for interaction regressions. Run `PLAYWRIGHT_BROWSERS_PATH=/workspace/.tooling/playwright node scripts/record-game-feel.cjs` against preview port 5188 for actual screenshots, H.264 MP4 and GIF. The recording uses a returning-player save fixture and Canvas2D for capture; physical-device performance and haptics require an Android playtest.
+
 ## Version 1.9: perfume, the key cabinet and a hotel memory wall
 
 Three new games extend the growing route to thirteen stages:

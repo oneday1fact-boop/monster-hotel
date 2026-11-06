@@ -1,12 +1,14 @@
+import { motion } from './gameFeel';
 /** Small compositor animations preserve an item's identity across DOM rerenders. */
 const tracked = ['data-laundry-piece', 'data-event', 'data-gift-cell', 'data-mirror', 'data-pipe', 'data-photo-figure'];
 export function capturePuzzle(root?: HTMLElement) { const positions = new Map<string, DOMRect>(); if (root)
     for (const attr of tracked)
         for (const e of Array.from(root.querySelectorAll<HTMLElement>(`[${attr}]`)))
-            positions.set(`${attr}:${e.getAttribute(attr)}`, e.getBoundingClientRect()); const beam = root?.querySelector<HTMLElement>('.lift-beam')?.style.transform; const pans = Array.from(root?.querySelectorAll<HTMLElement>('.lift-pan') ?? []).map(e => e.style.transform); return { positions, beam, pans }; }
+            positions.set(`${attr}:${e.getAttribute(attr)}`, e.getBoundingClientRect()); const beam = root?.querySelector<HTMLElement>('.lift-beam')?.style.transform; const pans = Array.from(root?.querySelectorAll<HTMLElement>('.lift-pan') ?? []).map(e => e.style.transform); const states=new Map<string,string>();if(root)for(const e of Array.from(root.querySelectorAll<HTMLElement>('button[data-scent-bottle],button[data-code-slot],button[data-photo-guest],button[data-rune],button[data-mirror],button[data-pipe]'))){const key=Array.from(e.attributes).filter(a=>a.name.startsWith('data-')).map(a=>a.name+':'+a.value).join('|');states.set(key,e.className+e.innerHTML);}return { positions, beam, pans, states }; }
 export function animatePuzzle(root: HTMLElement, old: ReturnType<typeof capturePuzzle>) {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || typeof Element.prototype.animate !== 'function')
         return;
+    for(const e of Array.from(root.querySelectorAll<HTMLElement>('button[data-scent-bottle],button[data-code-slot],button[data-photo-guest],button[data-rune],button[data-mirror],button[data-pipe]'))){const key=Array.from(e.attributes).filter(a=>a.name.startsWith('data-')).map(a=>a.name+':'+a.value).join('|');const before=old.states.get(key);if(before!==undefined&&before!==e.className+e.innerHTML)motion(e,[{opacity:.65,filter:'brightness(1.18)'},{opacity:1,filter:'brightness(1)'}],150);}
     for (const attr of tracked)
         for (const e of Array.from(root.querySelectorAll<HTMLElement>(`[${attr}]`))) {
             const before = old.positions.get(`${attr}:${e.getAttribute(attr)}`);
