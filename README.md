@@ -18,7 +18,7 @@ Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise
 
 ## Version 1.10: mobile interaction feedback
 
-Shared touch and keyboard controls now press, rebound and emit a small bounded gold glint. Full-screen sheets fade in/out; route changes use a short crossfade with a fallback for Android WebViews without View Transitions. Switches slide, route pages stagger in, and changed puzzle selections briefly brighten without blocking repeated input. Reduced-motion settings skip these effects.
+Shared touch and keyboard controls now press, rebound and emit a small bounded gold glint. Full-screen sheets fade in/out; route changes use a short opacity fade that keeps Phaser and reward counters rendering across Android WebViews. Switches slide, route pages stagger in, and changed puzzle selections briefly brighten without blocking repeated input. Reduced-motion settings skip these effects.
 
 Navigation suppresses repeated outgoing actions while allowing nested next-stage transitions. First-completion rewards still save once before presentation; currency, collection and puzzle rules are unchanged. Raising mechanics remain deferred. Android versionCode is 11.
 

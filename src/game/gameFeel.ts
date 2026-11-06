@@ -52,10 +52,8 @@ export function navigate(key:string,action:()=>void){
  const task:Flight={key,phase:'capture'};flight=task;document.documentElement.dataset.navigationPhase='leaving';let applied=false;
  const commit=()=>{if(flight!==task||applied)return;applied=true;committing=true;try{action();}finally{committing=false;task.phase='enter';document.documentElement.dataset.navigationPhase='entering';}};
  const finish=()=>{if(flight!==task)return;const queued=task.queued;flight=undefined;delete document.documentElement.dataset.navigationPhase;if(queued)navigate(queued.key,queued.action);};
- const start=document.startViewTransition?.bind(document);
- if(typeof start==='function'){
-  try{const view=start(async()=>{commit();await frames();});task.cancel=()=>view.skipTransition();void view.ready.catch(()=>{});void view.updateCallbackDone.catch(()=>{});void view.finished.then(finish,()=>{commit();finish();});return true;}catch{/* Older WebViews use a short fade-through below. */}
- }
+ // Keep rendering live: snapshot transitions can suspend requestAnimationFrame
+ // while Phaser and reward counters need it. Opacity fades work across WebViews.
  void(async()=>{let out:Animation|undefined;try{out=motion(document.body,[{opacity:1},{opacity:.55}],65,{fill:'forwards'});task.cancel=()=>out?.cancel();await out?.finished;if(flight!==task)return;commit();await frames();out?.cancel();const incoming=motion(document.body,[{opacity:.55},{opacity:1}],125);task.cancel=()=>incoming?.cancel();await incoming?.finished;}catch{commit();}finally{out?.cancel();finish();}})();return true;
 }
 export function cancelNavigation(){const active=flight;flight=undefined;delete document.documentElement.dataset.navigationPhase;active?.cancel?.();}
