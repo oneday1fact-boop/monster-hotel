@@ -16,6 +16,14 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.22: a playable detective case and four-room expansion access
+
+After the first check-in, tap the casebook at the My hotel reception desk to investigate **The sealed room and a cup of tea**. Inspect seven visible physical props, compare two-part service stamps, question four guests, pull a counterweighted lift rope during a reconstructed blackout, present contradictory evidence and reconstruct who/route/time/motive. The offline draft survives leaving. A valid first conclusion grants 500 coins once; replay and storage failure cannot award extra currency. No new paid room is needed to solve the case.
+
+The original four-room scene now has direct expansion doors with lock/price labels. New wing access shows four large furnished rooms in the same two-by-two presentation, using the existing permanent purchases and prerequisites. The eight-room map remains a secondary control. All existing puzzle progress, currency, decor and photographs are preserved. See [Traditional Chinese prototype notes](docs/detective-prototype.zh-Hant.md).
+
+`npm run review:record` records actual scene inspection, rope dragging, contradictions, deductions and room purchases. This is a review prototype on its own feature branch; future detective cases are not implemented and it is not automatically merged to main or published to Play.
+
 ## Version 1.21: Whole Hotel and permanent room expansions
 
 The existing four-room My hotel scene is retained. Its new **Whole hotel · Expand** button opens a separate original eight-room panorama. Earned coins permanently open a woodland library (1,200), star observatory (1,600), music room (2,200, after the library) and honey bakery (2,800, after the observatory). Locked rooms show their prices; purchases reveal fully furnished rooms and invite an existing resident to visit. Unlocks are saved in the existing offline save. Duplicate purchases, insufficient funds, prerequisites and storage failures are handled without losing coins. Room closeups, continuous resident movement, language/settings, pause and reduced motion are supported.
