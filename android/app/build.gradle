@@ -12,10 +12,10 @@ if (requestedVersionCode && !(requestedVersionCode ==~ /[1-9][0-9]*/)) {
 }
 
 android {
-    namespace "com.midnightcheckin.monsterhotel"
+    namespace "com.oneday1fact.monster_hotel"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.midnightcheckin.monsterhotel"
+        applicationId "com.oneday1fact.monster_hotel"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode requestedVersionCode ? Integer.parseInt(requestedVersionCode) : 22

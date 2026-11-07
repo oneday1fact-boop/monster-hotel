@@ -1,6 +1,6 @@
 {
-  "packageName": "com.midnightcheckin.monsterhotel",
-  "track": "closed testing — exact Console track ID must be confirmed by owner",
+  "packageName": "com.oneday1fact.monster_hotel",
+  "track": "Alpha",
   "versionName": "1.21",
   "versionCode": 22,
   "zh-Hant": {
@@ -14,14 +14,13 @@
     "fullDescription": "Welcome to Monster Hotel! Meet original, charming monster guests and solve room assignments, sliding roads, ghost laundry, picture differences, shadow puzzles and pillow-bounce challenges.\n\nEarn coins from puzzles, choose decorations and permanently open a woodland library, observatory, music room and honey bakery in the Whole Hotel view. Watch residents wander, tap to greet them, or return to the original four-room hotel.\n\nPlay offline in English or Traditional Chinese, with progress saved on your device. This test version contains no live advertising or tracking SDK."
   },
   "ownerFieldsNotInvented": [
-    "developer contact email",
-    "public privacy policy URL",
-    "target audience",
-    "content rating answers",
-    "testers or Google group",
-    "countries",
-    "exact closed track ID",
-    "current Console target API requirements"
+    "target audience and content rating pending IARC questionnaire completion",
+    "public privacy policy URL pending publication"
   ],
-  "targetSdkVersion": 36
+  "targetSdkVersion": 36,
+  "supportEmail": "oneday1fact@gmail.com",
+  "testerGoogleGroup": "oneday1fact@googlegroups.com",
+  "countries": "All 178 available countries/regions, including Rest of World",
+  "trackId": "4700268298496249878",
+  "minSdkVersion": 24
 }
