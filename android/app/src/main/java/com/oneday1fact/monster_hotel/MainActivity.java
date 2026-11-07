@@ -1,4 +1,4 @@
-package com.midnightcheckin.monsterhotel;
+package com.oneday1fact.monster_hotel;
 
 import android.os.Bundle;
 import androidx.core.view.WindowCompat;

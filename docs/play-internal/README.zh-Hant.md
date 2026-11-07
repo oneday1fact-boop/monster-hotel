@@ -4,7 +4,7 @@
 
 用戶已授權上傳至內部測試；未授權公開上架。現時尚未上傳：此工作階段沒有 Play Console 工具、已就緒的 Play 發佈身分或上傳金鑰。
 
-目前 applicationId 為 `com.midnightcheckin.monsterhotel`，版本名稱 1.9，預設 versionCode 10。必須先核對擁有者的 Play 應用及最高已用 versionCode；既有應用不可任意更換 applicationId 或 upload key。
+目前 applicationId 為 `com.oneday1fact.monster_hotel`，版本名稱 1.9，預設 versionCode 10。必須先核對擁有者的 Play 應用及最高已用 versionCode；既有應用不可任意更換 applicationId 或 upload key。
 
 ## 已準備
 

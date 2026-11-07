@@ -1,8 +1,14 @@
+# 2026-11-07 Console 更新
+
+用戶已批准接受 IARC 條款、公開此版本源碼及私隱政策，並提交 Google Play 封閉測試。正式簽署 AAB 1.21／22 已獲 Console 接收並儲存在 Alpha 草稿，最低 API 24、目標 API 36。現有 package 為 `com.oneday1fact.monster_hotel`。所有 178 個可用國家／地區及 `oneday1fact@googlegroups.com` 已儲存；支援電郵為 `oneday1fact@gmail.com`。商店圖像與英文文案已完成。是否已送審須以 Console 即時狀態核實；以下早期環境及金鑰限制是歷史記錄。
+
+上傳私鑰及密碼不得提交到 Git；由擁有者私人保存，Play 發佈簽署金鑰由 Google 管理。
+
 # Google Play 封閉測試準備：1.21
 
 本次用戶授權的是 **Closed testing／封閉測試**，取代早前只做 Internal testing 的渠道方向；沒有公開正式上架授權。實際尚未上傳，也未產生 Play 測試安裝連結。
 
-- 程式識別碼：`com.midnightcheckin.monsterhotel`
+- 程式識別碼：`com.oneday1fact.monster_hotel`
 - 本機版本：1.21／versionCode 22。上傳前必須高於該 Play app 已用的版本碼。
 - 目標 API：已更新 compileSdk／targetSdk 為 36，並更新 Android Gradle Plugin 至 8.9.1；未取得 Console 當時要求，不宣稱已符合所有當期上架條件。
 - 現況：用戶回覆未有 upload key。工作階段沒有 Play 發佈身分或共享桌面控制工具，Play Console HTTP 存取亦回傳 proxy 403。原始配置沒有允許 `play.google.com`；沒有繞過限制或使用別人的帳戶。
