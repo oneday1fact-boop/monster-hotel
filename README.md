@@ -16,6 +16,16 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.19: My hotel — a living, full-screen dollhouse
+
+The lobby's primary **My hotel / 我的旅館** button opens an original full-bleed four-room hotel. Moon suite, rose tea lounge, ghost laundry and hearth lounge have distinct detailed interiors and a connected central stairwell. Tap rooms for closeups, drag a closeup to look around, follow a selected guest, or open the paginated resident roster. The closed attic is clearly marked as future content; expansion purchases and repeatable commissions are not implemented in this version.
+
+Four original residents are present initially. Yuzu, Nemu, Nimbus and Momo join according to existing luggage, dream, storm and clock achievements. Residents follow independent schedules, walk between rooms using the stair route, stop for greetings, read, sip tea, fold quilts and rest. Taps receive individual replies and small reactions. One original art pose is continuously articulated with head/body/feet/tail transforms and eyelid blinks; this scene never cycles through pose frames. Arrival reservations and one-at-a-time stair access prevent stationary stacking. The model survives leaving and reopening the view in the same session.
+
+Existing equipped decorations render over the new backdrop. The view does not spend coins or alter puzzle progress, photos or ownership. Backgrounding, pause, reduced motion, image-load failure/retry, bilingual controls and settings are supported. Images/layers remain mounted; updates only change transforms. Browser timing data measures JavaScript update cost, not native-device FPS. Physical Android performance still needs device testing.
+
+Android 1.19 / versionCode 20. Check `e2e/my-hotel.spec.ts`; `npm run review:record` records actual roaming, greetings, closeups and stair travel against port 5202. See [living hotel details](docs/my-hotel.zh-Hant.md).
+
 ## Version 1.18: three playable afternoon-tea games and separated completion guests
 
 Append **Honey pots at the door**, **Shadows at teatime** and **Pillow bounce tea party** after the clock chapter, making eighteen active stages. Honey is a six-by-six walking/pushing puzzle with a thirteen-step shortest solution, saved undo and adaptive hints. Shadow puppets support drag previews, position/depth buttons, undo and a reproducible outline. Pillow bounce uses fixed 120 Hz simulation, two angle-controlled pillows, two chimes and a basket; four of 162 settings win. Failed shots are free and leave a comparison trail. All three have bilingual instructions, saved drafts, one-time 500-coin rewards and animated endings.
