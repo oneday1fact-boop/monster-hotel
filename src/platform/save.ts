@@ -1,3 +1,4 @@
+import {isExpansion,type ExpansionId} from '../domain/hotelEstate';
 import { validPhoto, photoSolved, type PhotoState } from '../domain/guestPuzzles';
 import { isEpisode, type EpisodeId } from '../domain/episodes';
 import { isAmbience, type Ambience } from '../domain/ambience';
@@ -7,6 +8,7 @@ export interface Save {
     version: 1;
     completed: number[];
     coins: number;
+    hotelRooms?: ExpansionId[];
     photos?: {
         party?: PhotoState;
     };
@@ -30,6 +32,7 @@ export function readSave(): Save {
             const save: Save = { version: 1, completed: [...new Set<number>(value.completed.filter((id: number) => levels.some(l => l.id === id)))], coins: value.coins };
             if (validPhoto(value.photos?.party) && photoSolved(value.photos.party))
                 save.photos = { party: { order: [...value.photos.party.order], poses: { ...value.photos.party.poses } } };
+            if (Array.isArray(value.hotelRooms)) save.hotelRooms=[...new Set<ExpansionId>(value.hotelRooms.filter(isExpansion))];
             if (Array.isArray(value.episodes))
                 save.episodes = [...new Set<EpisodeId>(value.episodes.filter(isEpisode))];
             if (Array.isArray(value.decorations)) {

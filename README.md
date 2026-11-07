@@ -16,6 +16,16 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.21: Whole Hotel and permanent room expansions
+
+The existing four-room My hotel scene is retained. Its new **Whole hotel · Expand** button opens a separate original eight-room panorama. Earned coins permanently open a woodland library (1,200), star observatory (1,600), music room (2,200, after the library) and honey bakery (2,800, after the observatory). Locked rooms show their prices; purchases reveal fully furnished rooms and invite an existing resident to visit. Unlocks are saved in the existing offline save. Duplicate purchases, insufficient funds, prerequisites and storage failures are handled without losing coins. Room closeups, continuous resident movement, language/settings, pause and reduced motion are supported.
+
+Advertising remains disabled with no SDK or tracking. [Placement recommendations](docs/ad-placements.zh-Hant.md) and tested eligibility rules reserve voluntary rewards for results/hotel supplies and interstitials for infrequent lobby returns. They do not currently grant ad currency or show ads.
+
+The requested release channel is now **Google Play closed testing**; Android compile/target API is 36 with AGP 8.9.1. [Closed testing materials](docs/play-closed/README.zh-Hant.md) contain bilingual release notes, listing/privacy drafts and secure owner-key instructions. `npm run android:bundle:check` produces a clearly marked unsigned compile check; `npm run android:aab` requires the owner's upload key. No Play upload has happened: the environment has no Play identity/desktop access and Console connectivity returned proxy 403. Never upload the unsigned check artifact or claim a Play installation link.
+
+See [Chinese feature details](docs/hotel-estate.zh-Hant.md). `npm run review:record` captures actual room purchases and resident visits. `npm run play:closed:prepare` validates the local AAB asset contents and writes an honest readiness manifest.
+
 ## Version 1.20: playtest corrections
 
 My hotel now reserves narrow corridors and stair landings, schedules waiting residents fairly, and sorts guests by their visible feet. Locked attic and garden-wing markers open a preview of future expansion; purchases are not implemented. First-level portraits retain square proportions. Luggage has a fixed connected entrance, a revised eight-slide scramble and a spatial cross pad; other four-direction games use the same cross layout. Shadow play has a larger stage, five positions and three depths, with old drafts migrated. Pillow bounce uses actual surface-normal reflection and gravity with matching visible geometry, multiple valid trajectories and a first-bounce preview. All late chapter cover images load offline.

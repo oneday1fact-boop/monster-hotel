@@ -1,3 +1,5 @@
+import {HotelEstateView} from './hotelEstateView';
+import {EstateLife,buyExpansion,type EstateRoomId} from '../domain/hotelEstate';
 import {MyHotelView} from './myHotelView';
 import {HotelLife,hotelResidents} from '../domain/hotelLife';
 import { coverLife } from './coverLife';
@@ -63,8 +65,10 @@ export class HotelScene extends Phaser.Scene {
   private disposeFeel?: () => void;
   private albumRoot?: HTMLElement;
   private rewardFx?: () => void;
-  private screen: 'title' | 'lobby' | 'play' | 'win' | 'selection' | 'myHotel' = 'title';
+  private screen: 'title' | 'lobby' | 'play' | 'win' | 'selection' | 'myHotel' | 'hotelEstate' = 'title';
   private hotelView?:MyHotelView;
+  private estateView?:HotelEstateView;
+  private estateLife?:EstateLife;
   private hotelLife?:HotelLife;
   private hintStage = 0;
   private arriving?: string;
@@ -92,7 +96,7 @@ export class HotelScene extends Phaser.Scene {
     this.load.image('reception-art', '/art/reception.png');
     for (const style of ['elegant', 'linen', 'basement', 'hearth']) this.load.image(`room-${style}`, `/art/rooms/${style}.png`);
   }
-  create() { this.disposeFeel=installButtonFeel(()=>{this.feedback.play('tap');void this.feedback.pulse('ui');});registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.hotelView?.destroy();this.disposeFeel?.();cancelNavigation();this.rewardFx?.(); this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
+  create() { this.disposeFeel=installButtonFeel(()=>{this.feedback.play('tap');void this.feedback.pulse('ui');});registerArt(this); this.save = readSave(); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.hotelView?.destroy();this.estateView?.destroy();this.disposeFeel?.();cancelNavigation();this.rewardFx?.(); this.feedback.dispose(); this.hud?.destroy(); this.dismissDetails?.(); }); this.title(); }
   update() {
     this.resizeViewport();
     const m = viewportMetrics(this.scale.width, this.scale.height);
@@ -121,7 +125,7 @@ export class HotelScene extends Phaser.Scene {
     return this.add.text(x, y, text, { fontFamily: 'GameNumbers, GameRounded, "Noto Sans TC", sans-serif', fontSize: size, color, align: 'center', lineSpacing: 6 }).setResolution(displayDensity()).setOrigin(.5);
   }
   private base(label: string) {
-    this.hotelView?.destroy();this.hotelView=undefined;
+    this.hotelView?.destroy();this.hotelView=undefined;this.estateView?.destroy();this.estateView=undefined;
     this.albumRoot=undefined;
     this.rewardFx?.(); this.rewardFx = undefined;
     this.hud?.destroy(); this.hud = undefined;
@@ -134,7 +138,7 @@ export class HotelScene extends Phaser.Scene {
     if (this.screen === 'play') g.fillStyle(0x191630).fillRect(0, 0, 844, 480);
     else g.fillStyle(0x191630).fillRoundedRect(12, 12, 820, 456, 28);
     for (let i = 0; i < 32; i++) { g.fillStyle(C.gold, .15 + (i % 3) * .12).fillCircle(25 + (i * 67) % 790, 35 + (i * 113) % 420, i % 2 + 1); }
-    if (this.screen !== 'play' && this.screen !== 'title' && this.screen !== 'lobby' && this.screen !== 'myHotel') { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
+    if (this.screen !== 'play' && this.screen !== 'title' && this.screen !== 'lobby' && this.screen !== 'myHotel' && this.screen !== 'hotelEstate') { this.text(422, 22, this.t.brand, 12, '#f2cc83'); this.text(422, 58, label, 29); }
     document.documentElement.lang = this.locale;
     this.hud = createHUD({ locale: this.locale, playing: this.screen === 'play', night: challenges.findIndex(n=>n.id===`puzzle-${this.level.id}`)+1,
       setLocale: locale=>this.setLanguage(locale),settings: () => this.settings(), language: () => this.language(), home: () => this.selection(), hint: () => this.hint(), clues: () => this.clues(),
@@ -199,8 +203,13 @@ export class HotelScene extends Phaser.Scene {
   private myHotel(){
     this.screen='myHotel';this.base(this.locale==='en'?'My hotel':'我的旅館');this.hud?.visible(false);this.game.canvas.setAttribute('aria-busy','true');
     const defs=hotelResidents(this.save);if(!this.hotelLife||this.hotelLife.residents.map(s=>s.def.id).join()!==defs.map(s=>s.id).join())this.hotelLife=new HotelLife(defs);
-    const view=new MyHotelView({life:this.hotelLife,save:this.save,locale:this.locale,onBack:()=>navigate('my-hotel:back',()=>this.lobby()),onLocale:locale=>this.setLanguage(locale),onSettings:()=>this.settings(),onPet:()=>{this.feedback.play('place');void this.feedback.pulse('place');}});this.hotelView=view;
+    const view=new MyHotelView({life:this.hotelLife,save:this.save,locale:this.locale,onBack:()=>navigate('my-hotel:back',()=>this.lobby()),onLocale:locale=>this.setLanguage(locale),onSettings:()=>this.settings(),onEstate:id=>navigate('my-hotel:estate',()=>this.hotelEstate(id)),onPet:()=>{this.feedback.play('place');void this.feedback.pulse('place');}});this.hotelView=view;
     void view.ready.then(()=>{if(this.hotelView===view)this.game.canvas.setAttribute('aria-busy','false');});
+  }
+  private hotelEstate(focus?:EstateRoomId){
+    this.screen='hotelEstate';this.base(this.locale==='en'?'Whole hotel':'酒店全景');this.hud?.visible(false);this.game.canvas.setAttribute('aria-busy','true');
+    if(!this.estateLife||this.estateLife.residents.map(r=>r.rig.def.id).join()!==hotelResidents(this.save).map(r=>r.id).join())this.estateLife=new EstateLife(this.save);this.estateLife.update(this.save);
+    const view=new HotelEstateView({save:this.save,life:this.estateLife,locale:this.locale,focus,onBack:()=>navigate('estate:back',()=>this.myHotel()),onLocale:l=>this.setLanguage(l),onSettings:()=>this.settings(),onPet:()=>{this.feedback.play('place');void this.feedback.pulse('place');},onBuy:id=>{const r=buyExpansion(this.save,id);if(r.status==='bought'){if(!writeSave(r.save))return {save:this.save,status:'storage'};this.save=r.save;this.feedback.play('purchase');void this.feedback.pulse('place');}return r;}});this.estateView=view;void view.ready.then(()=>{if(this.estateView===view)this.game.canvas.setAttribute('aria-busy','false');});
   }
   private walletBadge(){const b=document.createElement('div');b.className='wallet-badge';b.append(icon('coin'),Object.assign(document.createElement('strong'),{textContent:String(this.save.coins)}));b.setAttribute('aria-label',`${this.save.coins} ${this.t.coins}`);this.hud?.append(b);}
   private photoWall(){
@@ -338,7 +347,7 @@ export class HotelScene extends Phaser.Scene {
       this.dismissDetails = undefined; this.input.enabled = this.screen !== 'selection'; this.hud?.visible(this.screen !== 'selection'); onClose?.();
     });
   }
-  private setLanguage(locale:Locale){if(locale===this.locale)return;this.dismissDetails?.();this.dismissDetails=undefined;this.locale=locale;saveLocale(locale);this.message='';if(this.screen==='myHotel'){this.hotelView?.setLocale(locale);return;}this[this.screen]();}
+  private setLanguage(locale:Locale){if(locale===this.locale)return;this.dismissDetails?.();this.dismissDetails=undefined;this.locale=locale;saveLocale(locale);this.message='';if(this.screen==='myHotel'){this.hotelView?.setLocale(locale);return;}if(this.screen==='hotelEstate'){this.estateView?.setLocale(locale);return;}this[this.screen]();}
   private language(fromSettings = false) {
     const title = this.locale === 'en' ? 'Language' : '語言';
     this.details({ kind: 'language', eyebrow: '', title, close: this.ht.back, sections: [], content: languageContent(this.locale, locale => {
@@ -350,7 +359,7 @@ export class HotelScene extends Phaser.Scene {
     this.details({ kind: 'settings', eyebrow: this.t.brand, title: this.ht.settings, close: this.ht.back, sections: [],
       content: settingsContent(this.locale, this.feedback.preferences, preferences => {
         this.feedback.setPreferences(preferences); return savePreferences(preferences);
-      }, () => { this.feedback.play('place'); void this.feedback.pulse('place'); }, () => this.language(true)) },()=>{if(this.screen==='myHotel')this.hud?.visible(false);});
+      }, () => { this.feedback.play('place'); void this.feedback.pulse('place'); }, () => this.language(true)) },()=>{if(this.screen==='myHotel'||this.screen==='hotelEstate')this.hud?.visible(false);this.estateView?.suspend(false);});
   }
   private shop(message='',tab:ShopTab='decor',page=0) {
     this.details({kind:'shop',eyebrow:'',title:this.ht.shop,close:this.ht.back,sections:[],content:shopContent(this.locale,this.save,{

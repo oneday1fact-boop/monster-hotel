@@ -33,7 +33,7 @@ bundle_source=android/app/build/outputs/bundle/release/app-release.aab
 if [[ "$bundle_mode" == '--unsigned-check' ]]; then
   bundle_target=artifacts/monster-hotel-UNSIGNED-NOT-FOR-UPLOAD.aab
 else
-  bundle_target=artifacts/monster-hotel-internal-release.aab
+  bundle_target=artifacts/monster-hotel-release.aab
   signature_report=artifacts/play-bundle-signature.txt
   "${JAVA_HOME:?Configure a full JDK}/bin/jarsigner" -J-Duser.language=en -J-Duser.country=US -verify -verbose -certs "$bundle_source" > "$signature_report" 2>&1
   if ! rg -q 'jar verified' "$signature_report"; then

@@ -1,0 +1,27 @@
+{
+  "packageName": "com.midnightcheckin.monsterhotel",
+  "track": "closed testing — exact Console track ID must be confirmed by owner",
+  "versionName": "1.21",
+  "versionCode": 22,
+  "zh-Hant": {
+    "title": "怪物旅館：午夜入住",
+    "shortDescription": "破解可愛住客謎題，用金幣擴建屬於你的怪物旅館。",
+    "fullDescription": "歡迎來到怪物旅館！認識可愛的原創怪物住客，挑戰配房、道路滑塊、幽靈洗衣房、找不同、影子與枕頭反彈等不同謎題。\n\n完成解謎賺取金幣，購買裝飾，或在全新的酒店全景永久解鎖書室、觀星室、音樂室及烘焙房。看住客在旅館走動，點選他們打招呼，亦可返回原有四房旅館細看日常生活。\n\n支援繁體中文與英文、離線遊玩及本機存檔。測試版本沒有真實廣告或追蹤 SDK。"
+  },
+  "en-US": {
+    "title": "Monster Hotel: Midnight Inn",
+    "shortDescription": "Solve charming monster puzzles and grow your own cosy hotel.",
+    "fullDescription": "Welcome to Monster Hotel! Meet original, charming monster guests and solve room assignments, sliding roads, ghost laundry, picture differences, shadow puzzles and pillow-bounce challenges.\n\nEarn coins from puzzles, choose decorations and permanently open a woodland library, observatory, music room and honey bakery in the Whole Hotel view. Watch residents wander, tap to greet them, or return to the original four-room hotel.\n\nPlay offline in English or Traditional Chinese, with progress saved on your device. This test version contains no live advertising or tracking SDK."
+  },
+  "ownerFieldsNotInvented": [
+    "developer contact email",
+    "public privacy policy URL",
+    "target audience",
+    "content rating answers",
+    "testers or Google group",
+    "countries",
+    "exact closed track ID",
+    "current Console target API requirements"
+  ],
+  "targetSdkVersion": 36
+}

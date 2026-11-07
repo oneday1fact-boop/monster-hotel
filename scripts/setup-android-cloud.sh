@@ -23,7 +23,7 @@ if [[ ! -x "$tool_root/android-sdk/cmdline-tools/latest/bin/android" ]]; then
   rmdir "$unpack"
 fi
 export ANDROID_HOME="$tool_root/android-sdk" ANDROID_USER_HOME="$tool_root/android-user"
-"$ANDROID_HOME/cmdline-tools/latest/bin/android" --no-metrics sdk install 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0' platform-tools
+"$ANDROID_HOME/cmdline-tools/latest/bin/android" --no-metrics sdk install 'platforms;android-36' 'build-tools;34.0.0' 'build-tools;35.0.0' platform-tools
 if [[ ! -x "$tool_root/jdk21/usr/lib/jvm/java-21-openjdk-amd64/bin/javac" ]]; then
   mkdir -p "$tool_root/apt/"{etc/empty.d,etc/preferences.d,state/lists/partial,cache/archives/partial} "$tool_root/jdk-download" "$tool_root/jdk21"
   cat > "$tool_root/apt/apt.conf" <<'APT'
