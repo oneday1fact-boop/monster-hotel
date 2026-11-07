@@ -16,6 +16,12 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.24: repeatable hotel commissions and meaningful expansion savings
+
+My hotel now has an **Earn coins** entry; locked-room details also lead to jobs. Play sliding key mazes, denser 6×6 linen escape puzzles and shared dual-colour mirror beams in three difficulty ranks. The 72 solver-verified base layouts rotate between jobs, with later reflections. Free undo/redo/hints, independently saved drafts, stable animated puzzle actors and an explicit delivery action support repeat play without losing old story progress. Each successful new serial pays 320 / 480 / 720 coins once.
+
+New-wing prices are now 4,800 / 7,200 / 10,800 / 15,600. Existing purchases and wallet balances are retained. Atomic save-before-presentation prevents duplicate or failed-storage rewards. See [commission rules, economy and actual demos](docs/commissions.zh-Hant.md). `npm run review:record` now records the three real jobs and a purchase, using the production preview on port 5204.
+
 ## Version 1.23: The midnight seizure and a clear extension entrance
 
 The detective prototype is rewritten around a forged seizure order, a blackmailed courier and a threat to the hotel. Inspect eight physical clues, turn the document over to compare its original signature and paper manufacture dates, challenge the lift testimony and reconstruct the delivery. The mastermind remains a future plot thread. The old tea-case draft migrates while preserving any already-earned reward and all unrelated progress.

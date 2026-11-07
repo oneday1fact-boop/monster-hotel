@@ -1,5 +1,5 @@
 import { laundryPieces, laundrySolved, slideLaundry } from '../domain/laundry';
-function laundryArt(id:string){
+export function laundryArt(id:string){
  const ink='stroke="#573b53" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
  let art='';
  if(id==='rack')art='<path d="M12 63V12H88V63M5 63H20M80 63H95" fill="none" stroke="#b89477" stroke-width="6"/><path d="M35 19V25L20 35H50L35 25M68 19V25L53 35H83L68 25" fill="none" stroke="#edc689" stroke-width="3"/><path d="M22 35L19 55H49L47 35M55 35L52 55H82L79 35" fill="var(--cloth)" '+ink+'/>';

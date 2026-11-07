@@ -1,0 +1,7 @@
+import type {CommissionKind} from '../domain/commissionPuzzles';
+export const commissionCopy:Record<CommissionKind,{name:[string,string];request:[string,string];instruction:[string,string];kind:string;art:string;thanks:[string,string]}>= {
+ maze:{name:['巡夜迷宮','Night patrol'],request:['小雷的鑰匙散落在舊走廊。規劃滑行路線，逐一取回。','Nimbus dropped the corridor keys. Plan a sliding route to recover them.'],instruction:['方向掣滑到牆才停；收齊鎖匙，再到發光出口。','Slide until a wall stops you. Collect every key, then reach the glowing exit.'],kind:'stormling',art:'/art/rooms/basement.png',thanks:['鎖匙齊了，今晚的巡房交給我！','All keys recovered. I can take the night patrol!']},
+ laundry:{name:['幽靈布草急件','Ghost linen delivery'],request:['卷卷等緊新被單。騰出擠滿布草車的通道。','Rollo needs fresh linen. Clear a passage through the loaded laundry carts.'],instruction:['拖動物件沿長邊滑行；星星被單要到右側出口。','Drag items along their long axis. Bring the star quilt to the right-hand exit.'],kind:'mummy',art:'/art/rooms/linen.png',thanks:['被單送到，住客今晚可以好好休息。','Fresh quilts delivered. Our guests can sleep comfortably tonight.']},
+ mirrors:{name:['雙色星燈','Twin starlight'],request:['兩色燈光共用鏡片，一邊調好，另一邊也可能改變。','Two colours share the mirrors. Fixing one beam may change the other.'],instruction:['撳鏡片轉向；兩色光各自照齊水晶，再到同色出口。','Tap mirrors. Each colour must light all its crystals and reach its matching exit.'],kind:'lantern',art:'/art/rooms/elegant.png',thanks:['兩道星光接通，今晚的舞會有燈了！','Both beams connected. The ballroom lights are ready!']}
+};
+export const rankNames=[['進階','Advanced'],['挑戰','Challenging'],['專家','Expert']] as const;

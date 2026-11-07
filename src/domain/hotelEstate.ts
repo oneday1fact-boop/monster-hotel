@@ -1,14 +1,14 @@
 import type {Save} from '../platform/save';
 import {HotelLife,hotelResidents,type ResidentState,type Point} from './hotelLife';
 export const estateRooms=[
- {id:'library',name:['樹屋書室','Woodland library'],col:0,row:0,price:1200,task:'moon',description:['樹影、書香同暖笠笠嘅閱讀角。','A leafy reading retreat with warm little lamps.']},
+ {id:'library',name:['樹屋書室','Woodland library'],col:0,row:0,price:4800,task:'moon',description:['樹影、書香同暖笠笠嘅閱讀角。','A leafy reading retreat with warm little lamps.']},
  {id:'moon',name:['月光客房','Moon suite'],col:1,row:0,price:0,task:'moon',description:['月毛最鍾意嘅月光小天地。','Luno’s cosy moonlit retreat.']},
  {id:'tea',name:['花窗茶室','Rose tea lounge'],col:2,row:0,price:0,task:'tea',description:['泡壺暖茶，同住客傾吓偈。','Warm tea and good company.']},
- {id:'observatory',name:['星空觀測室','Star observatory'],col:3,row:0,price:1600,task:'moon',description:['望遠鏡、星圖同會發光嘅小星球。','A brass telescope, star charts and a glowing globe.']},
- {id:'music',name:['月影音樂室','Moonlit music room'],col:0,row:1,price:2200,requires:'library',task:'hearth',description:['一間可以靜靜欣賞音樂嘅新房間。','A new room for little melodies and cosy company.']},
+ {id:'observatory',name:['星空觀測室','Star observatory'],col:3,row:0,price:7200,task:'moon',description:['望遠鏡、星圖同會發光嘅小星球。','A brass telescope, star charts and a glowing globe.']},
+ {id:'music',name:['月影音樂室','Moonlit music room'],col:0,row:1,price:10800,requires:'library',task:'hearth',description:['一間可以靜靜欣賞音樂嘅新房間。','A new room for little melodies and cosy company.']},
  {id:'laundry',name:['幽靈洗衣房','Ghost laundry'],col:1,row:1,price:0,task:'laundry',description:['星星被單洗完，摺好再送去客房。','Fresh star quilts, folded for the guest rooms.']},
  {id:'hearth',name:['暖爐休憩室','Hearth lounge'],col:2,row:1,price:0,task:'hearth',description:['暖火、梳化同放鬆嘅小浴池。','Warm fires, soft chairs and a soothing little bath.']},
- {id:'bakery',name:['蜜糖烘焙房','Honey bakery'],col:3,row:1,price:2800,requires:'observatory',task:'tea',description:['蜜糖茶、熊仔曲奇，準備下午茶。','Honey tea and bear biscuits for afternoon tea.']}
+ {id:'bakery',name:['蜜糖烘焙房','Honey bakery'],col:3,row:1,price:15600,requires:'observatory',task:'tea',description:['蜜糖茶、熊仔曲奇，準備下午茶。','Honey tea and bear biscuits for afternoon tea.']}
 ] as const;
 export type EstateRoomId=typeof estateRooms[number]['id'];
 export type ExpansionId='library'|'observatory'|'music'|'bakery';
