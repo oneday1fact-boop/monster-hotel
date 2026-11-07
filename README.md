@@ -16,11 +16,19 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.23: The midnight seizure and a clear extension entrance
+
+The detective prototype is rewritten around a forged seizure order, a blackmailed courier and a threat to the hotel. Inspect eight physical clues, turn the document over to compare its original signature and paper manufacture dates, challenge the lift testimony and reconstruct the delivery. The mastermind remains a future plot thread. The old tea-case draft migrates while preserving any already-earned reward and all unrelated progress.
+
+My hotel now has one garden-side **NEW WING →** sign explaining that the four expansion rooms are elsewhere. The misleading lock plaques over the existing guest rooms and unrelated attic/garden shortcuts are removed. Locks and prices appear inside the actual four-room extension; purchases are preserved. See [current prototype notes](docs/detective-prototype.zh-Hant.md).
+
+Build and preview on port 5204 before `npm run review:record`; recording needs Playwright's ffmpeg (`npx playwright install ffmpeg`). Output is actual H.264 video, animated GIF and screenshots. This remains a review branch, without automatic main merge or Play publication.
+
 ## Version 1.22: a playable detective case and four-room expansion access
 
 After the first check-in, tap the casebook at the My hotel reception desk to investigate **The sealed room and a cup of tea**. Inspect seven visible physical props, compare two-part service stamps, question four guests, pull a counterweighted lift rope during a reconstructed blackout, present contradictory evidence and reconstruct who/route/time/motive. The offline draft survives leaving. A valid first conclusion grants 500 coins once; replay and storage failure cannot award extra currency. No new paid room is needed to solve the case.
 
-The original four-room scene now has direct expansion doors with lock/price labels. New wing access shows four large furnished rooms in the same two-by-two presentation, using the existing permanent purchases and prerequisites. The eight-room map remains a secondary control. All existing puzzle progress, currency, decor and photographs are preserved. See [Traditional Chinese prototype notes](docs/detective-prototype.zh-Hant.md).
+The original four-room scene now has direct expansion doors with lock/price labels. New wing access shows four large furnished rooms in the same two-by-two presentation, using the existing permanent purchases and prerequisites. The eight-room map remains a secondary control. All existing puzzle progress, currency, decor and photographs are preserved. This describes the historical 1.22 prototype, superseded by 1.23 above.
 
 `npm run review:record` records actual scene inspection, rope dragging, contradictions, deductions and room purchases. This is a review prototype on its own feature branch; future detective cases are not implemented and it is not automatically merged to main or published to Play.
 

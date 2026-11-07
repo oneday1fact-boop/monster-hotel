@@ -1,9 +1,9 @@
-# Google Play 封閉測試準備：1.22
+# Google Play 封閉測試準備：1.23
 
 本次用戶授權的是 **Closed testing／封閉測試**，取代早前只做 Internal testing 的渠道方向；沒有公開正式上架授權。實際尚未上傳，也未產生 Play 測試安裝連結。
 
 - 程式識別碼：`com.midnightcheckin.monsterhotel`
-- 本機版本：1.22／versionCode 23。上傳前必須高於該 Play app 已用的版本碼。
+- 本機版本：1.23／versionCode 24。上傳前必須高於該 Play app 已用的版本碼。
 - 目標 API：已更新 compileSdk／targetSdk 為 36，並更新 Android Gradle Plugin 至 8.9.1；未取得 Console 當時要求，不宣稱已符合所有當期上架條件。
 - 現況：用戶回覆未有 upload key。工作階段沒有 Play 發佈身分或共享桌面控制工具，Play Console HTTP 存取亦回傳 proxy 403。原始配置沒有允許 `play.google.com`；沒有繞過限制或使用別人的帳戶。
 
@@ -30,4 +30,4 @@
 
 ## 本機建置證據
 
-API 36／AGP 8.9.1 的 `assembleDebug bundleRelease` 已實際成功。APK 已核對 versionName 1.22、versionCode 23、targetSdk 36 及 debug 簽章；release AAB 明確沒有簽署。兩者的 47 個 production 網頁檔案已比對，沒有原生 `.so` 被打包入 debug APK。這些是本機建置結果，不是 Play Console 接受或發布證明；沒有使用虛構帳戶、上傳成功訊息或測試安裝網址。
+API 36／AGP 8.9.1 的 `assembleDebug bundleRelease` 已實際成功。APK 已核對 versionName 1.23、versionCode 24、targetSdk 36 及 debug 簽章；release AAB 明確沒有簽署。兩者的 47 個 production 網頁檔案已比對，沒有原生 `.so` 被打包入 debug APK。這些是本機建置結果，不是 Play Console 接受或發布證明；沒有使用虛構帳戶、上傳成功訊息或測試安裝網址。
