@@ -16,6 +16,12 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.26: sequential hotel check-ins and Nimbus chapters
+
+New players visit My hotel to welcome Nimbus through the wind-chime arrival event. Two new fixed story puzzles follow: a 7×7 sliding wind-key maze and a shared-mirror rainbow-light challenge. Only after both are complete does Momo arrive in My hotel for the linked-clock check-in, unlocking his three afternoon-tea chapters. The route gives an explicit hotel shortcut; new guests join the living hotel and cover only after successful check-in. The midnight suitcase follows these guest arcs, with previously started/paid events retained.
+
+Each new story chapter earns 500 coins once and saves its own undoable draft, independent of repeatable commissions. See [implemented flow and future event proposals](docs/guest-arrivals.zh-Hant.md). `npm run review:record` records both real check-ins and the intervening puzzles as H.264 and GIF. Earlier version sections below are historical.
+
 ## Version 1.25: a connected hotel and the midnight suitcase event
 
 The original rooms and paid wing now share one persistent world and resident simulation, joined by a painted glass gallery. Camera views pan and zoom this world; the same guests physically walk between owned rooms, using the actual stairs. Existing ownership, prices, coins, story progress and commission drafts remain intact.

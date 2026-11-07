@@ -1,3 +1,5 @@
+import {pendingArrival,arrivalFor} from '../domain/guestArrivals';
+import {isCloudTask,type CloudTaskId} from '../domain/cloudTasks';
 import {CommissionView} from './commissionView';
 import {VisitorView} from './visitorView';
 import {visitorEligible,solveVisitor} from '../domain/visitorEvent';
@@ -207,7 +209,7 @@ export class HotelScene extends Phaser.Scene {
     this.screen='myHotel';this.base(this.locale==='en'?'My hotel':'我的旅館');this.hud?.visible(false);this.game.canvas.setAttribute('aria-busy','true');
     const defs=hotelResidents(this.save);if(!this.hotelLife||this.hotelLife.residents.map(s=>s.def.id).join()!==defs.map(s=>s.id).join())this.hotelLife=new ConnectedHotelLife(this.save);this.hotelLife.update(this.save);
     const arrival=visitorEligible(this.save)&&!this.hotelLife.visitorArrived&&!this.save.visitorEvent?.started;this.hotelLife.visitorArrived ||= visitorEligible(this.save);
-    const view=new MyHotelView({life:this.hotelLife,save:this.save,focus,arrival,locale:this.locale,onBack:()=>navigate('my-hotel:back',()=>this.lobby()),onLocale:locale=>this.setLanguage(locale),onSettings:()=>this.settings(),onVisitor:()=>navigate('hotel:visitor',()=>this.visitor()),onCommissions:room=>navigate('hotel:jobs',()=>this.commissions(()=>this.myHotel(room))),onBuy:id=>{const r=buyExpansion(this.save,id);if(r.status==='bought'){if(!writeSave(r.save))return {save:this.save,status:'storage'};this.save=r.save;this.feedback.play('purchase');void this.feedback.pulse('place');}return r;},onPet:()=>{this.feedback.play('place');void this.feedback.pulse('place');}});this.hotelView=view;
+    const view=new MyHotelView({life:this.hotelLife,save:this.save,focus,arrival,locale:this.locale,onBack:()=>navigate('my-hotel:back',()=>this.lobby()),onLocale:locale=>this.setLanguage(locale),onSettings:()=>this.settings(),onArrival:()=>{const e=pendingArrival(this.save);if(e){const n=challenges.find(n=>n.id===e.episode)!;this.enterChallenge(n,true);}},onVisitor:()=>navigate('hotel:visitor',()=>this.visitor()),onCommissions:room=>navigate('hotel:jobs',()=>this.commissions(()=>this.myHotel(room))),onBuy:id=>{const r=buyExpansion(this.save,id);if(r.status==='bought'){if(!writeSave(r.save))return {save:this.save,status:'storage'};this.save=r.save;this.feedback.play('purchase');void this.feedback.pulse('place');}return r;},onPet:()=>{this.feedback.play('place');void this.feedback.pulse('place');}});this.hotelView=view;
     void view.ready.then(()=>{if(this.hotelView===view)this.game.canvas.setAttribute('aria-busy','false');});
   }
   private visitor(){
@@ -218,19 +220,25 @@ export class HotelScene extends Phaser.Scene {
     this.screen='commissions';this.base(this.locale==='en'?'Hotel commissions':'旅館委託');this.hud?.visible(false);
     this.commissionView=new CommissionView({save:this.save,locale:this.locale,onBack:()=>navigate('jobs:back',back),onLocale:l=>this.setLanguage(l),onSettings:()=>this.settings(),onCue:()=>{this.feedback.play('place');void this.feedback.pulse('place');},onSave:next=>{if(!writeSave(next))return false;this.save=next;return true;}});
   }
+  private cloudChapter(id:CloudTaskId){
+    this.screen='commissions';this.base(this.locale==='en'?'Nimbus’s next adventure':'小雷的新日常');this.hud?.visible(false);
+    this.commissionView=new CommissionView({story:id,save:this.save,locale:this.locale,onBack:()=>navigate('cloud:map',()=>{this.lobby();this.selection();}),onLocale:l=>this.setLanguage(l),onSettings:()=>this.settings(),onCue:()=>{this.feedback.play('place');void this.feedback.pulse('place');},onSave:next=>{if(!writeSave(next))return false;this.save=next;return true;}});
+  }
   private walletBadge(){const b=document.createElement('div');b.className='wallet-badge';b.append(icon('coin'),Object.assign(document.createElement('strong'),{textContent:String(this.save.coins)}));b.setAttribute('aria-label',`${this.save.coins} ${this.t.coins}`);this.hud?.append(b);}
   private photoWall(){
     const root=photoWallContent(this.save,this.locale);this.albumRoot=root;
     this.details({kind:'card',title:this.locale==='en'?'Hotel memory wall':'酒店相牆',eyebrow:'',sections:[],close:this.ht.back,content:root},()=>{this.albumRoot=undefined;});fitPhotoFrames(root);
   }
   private launchChallenge(node:Challenge) { navigate(`challenge:${node.id}`,()=>this.enterChallenge(node)); }
-  private enterChallenge(node:Challenge) {
+  private enterChallenge(node:Challenge,fromHotel=false) {
     if(!challengeUnlocked(this.save,node.id))return;this.game.canvas.dataset.challenge=node.id;this.dismissDetails?.();this.dismissDetails=undefined;
+    if(node.kind==='episode'&&arrivalFor(node.id)&&!this.save.episodes?.includes(node.episode)&&!fromHotel){this.myHotel();return;}
+    if(isCloudTask(node.id)){this.cloudChapter(node.id);return;}
     if(node.kind==='puzzle'){this.startNight(node.puzzle);return;}
-    this.hud?.visible(false);this.scene.launch('episode',{episode:node.episode,locale:this.locale,feedback:this.feedback,save:this.save,onExit:(save:Save,locale:Locale,destination='lobby')=>{
+    this.hotelView?.destroy();this.hotelView=undefined;this.hud?.visible(false);this.scene.launch('episode',{arrival:fromHotel,episode:node.episode,locale:this.locale,feedback:this.feedback,save:this.save,onExit:(save:Save,locale:Locale,destination='lobby')=>{
       this.scene.wake('hotel');this.save=save;this.locale=locale;
       if(destination==='next'){const next=afterChallenge(node.id);if(next){this.launchChallenge(next);return;}}
-      if(destination==='map'){this.lobby();this.selection();}else this.lobby();
+      if(destination==='map'){this.lobby();this.selection();}else if(fromHotel)this.myHotel();else this.lobby();
     }});this.scene.sleep('hotel');
   }
   private selection() {

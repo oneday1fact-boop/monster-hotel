@@ -1,3 +1,4 @@
+import {readCloudTasks,type CloudTaskId} from '../domain/cloudTasks';
 import {readVisitorEvent,type VisitorEvent} from '../domain/visitorEvent';
 import {readCommissions,type Commissions} from '../domain/commissions';
 import {readTeaCase,type TeaCase} from '../domain/teaCase';
@@ -15,6 +16,7 @@ export interface Save {
     teaCase?: TeaCase;
     visitorEvent?: VisitorEvent;
     commissions?: Commissions;
+    cloudTasks?: Partial<Record<CloudTaskId,Commissions>>;
     photos?: {
         party?: PhotoState;
     };
@@ -38,6 +40,7 @@ export function readSave(): Save {
             const save: Save = { version: 1, completed: [...new Set<number>(value.completed.filter((id: number) => levels.some(l => l.id === id)))], coins: value.coins };
             if (validPhoto(value.photos?.party) && photoSolved(value.photos.party))
                 save.photos = { party: { order: [...value.photos.party.order], poses: { ...value.photos.party.poses } } };
+            if(value.cloudTasks)save.cloudTasks=readCloudTasks(value.cloudTasks);
             const jobs=readCommissions(value.commissions);if(jobs)save.commissions=jobs;
             const visitor=readVisitorEvent(value.visitorEvent);if(visitor)save.visitorEvent=visitor;
             const tea=readTeaCase(value.teaCase);if(tea)save.teaCase=tea;

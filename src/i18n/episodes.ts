@@ -1,9 +1,11 @@
 export const episodeCopy = {
     'zh-Hant': {
+        'cloud-courier':{title:'小雷的風信快遞',goal:'滑過風道收齊四把風匙，再到出口。',instruction:'每次會滑到牆邊。先想停點；免費復原、重做及提示。',ending:'風信全部送到！小雷第一次主動幫旅館送信。'},
+        'cloud-lanterns':{title:'雨後的雙色虹燈',goal:'轉動共用鏡片，讓兩道光穿過各自水晶，到達同色出口。',instruction:'同一面鏡會影響兩道光，留意交叉位置。免費復原及提示。',ending:'雨後虹燈亮起，小雷終於敢邀請新朋友來喝茶。'},
         'honey-pots':{title:'蜜糖罐塞住門口',goal:'將兩個蜜罐推到金色杯墊。',instruction:'行到罐後面先推，不能拉罐。可免費撤回。',ending:'兩個蜜罐放好！卷卷打開茶具櫃，蜜寶同小雷準備下一個下午茶驚喜。'},
         'shadow-tea':{title:'月下影子下午茶',goal:'移動三件紙偶，砌出金線小狐狸。',instruction:'選紙偶，調左右與近遠；拖到牆上可預覽。',ending:'狐狸影子跳出嚟！蜜寶從幕後探頭，小雷原來只係被放大嘅影子嚇親。大家一齊笑起來。'},
         'pillow-bounce':{title:'枕頭彈彈下午茶',goal:'彈過兩個枕頭，敲齊風鈴再入籃。',instruction:'調整方向、力度與兩個枕頭，再發射。重試免費。',ending:'叮叮！星星球落籃，小雷掛起歡迎旗。蜜寶同月毛準備好茶點，旅館下午茶正式開始！'},
-        'clockwork-guest':{title:'蜜寶入住：停唔到嘅咕咕鐘',goal:'四支針指向金星，令咕咕鳥安靜。',instruction:'三個齒輪各連住兩隻鐘。留意轉向，可撤回；四針向上再確認。',ending:'四隻咕咕鳥安靜落嚟！蜜寶抱起蜜糖罐，領取房匙正式入住。封面同大廳都會見到佢同朋友排埋一齊。'},
+        'clockwork-guest':{title:'蜜寶到訪：停唔到嘅咕咕鐘',goal:'四支針指向金星，令咕咕鳥安靜。',instruction:'三個齒輪各連住兩隻鐘。留意轉向，可撤回；四針向上再確認。',ending:'四隻咕咕鳥安靜落嚟！蜜寶抱起蜜糖罐，領取房匙正式入住。封面同大廳都會見到佢同朋友排埋一齊。'},
         'storm-arrival':{title:'暴雨夜，小雷迷路了',goal:'收齊三片風鈴，再帶新住客小雷到右上大廳。',instruction:'按風向，小雷會一直滑到牆邊；途中可收碎片。唔使鬥快，可撤回。',ending:'風鈴重新響起，小雷終於放鬆！燈燈遞上熱茶同乾毛巾，旅館迎來一位怕嚇親朋友、其實好溫柔嘅小雲獸。'},
         'cake-case': { title: '幽靈洗衣房', goal: '移開衣籃，將星星被單送到右邊出口。', instruction: '揀物件再按箭嘴；只沿擺放方向移一格。', ending: '星星被單送返出嚟！小豆摺好暖笠笠嘅被單，今晚每位住客都可以安心瞓。' },
         'luggage-run': { title: '行李大暴走', goal: '滑動路磚，接通旅行箱入口同小柚出口。', instruction: '只有一格空位。點旁邊路磚，上下左右滑一格；路接好先出發。', ending: '旅行箱終於返到小柚身邊！佢打開箱，送大家一盒旅行手信。' },
@@ -19,6 +21,8 @@ export const episodeCopy = {
         'group-photo':{title:'怪物大合照',goal:'捉住客望鏡頭嘅一刻，六位定格先拍合照。',instruction:'綠圈亮起時點住客定格，六位準備好再按快門。',ending:'咔嚓！六位旅館朋友都影到，相片已收藏。返大廳嘅酒店相牆可以隨時重溫。'},
     },
     en: {
+        'cloud-courier':{title:'Nimbus and the wind letters',goal:'Collect every wind key, then reach the exit.',instruction:'Slide until a wall. Plan stopping points; undo, redo and hints are free.',ending:'The letters arrive! Nimbus volunteers for his first hotel delivery.'},
+        'cloud-lanterns':{title:'Rainbow lights after rain',goal:'Guide both beams through their crystals to matching exits.',instruction:'Shared mirrors affect both beams. Undo and hints are free.',ending:'The rainbow lanterns shine. Nimbus feels ready to welcome another friend.'},
         'honey-pots':{title:'Honey pots at the door',goal:'Push both honey pots onto gold coasters.',instruction:'Walk behind a pot to push. No pulling. Undo freely.',ending:'Both pots are safely stored! Rollo opens the tea cupboard while Momo and Nimbus prepare the next surprise.'},
         'shadow-tea':{title:'Shadows at teatime',goal:'Match three puppets to the gold fox outline.',instruction:'Select a puppet, adjust position and depth, or drag to preview.',ending:'A fox shadow appears! Momo peeks from backstage. Nimbus laughs: the giant shadow was only a teatime surprise.'},
         'pillow-bounce':{title:'Pillow bounce tea party',goal:'Use both pillows, ring both chimes and land in the basket.',instruction:'Set direction, power and pillow angles, then launch. Retry freely.',ending:'Ding, ding! Nimbus hangs the welcome flag as the star lands in the basket. Momo and Luno open the hotel tea party!'},

@@ -37,6 +37,7 @@ export const episodeHosts: Record<string, {
     ];
     activity: string;
 }> = {
+    'cloud-courier':{kind:'stormling',name:['小雷','Nimbus'],activity:'walk'},'cloud-lanterns':{kind:'stormling',name:['小雷','Nimbus'],activity:'steam'},
     'honey-pots':{kind:'pooh',name:['蜜寶','Momo'],activity:'walk'},'shadow-tea':{kind:'lantern',name:['燈燈','Ember'],activity:'dream'},'pillow-bounce':{kind:'pooh',name:['蜜寶','Momo'],activity:'wave'},
     'clockwork-guest':{kind:'pooh',name:['蜜寶','Momo'],activity:'dream'},
     'storm-arrival':{kind:'stormling',name:['小雷','Nimbus'],activity:'steam'},'scent-room':{kind:'lantern',name:['燈燈','Ember'],activity:'steam'},'key-cabinet':{kind:'mummy',name:['卷卷','Rollo'],activity:'listen'},'group-photo':{kind:'fox',name:['小柚','Yuzu'],activity:'wave'},'cake-case': { kind: 'jiangshi', name: ['小豆', 'Dou'], activity: 'fold' }, 'luggage-run': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'walk' }, 'dream-door': { kind: 'baku', name: ['夢夢', 'Nemu'], activity: 'dream' }, 'lift-balance': { kind: 'mummy', name: ['卷卷', 'Rollo'], activity: 'lift' }, 'moon-mirrors': { kind: 'werewolf', name: ['月毛', 'Luno'], activity: 'moon' }, 'gift-box': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'wrap' }, 'midnight-knock': { kind: 'mummy', name: ['卷卷', 'Rollo'], activity: 'listen' }, 'spring-pipes': { kind: 'lantern', name: ['燈燈', 'Ember'], activity: 'steam' }, 'lost-letters': { kind: 'fox', name: ['小柚', 'Yuzu'], activity: 'wave' }

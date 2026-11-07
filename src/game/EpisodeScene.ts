@@ -35,6 +35,7 @@ import { initialTimeline, validTimeline, initialPipes, validPipes, validMail, ty
 import { timelineWidget, pipesWidget, mailWidget } from './mysteryWidgets';
 import { balanceWidget, mirrorsWidget, giftsWidget } from './puzzleWidgets';
 type Data = {
+    arrival?:boolean;
     episode: EpisodeId;
     locale: Locale;
     save: Save;
@@ -160,7 +161,7 @@ export class EpisodeScene extends Phaser.Scene {
     private get en() { return this.dataIn.locale === 'en'; }
     private t(zh: string, en: string) { return this.en ? en : zh; }
     create() { this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.rewardFx?.(); this.root?.remove(); this.modal?.(); this.time.removeAllEvents(); }); this.render(); }
-    private recoverWind(){if(this.dataIn.episode==='storm-arrival'&&!this.won&&!this.moving&&windSolved(this.state.wind)&&!navigationBusy())this.finish();}
+    private recoverWind(){if(this.dataIn.episode==='storm-arrival'&&!this.won&&!this.moving&&!this.storageFailed&&windSolved(this.state.wind)&&!navigationBusy())this.finish();}
     private refreshLive(){this.liveTick?.(performance.now());}
     update() {
         this.refreshLive();this.recoverWind();
@@ -241,7 +242,7 @@ export class EpisodeScene extends Phaser.Scene {
         const copy = episodeCopy[this.dataIn.locale][this.dataIn.episode];
         const top = document.createElement('header');
         top.className = 'episode-top';
-        top.append(iconButton('home', this.t('返回大廳', 'Lobby'), () => this.exit()), Object.assign(document.createElement('h1'), { textContent: copy.title }), iconButton('book', this.t('關卡地圖', 'Level map'), () => this.exit('map')), languageToggle(this.dataIn.locale,locale=>{if(this.moving||locale===this.dataIn.locale)return;this.dataIn.locale=locale;saveLocale(locale);this.render();}),iconButton('gear', this.t('設定', 'Settings'), () => this.settings()));
+        top.append(iconButton('home', this.dataIn.arrival?this.t('返回旅館','Return to hotel'):this.t('返回大廳', 'Lobby'), () => this.exit()), Object.assign(document.createElement('h1'), { textContent: copy.title }), iconButton('book', this.t('關卡地圖', 'Level map'), () => this.exit('map')), languageToggle(this.dataIn.locale,locale=>{if(this.moving||locale===this.dataIn.locale)return;this.dataIn.locale=locale;saveLocale(locale);this.render();}),iconButton('gear', this.t('設定', 'Settings'), () => this.settings()));
         root.append(top);
         const layout = document.createElement('div');
         layout.className = !this.won && (this.dataIn.episode === 'dream-door' || this.dataIn.episode === 'key-cabinet') ? 'episode-layout episode-layout--differences' : 'episode-layout';
@@ -262,8 +263,8 @@ export class EpisodeScene extends Phaser.Scene {
             stage.classList.add('episode-celebrate');stage.append(completionTheatre(this.dataIn.episode));
             const finish = document.createElement('div');
             finish.className = 'episode-finish';
-            finish.append(Object.assign(document.createElement('h2'), { textContent: this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
-            if(this.dataIn.episode==='group-photo'||this.dataIn.episode==='clockwork-guest'){const tools=document.createElement('div');tools.className='photo-finish-tools';tools.append(finish.lastElementChild!,this.button(this.t('返回旅館','Return to hotel'),()=>this.exit()));finish.append(tools);}
+            finish.append(Object.assign(document.createElement('h2'), { textContent: this.dataIn.arrival?this.t('歡迎正式入住！','Welcome home!'):this.t('事件解決！', 'Case closed!') }), Object.assign(document.createElement('p'), { textContent: copy.ending }), Object.assign(document.createElement('strong'), { textContent: `+${this.reward} ${this.t('金幣', 'coins')}` }), this.button(afterChallenge(this.dataIn.episode) ? this.t('下一關', 'Next challenge') : this.t('返回旅館', 'Return to hotel'), () => this.exit(afterChallenge(this.dataIn.episode) ? 'next' : 'lobby'), true), this.button(this.t('再玩本關', 'Replay'), () => { this.state = fresh();this.echoOpen=false;this.liveEpoch=performance.now(); this.won = false; this.selectedItem = undefined; this.rotation = 0; this.hintTarget = undefined; this.historyPage = -1; this.message = ''; this.persist(); this.render(); }));
+            if(this.dataIn.arrival||this.dataIn.episode==='group-photo'||this.dataIn.episode==='clockwork-guest'){const tools=document.createElement('div');tools.className='photo-finish-tools';tools.append(finish.lastElementChild!,this.button(this.t('返回旅館','Return to hotel'),()=>this.exit()));finish.append(tools);}
             panel.replaceChildren(finish);
         }
         else if (this.dataIn.episode === 'cake-case')
@@ -496,6 +497,7 @@ export class EpisodeScene extends Phaser.Scene {
             },()=>{const before=this.state.clocks.history.pop();if(before){this.state.clocks.hands=before;this.message=this.t('已撤回，試另一個齒輪。','Undone. Try another gear.');update();}},()=>{if(clocksSolved(this.state.clocks.hands))this.finish();else{this.message=this.t('仲有指針未對準金星，留意兩隻鐘會一齊轉。','Some hands still miss the gold star. Each gear turns two clocks.');this.render();}});return;
         }
         if(this.dataIn.episode==='storm-arrival'){
+            if(this.storageFailed&&windSolved(this.state.wind)){panel.append(this.button(this.t('重試確認入住','Retry check-in'),()=>this.finish(),true));return;}
             windGuestWidget(stage,panel,ui,this.state.wind,()=>{this.state.wind.started=true;update();},d=>{
                 const old=this.state.wind,next=glideWind(old,d);if(!next.path.length){this.message=this.t('呢邊有牆擋住，試另一個風向。','A wall blocks that direction. Try another wind.');this.render();return;}
                 this.state.wind={started:true,at:next.at,mask:next.mask,history:[...old.history.slice(-255),{at:old.at,mask:old.mask}]};this.persist();this.moving=true;this.game.canvas.setAttribute('aria-busy','true');
@@ -647,8 +649,8 @@ export class EpisodeScene extends Phaser.Scene {
             if(!photoSolved(this.state.photo))return;
             this.dataIn.save={...this.dataIn.save,photos:{...this.dataIn.save.photos,party:{order:[...this.state.photo.order],poses:{...this.state.photo.poses}}}};
         }
-        const result=completeEpisode(this.dataIn.save,this.dataIn.episode);this.dataIn.save=result.save;this.reward=result.reward;
-        this.storageFailed=!writeSave(result.save)||this.storageFailed;this.won=true;this.moving=false;
+        const result=completeEpisode(this.dataIn.save,this.dataIn.episode);if(!writeSave(result.save)){this.storageFailed=true;this.message=this.t('未能儲存，入住及獎勵未確認，請再試。','Could not save. Check-in and reward are not confirmed; retry.');this.render();return;}this.dataIn.save=result.save;this.reward=result.reward;
+        this.storageFailed=false;this.won=true;this.moving=false;
         this.message=this.storageFailed?this.t('未能儲存，只限本次遊玩。','Not saved · This session only.'):this.t('首次完成獎勵已儲存；重玩唔會重複派獎。','First-completion reward saved. Replays do not award coins again.');
         if(!this.reward)this.dataIn.feedback.play('success');this.persist();
         navigate(`victory:${this.dataIn.episode}`,()=>{this.render();this.rewardFx?.();this.rewardFx=celebrateReward(this.reward,this.dataIn.save.coins,this.dataIn.locale,()=>{this.dataIn.feedback.play('harvest');void this.dataIn.feedback.pulse('purchase');});});

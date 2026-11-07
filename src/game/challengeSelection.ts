@@ -1,3 +1,4 @@
+import {arrivalFor,pendingArrival} from '../domain/guestArrivals';
 import { revealCollection } from './gameFeel';
 import {challenges,challengeComplete,challengeUnlocked,challengeProgress,challengeTitle,nextChallenge,type Challenge} from '../domain/campaign';
 import type {Save} from '../platform/save';
@@ -10,8 +11,8 @@ export function showChallengeSelection(locale:Locale,save:Save,choose:(node:Chal
  const render=()=>{grid.replaceChildren();for(const node of challenges.slice(page*capacity,(page+1)*capacity)){
   const b=document.createElement('button');b.className='challenge-node';b.dataset.challenge=node.id;b.dataset.kind=node.kind;if(node.kind==='puzzle')b.dataset.puzzle=String(node.puzzle);
   b.disabled=!challengeUnlocked(save,node.id);b.setAttribute('aria-label',`${locale==='en'?'Level':'第'} ${challenges.indexOf(node)+1}${locale==='en'?'':'關'} · ${challengeTitle(node,locale)}`);
-  const number=document.createElement('strong');number.textContent=String(challenges.indexOf(node)+1).padStart(2,'0');const label=document.createElement('span');label.textContent=challengeTitle(node,locale);const state=document.createElement('small');state.textContent=challengeComplete(save,node)?'★':b.disabled?'🔒':node.kind==='episode'?'♥':'✦';b.append(number,label,state);b.onclick=()=>choose(node);grid.append(b);
+  const number=document.createElement('strong');number.textContent=String(challenges.indexOf(node)+1).padStart(2,'0');const label=document.createElement('span');label.textContent=challengeTitle(node,locale);const state=document.createElement('small');state.textContent=challengeComplete(save,node)?'★':b.disabled?'🔒':node.kind==='episode'?'♥':'✦';const arrival=arrivalFor(node.id);if(arrival&&!challengeComplete(save,node)){state.textContent=b.disabled?(locale==='en'?'Finish earlier chapters first':'先完成前面關卡'):(locale==='en'?'Go to My hotel to welcome this guest':'先到「我的旅館」迎接住客');b.dataset.arrival=arrival.id;}b.append(number,label,state);b.onclick=()=>choose(node);grid.append(b);
  }prev.disabled=page===0;next.disabled=(page+1)*capacity>=challenges.length;info.textContent=`${page+1} / ${Math.ceil(challenges.length/capacity)} · ${locale==='en'?'Cleared':'已完成'} ${challengeProgress(save)}`;};
- prev.onclick=()=>{page--;render();revealCollection(grid);};next.onclick=()=>{page++;render();revealCollection(grid);};nav.append(prev,info,next);root.append(grid,nav);render();
+ prev.onclick=()=>{page--;render();revealCollection(grid);};next.onclick=()=>{page++;render();revealCollection(grid);};nav.append(prev,info,next);const arriving=pendingArrival(save);if(arriving){const banner=document.createElement('button');banner.className='game-primary-button arrival-route-note';banner.dataset.action='arrival-route-hotel';banner.textContent=locale==='en'?`Welcome ${arriving.name[1]} in My hotel to unlock the next chapters`:`先到「我的旅館」迎接${arriving.name[0]}，完成入住事件再解鎖後續關卡`;banner.onclick=()=>choose(challenges.find(n=>n.id===arriving.episode)!);root.append(banner);}root.append(grid,nav);render();
  return showDetails({kind:'card',title:locale==='en'?'Puzzle challenges':'解謎挑戰',eyebrow:'',close:locale==='en'?'Back':'返回',sections:[],content:root},back);
 }

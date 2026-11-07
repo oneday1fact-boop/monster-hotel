@@ -3,6 +3,8 @@ import {liveActor} from './liveWidgets';
 const guests={pooh:'pooh',nimbus:'stormling',luno:'werewolf',dou:'jiangshi',ember:'lantern',rollo:'mummy',yuzu:'fox',nemu:'baku'} as const;
 type GuestId=keyof typeof guests;
 const stories:Record<EpisodeId,{act:string;cast:GuestId[];room:string;prop:string}>={
+ 'cloud-courier':{act:'delivery',cast:['nimbus','yuzu'],room:'hearth',prop:'luggage'},
+ 'cloud-lanterns':{act:'moon',cast:['nimbus','ember'],room:'elegant',prop:'moon'},
  'honey-pots':{act:'honey',cast:['pooh','rollo','nimbus'],room:'basement',prop:'tea'},
  'shadow-tea':{act:'shadow',cast:['pooh','ember','nimbus'],room:'elegant',prop:'moon'},
  'pillow-bounce':{act:'picnic',cast:['pooh','luno','nimbus'],room:'hearth',prop:'star'},

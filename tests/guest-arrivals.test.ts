@@ -1,0 +1,15 @@
+import {describe,it,expect} from 'vitest';
+import {pendingArrival} from '../src/domain/guestArrivals';
+import {episodeIds} from '../src/domain/episodes';
+import {challengeUnlocked} from '../src/domain/campaign';
+import {cloudTasks,cloudTaskSave,storeCloudTask,claimCloudTask,readCloudTasks} from '../src/domain/cloudTasks';
+import {openCommission,actCommission} from '../src/domain/commissions';
+import {commissionRecipe,puzzleHint,commissionSolved} from '../src/domain/commissionPuzzles';
+import {visitorEligible} from '../src/domain/visitorEvent';
+import type {Save} from '../src/platform/save';
+const before=(id:string):Save=>({version:1,completed:[1],coins:1234,episodes:episodeIds.slice(0,episodeIds.indexOf(id as any))});
+describe('ordered hotel arrivals and cloud chapters',()=>{
+ it('does not announce early; the cloud comes first, and the bear waits for both intervening challenges',()=>{expect(pendingArrival({version:1,completed:[1],coins:0})).toBeUndefined();const s=before('storm-arrival');expect(pendingArrival(s)?.id).toBe('nimbus');expect(challengeUnlocked(s,'cloud-courier')).toBe(false);s.episodes!.push('storm-arrival');expect(pendingArrival(s)).toBeUndefined();expect(challengeUnlocked(s,'cloud-courier')).toBe(true);s.episodes!.push('cloud-courier');expect(pendingArrival(s)).toBeUndefined();s.episodes!.push('cloud-lanterns');expect(pendingArrival(s)?.id).toBe('momo');expect(challengeUnlocked(s,'honey-pots')).toBe(false);s.episodes!.push('clockwork-guest');expect(pendingArrival(s)).toBeUndefined();expect(challengeUnlocked(s,'honey-pots')).toBe(true);});
+ for(const id of Object.keys(cloudTasks)as (keyof typeof cloudTasks)[])it(`${id} is solvable, awards 500 once and never touches repeatable commissions`,()=>{let s=before(id);const original={version:1 as const,counts:{'maze:0':7},drafts:{}};s.commissions=original;const c=cloudTasks[id];let v=openCommission(cloudTaskSave(s,id),c.key);const recipe=commissionRecipe(c.key,c.serial);let moves=0;while(!commissionSolved(recipe,v.commissions!.drafts[c.key]!.step)&&moves++<400){const hint=puzzleHint(recipe,v.commissions!.drafts[c.key]!.step);expect(hint).toBeDefined();v=actCommission(v,c.key,c.serial,hint!);}expect(moves).toBeGreaterThan(4);s=storeCloudTask(s,id,v);expect(claimCloudTask({...s,episodes:[]},id).reward).toBe(0);const r=claimCloudTask(s,id);expect(r.reward).toBe(500);expect(r.save.coins).toBe(1734);expect(r.save.commissions).toBe(original);expect(claimCloudTask(r.save,id).reward).toBe(0);expect(readCloudTasks(r.save.cloudTasks)[id]).toBeDefined();});
+ it('keeps old completed guests and places the midnight visitor after both guest arcs',()=>{expect(pendingArrival({...before('storm-arrival'),episodes:[...episodeIds]})).toBeUndefined();expect(visitorEligible(before('storm-arrival'))).toBe(false);expect(visitorEligible(before('pillow-bounce'))).toBe(false);expect(visitorEligible({...before('pillow-bounce'),episodes:[...episodeIds]})).toBe(true);expect(visitorEligible({...before('storm-arrival'),visitorEvent:{started:true}as any})).toBe(true);});
+});

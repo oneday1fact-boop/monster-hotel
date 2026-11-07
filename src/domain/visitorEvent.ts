@@ -13,8 +13,8 @@ export interface DispatchState{wave:0|1|2;switches:[number,number,number];parcel
 export interface VisitorEvent{version:1;started:boolean;completed:boolean;resolved:boolean;dispatch:DispatchState}
 export const freshDispatch=(wave:0|1|2=0):DispatchState=>({wave,switches:wave===1?[1,0,1]:wave===2?[0,1,0]:[1,1,1],parcels:[],next:0,spawnIn:0,running:false,returns:0});
 export const freshVisitor=(completed=false):VisitorEvent=>({version:1,started:false,completed,resolved:false,dispatch:freshDispatch()});
-/** The fourth active chapter is Reality / Dream, after check-in, laundry and luggage. */
-export function visitorEligible(save:Pick<Save,'completed'|'episodes'>){return save.completed.includes(1)&&(['cake-case','luggage-run','dream-door']as const).every(id=>save.episodes?.includes(id));}
+/** Midnight follows both newcomer arrivals; legacy started/completed events remain accessible. */
+export function visitorEligible(save:Pick<Save,'completed'|'episodes'|'visitorEvent'>){return save.completed.includes(1)&&(!!save.visitorEvent?.started||!!save.visitorEvent?.completed||(['storm-arrival','clockwork-guest','honey-pots','shadow-tea','pillow-bounce']as const).every(id=>save.episodes?.includes(id)));}
 const isNode=(n:unknown):n is DispatchNode=>typeof n==='string'&&n in dispatchNodes;
 const room=(n:unknown):n is VisitorRoom=>visitorRooms.includes(n as VisitorRoom);
 export function validDispatch(v:unknown):v is DispatchState{const s=v as DispatchState;if(!s||![0,1,2].includes(s.wave)||!Array.isArray(s.switches)||s.switches.length!==3||!s.switches.every(n=>n===0||n===1)||!Number.isInteger(s.next)||s.next<0||s.next>dispatchWaves[s.wave].length||!Array.isArray(s.parcels)||s.parcels.length!==s.next||typeof s.running!=='boolean'||!Number.isFinite(s.spawnIn)||s.spawnIn < -1||s.spawnIn>5||!Number.isSafeInteger(s.returns)||s.returns<0)return false;const ids=new Set<number>();
