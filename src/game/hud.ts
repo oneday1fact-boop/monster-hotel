@@ -4,7 +4,7 @@ import { icon, iconButton } from './icons';
 import { ui, type Locale } from '../i18n/catalog';
 import { campaignUI } from '../i18n/rules';
 import { hotelUI } from '../i18n/hotel';
-export function createHUD(options: { locale: Locale; setLocale:(locale:Locale)=>void; playing: boolean; night: number; settings: () => void; language: () => void; home: () => void; hint: () => void; clues: () => void; check: () => void; reset: () => void; skipTutorial: () => void }) {
+export function createHUD(options: { locale: Locale; setLocale:(locale:Locale)=>void; playing: boolean; night: number; settings: () => void; language: () => void; home: () => void; cover?: () => void; hint: () => void; clues: () => void; check: () => void; reset: () => void; skipTutorial: () => void }) {
   const t = ui[options.locale]; const c = campaignUI[options.locale];
   const root = document.createElement('nav'); root.className = 'game-hud'; root.setAttribute('aria-label', options.locale === 'en' ? 'Game controls' : '遊戲操作');
   // Keep overlay gestures out of Phaser's window-level mouse/touch listeners.
@@ -13,6 +13,7 @@ export function createHUD(options: { locale: Locale; setLocale:(locale:Locale)=>
   const left = document.createElement('div'); left.className = 'hud-cluster';
   if (options.playing) { const hint = iconButton('bulb', t.hint, options.hint); hint.dataset.action = 'hint'; left.append(iconButton('home', c.return, options.home), hint, iconButton('book', c.clues, options.clues)); }
   const right = document.createElement('div'); right.className = 'hud-cluster';
+  if(options.cover){const cover=iconButton('home',options.locale==='en'?'Return to cover':'返回封面',options.cover);cover.dataset.action='cover-home';right.append(cover);}
   right.append(languageToggle(options.locale,options.setLocale));
   right.append(iconButton('gear', hotelUI[options.locale].settings, options.settings));
   const badge = document.createElement('div'); badge.className = 'night-badge';

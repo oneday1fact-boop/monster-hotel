@@ -16,6 +16,16 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.25: a connected hotel and the midnight suitcase event
+
+The original rooms and paid wing now share one persistent world and resident simulation, joined by a painted glass gallery. Camera views pan and zoom this world; the same guests physically walk between owned rooms, using the actual stairs. Existing ownership, prices, coins, story progress and commission drafts remain intact.
+
+The opening room-assignment rule strip now has its own header space. The lobby replaces Cover with Earn coins, and moves Cover to a Home icon beside the language controls. The detective game and separate wing/map pages are retired; legacy reward records remain compatible.
+
+After the fourth active chapter, a hooded visitor arrives with a thirty-year-old room card. The midnight suitcase event is live parcel routing: three escalating batches, shared junction controls, ordered two-room deliveries, pause/step/slow controls and safe returns for wrong rooms. First completion earns 600 coins and a permanent hotel starlight lantern; replay cannot award again. Room Zero remains a future plot thread. See [rules, save behavior and actual previews](docs/connected-midnight.zh-Hant.md).
+
+`npm run review:record` now records the lobby change, opening room features, actual gallery travel, live deliveries and reward. Previous version sections below describe historical behavior.
+
 ## Version 1.24: repeatable hotel commissions and meaningful expansion savings
 
 My hotel now has an **Earn coins** entry; locked-room details also lead to jobs. Play sliding key mazes, denser 6×6 linen escape puzzles and shared dual-colour mirror beams in three difficulty ranks. The 72 solver-verified base layouts rotate between jobs, with later reflections. Free undo/redo/hints, independently saved drafts, stable animated puzzle actors and an explicit delivery action support repeat play without losing old story progress. Each successful new serial pays 320 / 480 / 720 coins once.

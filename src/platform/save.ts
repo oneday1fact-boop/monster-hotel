@@ -1,3 +1,4 @@
+import {readVisitorEvent,type VisitorEvent} from '../domain/visitorEvent';
 import {readCommissions,type Commissions} from '../domain/commissions';
 import {readTeaCase,type TeaCase} from '../domain/teaCase';
 import {isExpansion,type ExpansionId} from '../domain/hotelEstate';
@@ -12,6 +13,7 @@ export interface Save {
     coins: number;
     hotelRooms?: ExpansionId[];
     teaCase?: TeaCase;
+    visitorEvent?: VisitorEvent;
     commissions?: Commissions;
     photos?: {
         party?: PhotoState;
@@ -37,6 +39,7 @@ export function readSave(): Save {
             if (validPhoto(value.photos?.party) && photoSolved(value.photos.party))
                 save.photos = { party: { order: [...value.photos.party.order], poses: { ...value.photos.party.poses } } };
             const jobs=readCommissions(value.commissions);if(jobs)save.commissions=jobs;
+            const visitor=readVisitorEvent(value.visitorEvent);if(visitor)save.visitorEvent=visitor;
             const tea=readTeaCase(value.teaCase);if(tea)save.teaCase=tea;
             if (Array.isArray(value.hotelRooms)) save.hotelRooms=[...new Set<ExpansionId>(value.hotelRooms.filter(isExpansion))];
             if (Array.isArray(value.episodes))
