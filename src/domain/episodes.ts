@@ -10,16 +10,16 @@ export function accusation(clues: readonly EvidenceId[], suspect: string) {
 // A road tile has two ports: north=1, east=2, south=4, west=8.
 export const roadSize = 4;
 export const roadPorts = [10, 12, 5, 9, 3, 5, 10, 12, 3, 3, 10, 12, 5, 10, 3] as const;
-export const initialRoad = [4, 0, 2, 3, 8, 1, 6, 7, 12, 5, 10, 11, -1, 9, 13, 14] as const;
-export const roadReviewSolution = [8, 4, 0, 1, 5, 9, 13, 14] as const;
+export const initialRoad = [0, 1, 2, 3, 4, 9, 5, 7, 12, -1, 6, 11, 13, 8, 10, 14] as const;
+export const roadReviewSolution = [13, 12, 8, 9, 5, 6, 10, 14] as const;
 export const adjacentRoad = (a: number, b: number) => a >= 0 && a < 16 && b >= 0 && b < 16 && Math.abs(Math.floor(a / 4) - Math.floor(b / 4)) + Math.abs(a % 4 - b % 4) === 1;
 export function validRoad(board: unknown): board is number[] {
-    return Array.isArray(board) && board.length === 16 && new Set(board).size === 16 && board.every(n => Number.isInteger(n) && n >= -1 && n < 15);
+    return Array.isArray(board) && board.length === 16 && board[0] === 0 && new Set(board).size === 16 && board.every(n => Number.isInteger(n) && n >= -1 && n < 15);
 }
 /** Only a tile directly beside the single empty slot can slide. No rotations. */
 export function slideRoad(board: readonly number[], index: number): number[] {
     const next = [...board], blank = board.indexOf(-1);
-    if (validRoad(next) && adjacentRoad(index, blank)) {
+    if (validRoad(next) && index !== 0 && adjacentRoad(index, blank)) {
         next[blank] = next[index];
         next[index] = -1;
     }

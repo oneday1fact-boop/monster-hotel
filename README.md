@@ -16,6 +16,12 @@ npm run test:browser
 
 Browser tests use Chromium (system `/usr/bin/chromium` when available; otherwise run `npx playwright install chromium`). The suite builds and previews the production game on port 5175, or reuses an existing server there. For stable production-art reviews, build first and run `npm run preview -- --host 127.0.0.1 --port 5175 --strictPort`.
 
+## Version 1.20: playtest corrections
+
+My hotel now reserves narrow corridors and stair landings, schedules waiting residents fairly, and sorts guests by their visible feet. Locked attic and garden-wing markers open a preview of future expansion; purchases are not implemented. First-level portraits retain square proportions. Luggage has a fixed connected entrance, a revised eight-slide scramble and a spatial cross pad; other four-direction games use the same cross layout. Shadow play has a larger stage, five positions and three depths, with old drafts migrated. Pillow bounce uses actual surface-normal reflection and gravity with matching visible geometry, multiple valid trajectories and a first-bounce preview. All late chapter cover images load offline.
+
+See [Traditional Chinese playtest notes](docs/playtest-fixes-1-20.zh-Hant.md) for save compatibility and verification. Completed levels and currency remain unchanged; only old road drafts incompatible with the fixed entrance restart. Native Android frame rate still requires a device test.
+
 ## Version 1.19: My hotel — a living, full-screen dollhouse
 
 The lobby's primary **My hotel / 我的旅館** button opens an original full-bleed four-room hotel. Moon suite, rose tea lounge, ghost laundry and hearth lounge have distinct detailed interiors and a connected central stairwell. Tap rooms for closeups, drag a closeup to look around, follow a selected guest, or open the paginated resident roster. The closed attic is clearly marked as future content; expansion purchases and repeatable commissions are not implemented in this version.

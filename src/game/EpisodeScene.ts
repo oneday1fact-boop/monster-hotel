@@ -42,7 +42,7 @@ type Data = {
     onExit(save: Save, locale: Locale, destination?: 'lobby' | 'map' | 'next'): void;
 };
 type Draft = {
-    honey:HoneyState; shadow:ShadowBoard; shadowHistory:ShadowBoard[]; bounce:BounceConfig; bounceHistory:BounceConfig[]; bounceLast?:BounceConfig;
+    shadowVersion?:number; honey:HoneyState; shadow:ShadowBoard; shadowHistory:ShadowBoard[]; bounce:BounceConfig; bounceHistory:BounceConfig[]; bounceLast?:BounceConfig;
     clocks:ClockState;
     wind: WindState;
     clues: EvidenceId[];
@@ -62,7 +62,7 @@ type Draft = {
     lockGuesses: Rune[][];
     photo: PhotoState;
 };
-const fresh = (): Draft => ({ honey:freshHoney(),shadow:freshShadow(),shadowHistory:[],bounce:freshBounce(),bounceHistory:[], clocks:freshClocks(), wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
+const fresh = (): Draft => ({ shadowVersion:2,honey:freshHoney(),shadow:freshShadow(),shadowHistory:[],bounce:freshBounce(),bounceHistory:[], clocks:freshClocks(), wind:freshWind(), clues: [], roadPast: [], roadFuture: [], echo: freshEcho(), camera: [], road: [...initialRoad], found: [], lift: {}, mirrors: [...initialMirrors], parcels: [], laundry: [...initialLaundry], timeline: [...initialTimeline], pipes: [...initialPipes], mail: {}, scent: initialScent.map(b => [...b]), scentHistory: [], lockInput: [null, null, null], lockGuesses: [], photo: freshPhoto() });
 export class EpisodeScene extends Phaser.Scene {
     private dataIn!: Data;
     private state = fresh();
@@ -105,8 +105,8 @@ export class EpisodeScene extends Phaser.Scene {
             const d = JSON.parse(raw ?? 'null');
             if (d) {
                 if(validHoney(d.honey))this.state.honey=d.honey;
-                if(validShadow(d.shadow))this.state.shadow=d.shadow;
-                if(Array.isArray(d.shadowHistory)&&d.shadowHistory.length<=40&&d.shadowHistory.every(validShadow))this.state.shadowHistory=d.shadowHistory;
+                if(validShadow(d.shadow)&&(d.shadowVersion===2||d.shadow.every((v:number)=>v<6)))this.state.shadow=d.shadowVersion===2?d.shadow:d.shadow.map((v:number)=>Math.floor(v/3)*10+(v%3)*2);
+                if(Array.isArray(d.shadowHistory)&&d.shadowHistory.length<=40&&d.shadowHistory.every((s:unknown)=>validShadow(s)&&(d.shadowVersion===2||s.every(v=>v<6))))this.state.shadowHistory=d.shadowVersion===2?d.shadowHistory:d.shadowHistory.map((s:number[])=>s.map(v=>Math.floor(v/3)*10+(v%3)*2));
                 if(validBounce(d.bounce))this.state.bounce=d.bounce;
                 if(validBounce(d.bounceLast))this.state.bounceLast=d.bounceLast;
                 if(Array.isArray(d.bounceHistory)&&d.bounceHistory.length<=40&&d.bounceHistory.every(validBounce))this.state.bounceHistory=d.bounceHistory;
@@ -323,8 +323,9 @@ export class EpisodeScene extends Phaser.Scene {
             });
             b.dataset.tile = String(i);
             b.dataset.roadTile = String(tile);
-            b.className = `road-tile ${tile < 0 ? 'road-blank' : ''}`;
-            b.setAttribute('aria-label', tile < 0 ? this.t('空位', 'Empty slot') : this.t(`第 ${i + 1} 格路磚`, `Road tile at position ${i + 1}`));
+            b.className = `road-tile ${tile < 0 ? 'road-blank' : ''}${i===0?' road-fixed':''}`;
+            if(i===0)b.disabled=true;
+            b.setAttribute('aria-label', i===0 ? this.t('固定入口路磚','Fixed entrance tile') : tile < 0 ? this.t('空位', 'Empty slot') : this.t(`第 ${i + 1} 格路磚`, `Road tile at position ${i + 1}`));
             if (tile >= 0) {
                 const ports = [1, 2, 4, 8].filter(p => roadPorts[tile] & p);
                 const d = `M${points[ports[0]]} L50 50 L${points[ports[1]]}`;
@@ -349,8 +350,10 @@ export class EpisodeScene extends Phaser.Scene {
         board.append(start, goal);
         stage.append(board);
         const note = document.createElement('p');
-        note.textContent = this.t('每塊路磚唔會旋轉，只有空位旁邊嘅一塊可以滑動。路口要真正相接先行到。', 'Tiles do not rotate. Slide one neighboring tile into the gap. Road ends must actually meet.');
+        note.textContent = this.t('左上入口固定。撳相鄰路磚，或用十字掣移動空位；可以隨時撤回。', 'The top-left entrance is fixed. Tap adjacent tiles or move the gap with the cross pad. Undo freely.');
         const undo=this.button(this.t('撤回','Undo'),()=>{const previous=this.state.roadPast.pop();if(previous){this.state.roadFuture.push([...this.state.road]);this.state.road=previous;this.persist();this.render();}});undo.dataset.action='undo-road';undo.disabled=!this.state.roadPast.length;const redo=this.button(this.t('重做','Redo'),()=>{const next=this.state.roadFuture.pop();if(next){this.state.roadPast=[...this.state.roadPast.slice(-511),[...this.state.road]];this.state.road=next;this.persist();this.render();}});redo.dataset.action='redo-road';redo.disabled=!this.state.roadFuture.length;const history=document.createElement('div');history.className='road-history';history.append(undo,redo);panel.append(note,history);
+        const pad=document.createElement('div');pad.className='road-direction-pad game-dpad';pad.setAttribute('aria-label',this.t('移動空位','Move the empty slot'));
+        for(const [d,label,delta] of [['up','↑',-4],['left','←',-1],['right','→',1],['down','↓',4]] as const){const b=this.button(label,()=>{const at=this.state.road.indexOf(-1)+delta;board.querySelector<HTMLButtonElement>(`[data-tile="${at}"]`)?.click();});b.dataset.direction=d;b.dataset.roadMove=d;b.setAttribute('aria-label',this.t('空位向','Move gap ')+this.t({up:'上',left:'左',right:'右',down:'下'}[d],d));const at=this.state.road.indexOf(-1)+delta;b.disabled=at===0||at<0||at>=16||Math.abs(Math.floor(at/4)-Math.floor(this.state.road.indexOf(-1)/4))+Math.abs(at%4-this.state.road.indexOf(-1)%4)!==1;pad.append(b);}panel.append(pad);
         const go = this.button(this.t('行李出發！', 'Send luggage!'), () => {
             const path = roadPath(this.state.road);
             if (!path.length) {

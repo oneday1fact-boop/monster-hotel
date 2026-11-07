@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { challenges, challengeUnlocked, nextChallenge, afterChallenge, challengeProgress, completeEpisode } from '../src/domain/campaign';
-import { episodeIds, accusation, evidenceIds, initialRoad, roadReviewSolution, slideRoad, roadPath, validRoad, differences, markDifference, differencesComplete } from '../src/domain/episodes';
+import { episodeIds, accusation, evidenceIds, initialRoad, roadReviewSolution, slideRoad, roadPath, roadPorts, validRoad, differences, markDifference, differencesComplete } from '../src/domain/episodes';
 import { complete, readSave, type Save } from '../src/platform/save';
 import { buyScene, ownedScenes } from '../src/domain/sceneryShop';
 import { decorations, purchase } from '../src/domain/decorations';
@@ -32,6 +32,7 @@ it('requires connected reciprocal road ends; the authored scramble has an author
     expect(board.filter(x => x === -1)).toHaveLength(1);
     expect(roadPath([0, 2, 5, 4, 1, -1, 3, 7, 6])).toEqual([]);
 });
+it('the entrance remains fixed even beside the gap and all authored slides remain reversible',()=>{const b=[...initialRoad];[b[1],b[b.indexOf(-1)]]=[-1,b[1]];expect(slideRoad(b,0)).toEqual(b);expect(b[0]).toBe(0);expect(roadPorts[0]&8).toBe(8);});
 it('comparison only counts five authored regions, once each, and never random background taps', () => {
     let found = markDifference([], 'unknown');
     expect(found).toEqual([]);

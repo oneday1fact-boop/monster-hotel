@@ -80,10 +80,10 @@ export function roomFrame(scene: Phaser.Scene, key: string): string {
 }
 export function reducedMotion(): boolean { return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false; }
 export function portrait(kind: Guest['kind']): HTMLElement {
-  const index = guestFrames.indexOf(kind); const image = document.createElement('div'); image.className = 'guest-portrait';
+  const image = document.createElement('div'); image.className = 'guest-portrait';
   image.setAttribute('role', 'img'); image.setAttribute('aria-label', kind);
-  if (kind === 'fox' || kind === 'baku') { image.style.backgroundImage = `url('/art/${kind}-poses.png')`; image.style.backgroundSize = '200% 200%'; image.style.backgroundPosition = 'left top'; return image; }
-  image.style.backgroundPosition = `${index % 2 ? 87.5 : 12.5}% ${index >= 2 ? 87.5 : 12.5}%`;
+  image.style.backgroundImage = `url('/art/${kind}-poses.png')`;
+  image.style.backgroundSize = '200% 200%'; image.style.backgroundPosition = 'left top';
   return image;
 }
 

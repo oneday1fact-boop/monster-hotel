@@ -34,11 +34,11 @@ export function laundryWidget(stage: HTMLElement, panel: HTMLElement, ui: UI, st
     note.textContent = ui.t('先點物件，再按箭嘴。橫放只可左右移，直放只可上下移；每次一格，唔可以穿過其他物件。', 'Select an item, then an arrow. Horizontal items slide left/right; vertical items up/down. One cell per move, with no overlap.');
     panel.append(note);
     const controls = document.createElement('div');
-    controls.className = 'laundry-controls';
+    controls.className = 'laundry-controls game-dpad';
     const item = laundryPieces[selected];
     for (const [label, d, axis] of [['←', -1, 'h'], ['→', 1, 'h'], ['↑', -1, 'v'], ['↓', 1, 'v']] as const) {
         const b = ui.button(label, () => { const next = slideLaundry(state, selected, d), moved = next.some((n, i) => n !== state[i]); update(next, moved ? ui.t('留意出口前面嘅空間。', 'Plan the space in front of the exit.') : ui.t('呢邊有物件擋住，先騰出空間。', 'Something blocks that direction. Make space first.')); });
-        b.dataset.slide = label;
+        b.dataset.slide = label; b.dataset.direction = axis==='h'?(d<0?'left':'right'):(d<0?'up':'down');
         b.disabled = item.axis !== axis;
         controls.append(b);
     }

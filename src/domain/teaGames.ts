@@ -21,29 +21,38 @@ export function honeyHint(s:HoneyPosition):TeaDirection|undefined{
  if(!validPosition(s)||honeySolved(s))return;const queue=[{...s,first:undefined as TeaDirection|undefined}],key=(s:HoneyPosition)=>`${s.at}:${[...s.pots].sort((a,b)=>a-b)}`,seen=new Set([key(s)]);
  for(let i=0;i<queue.length;i++)for(const d of teaDirections){const n=stepHoney(queue[i],d),first=queue[i].first??d;if(honeySolved(n))return first;const k=key(n);if(!seen.has(k)){seen.add(k);queue.push({...n,first});}}
 }
-/** Each prop has 3 horizontal snaps and 2 depth tracks. Targets are rendered from these same projections. */
+/** Five horizontal positions and three real projection depths; saved v1 boards migrate in the scene. */
 export type ShadowBoard=number[];
-export const shadowTarget=[4,1,3];
+export const shadowTarget=[12,2,10];
 export const freshShadow=()=>[0,0,0];
-export function validShadow(s:unknown):s is ShadowBoard{return Array.isArray(s)&&s.length===3&&s.every(n=>Number.isInteger(n)&&n>=0&&n<6);}
-export function shadowProjection(prop:number,value:number){return {x:18+(value%3)*30+(prop-1)*4,y:64+(Math.floor(value/3)?2:-7),scale:Math.floor(value/3)?1:1.5};}
+export function validShadow(s:unknown):s is ShadowBoard{return Array.isArray(s)&&s.length===3&&s.every(n=>Number.isInteger(n)&&n>=0&&n<15);}
+export function shadowProjection(prop:number,value:number){return {x:18+(value%5)*15+(prop-1)*4,y:57+Math.floor(value/5)*4.5,scale:1.5-Math.floor(value/5)*.25};}
 export const shadowSolved=(s:ShadowBoard)=>validShadow(s)&&s.every((n,i)=>n===shadowTarget[i]);
 export type BounceConfig={direction:number;power:number;pillows:number[]};
 export const freshBounce=():BounceConfig=>({direction:1,power:1,pillows:[0,0]});
 export function validBounce(v:unknown):v is BounceConfig{const s=v as BounceConfig;return !!s&&Number.isInteger(s.direction)&&s.direction>=0&&s.direction<6&&Number.isInteger(s.power)&&s.power>=0&&s.power<3&&Array.isArray(s.pillows)&&s.pillows.length===2&&s.pillows.every(n=>Number.isInteger(n)&&n>=0&&n<3);}
 export const bouncePads=[{x:210,y:220},{x:370,y:220}];
-export const bounceBells=[{x:280,y:210},{x:455,y:245}];
+export const bounceBells=[{x:280,y:145},{x:455,y:165}];
 export const bounceBasket={x:540,y:275};
 export type BallFrame={x:number;y:number;mask:number;pad:number};
-/** Fixed 120Hz integration; presentation samples the returned trajectory, never changes its outcome. */
+export const bounceRadius=9;
+export const bounceHalfWidth=48;
+export const bouncePadAngle=(setting:number)=>-25+setting*15;
+/** Specular reflection in the cushion's visible normal. No aiming at a hidden destination or resetting speed. */
+export function reflectBounce(vx:number,vy:number,angle:number){const a=angle*Math.PI/180,nx=Math.sin(a),ny=-Math.cos(a),vn=vx*nx+vy*ny;return {vx:vx-2*vn*nx,vy:vy-2*vn*ny};}
+/** Fixed 120Hz swept surface contact. Artwork and physics share the same angle, width and radius. */
 export function simulateBounce(s:BounceConfig):{frames:BallFrame[];won:boolean;mask:number}{
  if(!validBounce(s))return {frames:[],won:false,mask:0};
- const angle=(-64+s.direction*6)*Math.PI/180,speed=220+s.power*35,dt=1/120;let x=55,y=255,vx=Math.cos(angle)*speed,vy=Math.sin(angle)*speed,mask=0,padMask=0,cooldown=0;const frames:BallFrame[]=[];
+ const angle=(-64+s.direction*6)*Math.PI/180,speed=230+s.power*15,dt=1/120;let x=55,y=255,vx=Math.cos(angle)*speed,vy=Math.sin(angle)*speed,mask=0,padMask=0;const frames:BallFrame[]=[];
  for(let i=0;i<1200;i++){
-  x+=vx*dt;vy+=250*dt;y+=vy*dt;cooldown--;let pad=-1;
-  for(let j=0;j<2;j++){const p=bouncePads[j];if(cooldown<=0&&vy>0&&Math.abs(x-p.x)<32&&Math.abs(y-p.y)<10){const a=((j===0?-35:-5)+s.pillows[j]*15)*Math.PI/180;const v=300;vx=Math.cos(a)*v;vy=Math.sin(a)*v;y=p.y-11;cooldown=18;pad=j;padMask|=1<<j;}}
-  bounceBells.forEach((b,j)=>{if(Math.hypot(x-b.x,y-b.y)<22)mask|=1<<j;});frames.push({x,y,mask,pad});
-  if(vy>0&&Math.abs(x-bounceBasket.x)<27&&Math.abs(y-bounceBasket.y)<18)return {frames,won:mask===3&&padMask===3,mask};
+  const oldX=x,oldY=y;vy+=250*dt;x+=vx*dt;y+=vy*dt;let pad=-1;
+  for(let j=0;j<2;j++){const p=bouncePads[j],a=bouncePadAngle(s.pillows[j])*Math.PI/180,tx=Math.cos(a),ty=Math.sin(a),nx=ty,ny=-tx;
+   const before=(oldX-p.x)*nx+(oldY-p.y)*ny,dist=(x-p.x)*nx+(y-p.y)*ny,along=(x-p.x)*tx+(y-p.y)*ty,vn=vx*nx+vy*ny;
+   if(before>=bounceRadius&&dist<=bounceRadius&&Math.abs(along)<bounceHalfWidth&&vn<0){x+=nx*(bounceRadius-dist);y+=ny*(bounceRadius-dist);({vx,vy}=reflectBounce(vx,vy,bouncePadAngle(s.pillows[j])));pad=j;padMask|=1<<j;}
+  }
+  bounceBells.forEach((b,j)=>{if(Math.hypot(x-b.x,y-b.y)<34)mask|=1<<j;});frames.push({x,y,mask,pad});
+  // Catch only while crossing the visible basket mouth downwards, never on a near pass.
+  if(vy>0&&oldY<bounceBasket.y-6&&y>=bounceBasket.y-6&&Math.abs(x-bounceBasket.x)<40)return {frames,won:mask===3&&padMask===3,mask};
   if(y>335||x>615||x<0)break;
  }
  return {frames,won:false,mask};
